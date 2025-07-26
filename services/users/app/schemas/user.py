@@ -1,0 +1,22 @@
+from pydantic import BaseModel, EmailStr
+from .customer import Customer
+
+
+class UserBase(BaseModel):
+    name: str
+    email: EmailStr
+    role: str
+    customer_id: str
+
+
+class UserCreate(UserBase):
+    class Config:
+        extra = "ignore"  # 👈 Ignore unexpected fields like `id`
+
+
+class User(UserBase):
+    id: str
+    customer: Customer | None = None
+
+    class Config:
+        orm_mode = True
