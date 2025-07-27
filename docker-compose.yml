@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  users:
+    build:
+      context: .
+      dockerfile: services/users/Dockerfile
+    container_name: users-service
+    ports:
+      - "8000:8000" # FastAPI
+      - "5678:5678"     # Debugpy
+    volumes:
+      - ./shared:/app/shared:ro
+      - ./services/users:/app
+    environment:
+      - PYTHONPATH=/app

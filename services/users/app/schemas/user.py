@@ -3,7 +3,8 @@ from .customer import Customer
 
 
 class UserBase(BaseModel):
-    name: str
+    first_name: str
+    last_name: str
     email: EmailStr
     role: str
     customer_id: str
@@ -18,5 +19,4 @@ class User(UserBase):
     id: str
     customer: Customer | None = None
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}

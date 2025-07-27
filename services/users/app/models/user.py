@@ -9,7 +9,8 @@ class UserModel(Base):
     __tablename__ = "users"
 
     id = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    first_name = Column(String, nullable=False, server_default="")
+    last_name = Column(String, nullable=False, server_default="")
     email = Column(String, unique=True, index=True, nullable=False)
     role = Column(String, nullable=False)
     customer_id = Column(String, ForeignKey("customers.id"), nullable=False)
