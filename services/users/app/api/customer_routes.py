@@ -17,6 +17,11 @@ def get_db():
         db.close()
 
 
+@router.get("/customers/", response_model=list[Customer])
+def list_customers(db: Session = Depends(get_db)):
+    return db.query(CustomerModel).all()
+
+
 @router.post("/customers/", response_model=Customer)
 def create_customer(customer: Customer, db: Session = Depends(get_db)):
     customer.id = str(uuid4())

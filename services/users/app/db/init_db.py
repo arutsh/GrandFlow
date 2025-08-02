@@ -1,5 +1,5 @@
 # /services/users/app/db/init_db.py
-from ..models import UserModel, CustomerModel  # ⚠️ Forces model evaluation
+from ..models import UserModel, CustomerModel, SessionModel  # ⚠️ Forces model evaluation
 from ..models.base import Base
 from .session import engine
 
