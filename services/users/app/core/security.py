@@ -37,5 +37,12 @@ def hash_token(token: str) -> str:
     return pwd_context.hash(token)
 
 
+def decode_token(token: str) -> dict:
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.PyJWTError:
+        return {}
+
+
 def verify_token_hash(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
