@@ -4,7 +4,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, validates
 from datetime import datetime, timedelta, timezone
 from .user import Base
-from ..core.security import ACCESS_TOKEN_EXPIRE_MINUTES
+from app.utils.security import ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 class SessionModel(Base):

@@ -14,3 +14,16 @@ services:
       - ./services/users:/app
     environment:
       - PYTHONPATH=/app
+  budget:
+    build:
+      context: .
+      dockerfile: services/budget/Dockerfile
+    container_name: budget-service
+    ports:
+      - "8001:8000"       # FastAPI (internal 8000)
+      - "5679:5678"       # Debugpy
+    volumes:
+      - ./shared:/app/shared:ro
+      - ./services/budget:/app
+    environment:
+      - PYTHONPATH=/app

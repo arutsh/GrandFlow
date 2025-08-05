@@ -22,7 +22,7 @@
     {
       // Use this configuration to attach to a running FastAPI service in Docker
       // Ensure the service is started with debugpy enabled (see main.py)
-      "name": "Attach to FastAPI (Docker)",
+      "name": "Attach to Users service (Docker)",
       "type": "debugpy",
       "request": "attach",
       "connect": {
@@ -32,6 +32,24 @@
       "pathMappings": [
         {
           "localRoot": "${workspaceFolder}/services/users",
+          "remoteRoot": "/app"
+        }
+      ],
+      "justMyCode": false
+    },
+    {
+      // Use this configuration to attach to a running FastAPI service in Docker
+      // Ensure the service is started with debugpy enabled (see main.py)
+      "name": "Attach to Budget service (Docker)",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5679
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/services/budget",
           "remoteRoot": "/app"
         }
       ],

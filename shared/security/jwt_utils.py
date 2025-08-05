@@ -37,11 +37,14 @@ def hash_token(token: str) -> str:
     return pwd_context.hash(token)
 
 
-def decode_token(token: str) -> dict:
+def decode_access_token(token: str):
     try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise ValueError("Token expired")
     except jwt.PyJWTError:
-        return {}
+        raise ValueError("Invalid token")
 
 
 def verify_token_hash(plain: str, hashed: str) -> bool:

@@ -12,6 +12,7 @@ def create_country_enum():
 CountryEnum = create_country_enum()
 COUNTRY_NAMES = {c.alpha_2: c.name for c in pycountry.countries}
 
+
 class CustomerType(str, Enum):
     donor = "donor"
     ngo = "ngo"
