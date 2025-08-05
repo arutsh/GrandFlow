@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
-from ..schemas.customer import Customer
+from ..schemas.customer_schema import Customer
 from ..models.customer import CustomerModel
 from ..db.session import SessionLocal
 

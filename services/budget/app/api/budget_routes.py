@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from ..db.session import SessionLocal
 from ..models.budget import BudgetModel, BudgetLineModel
-from ..schemas.budget import Budget
+from ..schemas.budget_schema import Budget
 from app.utils.security import get_current_user
 
 router = APIRouter()
