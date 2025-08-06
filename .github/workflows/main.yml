@@ -15,29 +15,29 @@ jobs:
         service: [users, budget]
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-    - name: Install dependencies for ${{ matrix.service }}
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r services/${{ matrix.service }}/requirements.txt
+      - name: Install dependencies for ${{ matrix.service }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r services/${{ matrix.service }}/requirements.txt
 
-    - name: Run tests for ${{ matrix.service }}
-      working-directory: ./services/${{ matrix.service }}
-      run: |
-        # Add your test command here, e.g. pytest
-        echo "Add tests here"
+      - name: Run tests for ${{ matrix.service }}
+        working-directory: ./services/${{ matrix.service }}
+        run: |
+          # Add your test command here, e.g. pytest
+          echo "Add tests here"
 
-    - name: Lint ${{ matrix.service }}
-      run: |
-        pip install black mypy flake8
-        black --check ./services/${{ matrix.service }}/app
-        mypy ./services/${{ matrix.service }}/app
-        flake8 ./services/${{ matrix.service }}/app
-      env:
-        PYTHONPATH: ./services/${{ matrix.service }}/app
+      - name: Lint ${{ matrix.service }}
+        working-directory: ./services/${{ matrix.service }}
+        run: |
+          pip install black mypy flake8
+          export PYTHONPATH=$(pwd)/app:$(pwd)/../../../shared
+          black --check ./services/${{ matrix.service }}/app
+          mypy ./services/${{ matrix.service }}/app
+          flake8 ./services/${{ matrix.service }}/app
