@@ -4,9 +4,9 @@ from uuid import uuid4
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from ..schemas.auth_schema import RegisterRequest, LoginRequest, TokenResponse
-from ..models import UserModel, SessionModel
-from ..db.session import SessionLocal
+from app.schemas.auth_schema import RegisterRequest, LoginRequest, TokenResponse
+from app.models import UserModel, SessionModel
+from app.db.session import SessionLocal
 from app.utils.security import (
     hash_password,
     verify_password,

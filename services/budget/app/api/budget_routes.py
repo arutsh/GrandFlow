@@ -3,9 +3,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
-from ..db.session import SessionLocal
-from ..models.budget import BudgetModel, BudgetLineModel
-from ..schemas.budget_schema import Budget
+from app.db.session import SessionLocal
+from app.models.budget import BudgetModel, BudgetLineModel
+from app.schemas.budget_schema import Budget
 from app.utils.security import get_current_user
 
 router = APIRouter()

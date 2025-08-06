@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from .customer_schema import Customer
+from app.schemas.customer_schema import Customer
 
 
 class UserBase(BaseModel):

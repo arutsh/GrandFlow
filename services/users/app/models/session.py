@@ -3,7 +3,7 @@ from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, validates
 from datetime import datetime, timedelta, timezone
-from .user import Base
+from app.models.user import Base
 from app.utils.security import ACCESS_TOKEN_EXPIRE_MINUTES
 
 
