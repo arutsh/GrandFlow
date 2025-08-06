@@ -39,3 +39,5 @@ jobs:
         black --check ./services/${{ matrix.service }}/app
         mypy ./services/${{ matrix.service }}/app
         flake8 ./services/${{ matrix.service }}/app
+      env:
+        PYTHONPATH: ./services/${{ matrix.service }}/app
