@@ -38,6 +38,9 @@ jobs:
         run: |
           pip install black mypy flake8
           export PYTHONPATH=$(pwd)/app:$(pwd)/../../../shared
+          echo "Black checking ${{ matrix.service }}"
           black --check ./app
+          echo "Mypy checking ${{ matrix.service }}"
           mypy ./app
+          echo "Flake8 checking ${{ matrix.service }}"
           flake8 ./app
