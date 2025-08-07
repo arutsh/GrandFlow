@@ -7,9 +7,7 @@ CURRENCIES = {
     currency.alpha_3: {
         "code": currency.alpha_3,
         "name": currency.name,
-        "symbol": (
-            "$" if currency.alpha_3 in ["USD", "CAD", "AUD"] else ""
-        ),  # Simplified
+        "symbol": ("$" if currency.alpha_3 in ["USD", "CAD", "AUD"] else ""),  # Simplified
     }
     for currency in pycountry.currencies
 }
@@ -20,9 +18,7 @@ def validate_currency(code: str) -> bool:
 
 
 def get_currency_info(code: str) -> dict:
-    return CURRENCIES.get(
-        code.upper(), {"code": code.upper(), "name": "Unknown", "symbol": ""}
-    )
+    return CURRENCIES.get(code.upper(), {"code": code.upper(), "name": "Unknown", "symbol": ""})
 
 
 def get_currency_code(name: str) -> str:
@@ -33,9 +29,7 @@ def get_currency_code(name: str) -> str:
 
 
 def get_currency_by_code(code: str) -> dict:
-    return CURRENCIES.get(
-        code.upper(), {"code": code.upper(), "name": "Unknown", "symbol": ""}
-    )
+    return CURRENCIES.get(code.upper(), {"code": code.upper(), "name": "Unknown", "symbol": ""})
 
 
 def get_currency_by_name(name: str) -> dict:
@@ -58,9 +52,7 @@ def get_currency_dict() -> dict:
 
 
 def get_currency_details(code: str) -> dict:
-    return CURRENCIES.get(
-        code.upper(), {"code": code.upper(), "name": "Unknown", "symbol": ""}
-    )
+    return CURRENCIES.get(code.upper(), {"code": code.upper(), "name": "Unknown", "symbol": ""})
 
 
 def get_currency_details_by_name(name: str) -> dict:
@@ -135,9 +127,7 @@ def get_currency_info_by_symbol(symbol: str) -> dict:
 
 
 def get_currency_info_by_code(code: str) -> dict:
-    return CURRENCIES.get(
-        code.upper(), {"code": code.upper(), "name": "Unknown", "symbol": ""}
-    )
+    return CURRENCIES.get(code.upper(), {"code": code.upper(), "name": "Unknown", "symbol": ""})
 
 
 def get_currency_info_by_name(name: str) -> dict:
@@ -212,10 +202,7 @@ def get_currency_info_by_name_or_code_or_symbol(value: str) -> dict:
 
 def get_currency_info_by_code_and_name(code: str, name: str) -> dict:
     for currency in CURRENCIES.values():
-        if (
-            currency["code"].upper() == code.upper()
-            and currency["name"].lower() == name.lower()
-        ):
+        if currency["code"].upper() == code.upper() and currency["name"].lower() == name.lower():
             return currency
     return {"code": "Unknown", "name": name, "symbol": ""}
 
@@ -234,9 +221,7 @@ def get_currency_info_by_name_and_symbol(name: str, symbol: str) -> dict:
     return {"code": "Unknown", "name": name, "symbol": symbol}
 
 
-def get_currency_info_by_code_and_name_and_symbol(
-    code: str, name: str, symbol: str
-) -> dict:
+def get_currency_info_by_code_and_name_and_symbol(code: str, name: str, symbol: str) -> dict:
     for currency in CURRENCIES.values():
         if (
             currency["code"].upper() == code.upper()
@@ -263,17 +248,12 @@ def get_currency_info_by_symbol_and_code(symbol: str, code: str) -> dict:
 
 def get_currency_info_by_name_and_code(name: str, code: str) -> dict:
     for currency in CURRENCIES.values():
-        if (
-            currency["name"].lower() == name.lower()
-            and currency["code"].upper() == code.upper()
-        ):
+        if currency["name"].lower() == name.lower() and currency["code"].upper() == code.upper():
             return currency
     return {"code": "Unknown", "name": name, "symbol": "Unknown"}
 
 
-def get_currency_info_by_name_and_symbol_and_code(
-    name: str, symbol: str, code: str
-) -> dict:
+def get_currency_info_by_name_and_symbol_and_code(name: str, symbol: str, code: str) -> dict:
     for currency in CURRENCIES.values():
         if (
             currency["name"].lower() == name.lower()
@@ -284,9 +264,7 @@ def get_currency_info_by_name_and_symbol_and_code(
     return {"code": "Unknown", "name": name, "symbol": symbol}
 
 
-def get_currency_info_by_symbol_and_name_and_code(
-    symbol: str, name: str, code: str
-) -> dict:
+def get_currency_info_by_symbol_and_name_and_code(symbol: str, name: str, code: str) -> dict:
     for currency in CURRENCIES.values():
         if (
             currency["symbol"] == symbol
@@ -304,10 +282,7 @@ def get_currency_info_by_code_and_name_and_symbol_or_code(
         if (
             currency["code"].upper() == code.upper()
             and currency["name"].lower() == name.lower()
-            and (
-                currency["symbol"] == symbol
-                or currency["code"].upper() == symbol.upper()
-            )
+            and (currency["symbol"] == symbol or currency["code"].upper() == symbol.upper())
         ):
             return currency
     return {"code": "Unknown", "name": name, "symbol": symbol}
@@ -321,8 +296,7 @@ def get_currency_info_by_name_and_symbol_and_code_or_name(
             currency["name"].lower() == name.lower()
             and currency["symbol"] == symbol
             and (
-                currency["code"].upper() == code.upper()
-                or currency["name"].lower() == code.lower()
+                currency["code"].upper() == code.upper() or currency["name"].lower() == code.lower()
             )
         ):
             return currency
@@ -350,8 +324,7 @@ def get_currency_info_by_code_and_symbol_and_name_or_code(
             currency["code"].upper() == code.upper()
             and currency["symbol"] == symbol
             and (
-                currency["name"].lower() == name.lower()
-                or currency["code"].upper() == name.upper()
+                currency["name"].lower() == name.lower() or currency["code"].upper() == name.upper()
             )
         ):
             return currency
@@ -391,10 +364,7 @@ def get_currency_info_by_code_and_name_and_symbol_or_symbol(
         if (
             currency["code"].upper() == code.upper()
             and currency["name"].lower() == name.lower()
-            and (
-                currency["symbol"] == symbol
-                or currency["code"].upper() == symbol.upper()
-            )
+            and (currency["symbol"] == symbol or currency["code"].upper() == symbol.upper())
         ):
             return currency
     return {"code": "Unknown", "name": name, "symbol": symbol}

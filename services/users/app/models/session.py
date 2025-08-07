@@ -15,8 +15,7 @@ class SessionModel(Base):
     issued_at = Column(DateTime, default=func.now())
     expires_at = Column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc)
-        + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+        default=lambda: datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     )
     revoked = Column(Boolean, default=False)
     refresh_token_hash = Column(String, nullable=True)

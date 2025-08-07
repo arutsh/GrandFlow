@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_serializer
-from datetime import datetime, timezone
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 

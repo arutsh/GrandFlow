@@ -1,6 +1,5 @@
 # /services/users/app/models/user.py
 from sqlalchemy import Column, String, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 
@@ -16,6 +15,4 @@ class UserModel(Base):
     hashed_password = Column(String, nullable=True)  # TODO convert to nullbale=False
     customer_id = Column(String, ForeignKey("customers.id"), nullable=False)
     customer = relationship("CustomerModel", lazy="joined")
-    sessions = relationship(
-        "SessionModel", back_populates="user", cascade="all, delete-orphan"
-    )
+    sessions = relationship("SessionModel", back_populates="user", cascade="all, delete-orphan")

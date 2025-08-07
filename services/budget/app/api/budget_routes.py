@@ -20,13 +20,9 @@ def get_db():
 
 
 @router.post("/budgets/")
-def create_budget(
-    budget: Budget, db: Session = Depends(get_db), user=Depends(get_current_user)
-):
+def create_budget(budget: Budget, db: Session = Depends(get_db), user=Depends(get_current_user)):
     budget_id = str(uuid4())
-    db_budget = BudgetModel(
-        id=budget_id, name=budget.name, customer_id=budget.customer_id
-    )
+    db_budget = BudgetModel(id=budget_id, name=budget.name, customer_id=budget.customer_id)
     db.add(db_budget)
     db.commit()
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import uuid4
 from datetime import datetime, timedelta
@@ -93,7 +93,7 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 @router.post("/auth/refresh", response_model=TokenResponse)
 def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
 
-    session = db.query(SessionModel).filter(SessionModel.revoked == False).all()
+    session = db.query(SessionModel).filter(SessionModel.revoked.is_(False)).all()
 
     for s in session:
         # Session model always has naive datetime, assume UTC

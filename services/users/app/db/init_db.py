@@ -1,9 +1,10 @@
 # /services/users/app/db/init_db.py
-from app.models import (
-    UserModel,
-    CustomerModel,
-    SessionModel,
-)  # ⚠️ Forces model evaluation
+# ⚠️ Forces model evaluation
+from app.models import UserModel  # noqa: F401
+from app.models import CustomerModel  # noqa: F401
+from app.models import SessionModel  # noqa: F401
+
+
 from app.models.base import Base
 from app.db.session import engine
 
