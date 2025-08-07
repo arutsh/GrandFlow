@@ -398,16 +398,3 @@ def get_currency_info_by_code_and_name_and_symbol_or_symbol(
         ):
             return currency
     return {"code": "Unknown", "name": name, "symbol": symbol}
-
-
-def get_currency_info_by_name_and_symbol_and_code_or_symbol(
-    name: str, symbol: str, code: str
-) -> dict:
-    for currency in CURRENCIES.values():
-        if (
-            currency["name"].lower() == name.lower()
-            and currency["symbol"] == symbol
-            and (currency["code"].upper() == code.upper() or currency["symbol"] == code)
-        ):
-            return currency
-    return {"code": "Unknown", "name": name, "symbol": symbol}
