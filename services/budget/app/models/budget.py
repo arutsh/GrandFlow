@@ -1,6 +1,6 @@
 # /services/budget/app/models/budget.py
 
-from sqlalchemy import Column, String, ForeignKey, Float
+from sqlalchemy import Column, String, ForeignKey, Float, JSON
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -23,5 +23,7 @@ class BudgetLineModel(Base):
     budget_id = Column(String, ForeignKey("budgets.id"), nullable=False)
     description = Column(String)
     amount = Column(Float)
+    # extra_fields is intended to store additional arbitrary data related to the budget line, such as custom attributes or metadata.
+    extra_fields = Column(JSON, nullable=True, default=dict)
 
     budget = relationship("BudgetModel", back_populates="lines")

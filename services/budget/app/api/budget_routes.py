@@ -37,3 +37,17 @@ def create_budget(budget: Budget, db: Session = Depends(get_db), user=Depends(ge
     db.commit()
 
     return {"id": budget_id, "status": "created"}
+
+
+@router.get("/budgets/{budget_id}", response_model=Budget)
+def get_budget(budget_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    budget = db.query(BudgetModel).filter(BudgetModel.id == budget_id).first()
+    if not budget:
+        return {"error": "Budget not found"}
+    return budget
+
+
+@router.get("/budgets/")
+def get_budgets(db: Session = Depends(get_db), user=Depends(get_current_user)):
+    budgets = db.query(BudgetModel).all()
+    return budgets
