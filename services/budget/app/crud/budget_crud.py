@@ -3,6 +3,7 @@ from app.models.budget import BudgetModel
 from app.services.customer_client import validate_customer_type
 from uuid import uuid4
 
+
 def create_budget(session: Session, name: str, ngo_id: str, donor_id: str) -> BudgetModel:
     """
     Create a budget after validating NGO and Donor IDs.

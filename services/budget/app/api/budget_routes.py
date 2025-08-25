@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from uuid import uuid4
 
 from app.db.session import SessionLocal
-from app.models.budget import BudgetModel, BudgetLineModel
+from app.models.budget import BudgetLineModel
 from app.schemas.budget_schema import Budget
 from app.utils.security import get_current_user
 from app.crud.budget_crud import create_budget, get_budget, list_budgets
@@ -41,8 +41,10 @@ def create_budget_endpoint(
 
 
 @router.get("/budgets/{budget_id}", response_model=Budget)
-def get_budget(budget_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    budget = db.query(BudgetModel).filter(BudgetModel.id == budget_id).first()
+def get_budget_endpoint(
+    budget_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)
+):
+    budget = get_budget(db, budget_id)
     if not budget:
         return {"error": "Budget not found"}
     return budget

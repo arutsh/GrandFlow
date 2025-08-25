@@ -1,13 +1,12 @@
 # /services/budget/app/api/budget_routes.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from uuid import uuid4
 
 from typing import List
 
 from app.db.session import SessionLocal
 from app.models.budget import BudgetLineModel
-from app.schemas.budget_schema import BudgetLine, BudgetLinesResponse
+from app.schemas.budget_schema import BudgetLine
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/budget-lines", tags=["Budget Lines"])

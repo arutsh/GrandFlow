@@ -1,7 +1,7 @@
 # /services/budget/app/models/budget.py
 
-from sqlalchemy import Column, String, ForeignKey, Float, JSON, CheckConstraint
-from sqlalchemy.orm import relationship
+from sqlalchemy import String, ForeignKey, Float, JSON
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from app.models.base import Base
 
@@ -9,21 +9,25 @@ from app.models.base import Base
 class BudgetModel(Base):
     __tablename__ = "budgets"
 
-    id = Column(String, primary_key=True, index=True)
-    ngo_id = Column(String, nullable=False)
-    donor_id = Column(String, nullable=False)
-    name = Column(String, nullable=False)
-    lines = relationship("BudgetLineModel", back_populates="budget")
+    id: Mapped[str] = mapped_column(String, primary_key=True, index=True)
+    ngo_id: Mapped[str] = mapped_column(String, nullable=False)
+    donor_id: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+
+    lines: Mapped[list["BudgetLineModel"]] = relationship(
+        "BudgetLineModel", back_populates="budget"
+    )
 
 
 class BudgetLineModel(Base):
     __tablename__ = "budget_lines"
 
-    id = Column(String, primary_key=True, index=True)
-    budget_id = Column(String, ForeignKey("budgets.id"), nullable=False)
-    description = Column(String)
-    amount = Column(Float)
-    # extra_fields is intended to store additional arbitrary data related to the budget line, such as custom attributes or metadata.
-    extra_fields = Column(JSON, nullable=True, default=dict)
+    id: Mapped[str] = mapped_column(String, primary_key=True, index=True)
+    budget_id: Mapped[str] = mapped_column(String, ForeignKey("budgets.id"), nullable=False)
+    description: Mapped[str | None] = mapped_column(String, nullable=True)
+    amount: Mapped[float | None] = mapped_column(Float, nullable=True)
 
-    budget = relationship("BudgetModel", back_populates="lines")
+    # store arbitrary metadata (JSON column, default empty dict)
+    extra_fields: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=dict)
+
+    budget: Mapped["BudgetModel"] = relationship("BudgetModel", back_populates="lines")
