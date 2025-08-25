@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 from uuid import uuid4
 
 from app.db.session import SessionLocal
-from app.models.budget import BudgetModel, BudgetLineModel
+from app.models.budget import BudgetLineModel
 from app.schemas.budget_schema import Budget
 from app.utils.security import get_current_user
+from app.crud.budget_crud import create_budget, get_budget, list_budgets
 
 router = APIRouter()
 
@@ -20,28 +21,30 @@ def get_db():
 
 
 @router.post("/budgets/")
-def create_budget(budget: Budget, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    budget_id = str(uuid4())
-    db_budget = BudgetModel(id=budget_id, name=budget.name, customer_id=budget.customer_id)
-    db.add(db_budget)
-    db.commit()
+def create_budget_endpoint(
+    budget: Budget, db: Session = Depends(get_db), user=Depends(get_current_user)
+):
+
+    db_budget = create_budget(db, budget.name, budget.ngo_id, budget.donor_id)
 
     for line in budget.lines:
         db_line = BudgetLineModel(
             id=str(uuid4()),
-            budget_id=budget_id,
+            budget_id=db_budget.id,
             description=line.description,
             amount=line.amount,
         )
         db.add(db_line)
     db.commit()
 
-    return {"id": budget_id, "status": "created"}
+    return {"id": db_budget.id, "status": "created"}
 
 
 @router.get("/budgets/{budget_id}", response_model=Budget)
-def get_budget(budget_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    budget = db.query(BudgetModel).filter(BudgetModel.id == budget_id).first()
+def get_budget_endpoint(
+    budget_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)
+):
+    budget = get_budget(db, budget_id)
     if not budget:
         return {"error": "Budget not found"}
     return budget
@@ -49,5 +52,4 @@ def get_budget(budget_id: str, db: Session = Depends(get_db), user=Depends(get_c
 
 @router.get("/budgets/")
 def get_budgets(db: Session = Depends(get_db), user=Depends(get_current_user)):
-    budgets = db.query(BudgetModel).all()
-    return budgets
+    return list_budgets(db)

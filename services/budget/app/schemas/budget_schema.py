@@ -19,9 +19,10 @@ class BudgetLinesResponse(BaseModel):
 
 class Budget(BaseModel):
     id: str
-    budget_id: str
+    # budget_id: str
     name: str
-    customer_id: str
+    ngo_id: str
+    donor_id: str
     lines: list[BudgetLine]
 
     model_config = ConfigDict(from_attributes=True)
