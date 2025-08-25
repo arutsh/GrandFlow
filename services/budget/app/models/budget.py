@@ -1,6 +1,6 @@
 # /services/budget/app/models/budget.py
 
-from sqlalchemy import Column, String, ForeignKey, Float, JSON
+from sqlalchemy import Column, String, ForeignKey, Float, JSON, CheckConstraint
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -10,9 +10,9 @@ class BudgetModel(Base):
     __tablename__ = "budgets"
 
     id = Column(String, primary_key=True, index=True)
-    customer_id = Column(String, nullable=False)
+    ngo_id = Column(String, nullable=False)
+    donor_id = Column(String, nullable=False)
     name = Column(String, nullable=False)
-
     lines = relationship("BudgetLineModel", back_populates="budget")
 
 

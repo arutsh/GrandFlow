@@ -5,6 +5,10 @@ from app.models.budget import Base
 from app.db.session import engine
 
 from fastapi.openapi.utils import get_openapi
+import debugpy
+
+debugpy.listen(("0.0.0.0", 5680))
+print("✅ VS Code debugger is listening on port 5680")
 
 Base.metadata.create_all(bind=engine)
 
