@@ -1,11 +1,12 @@
 # /services/budget/app/schemas/budget.py
 from pydantic import BaseModel, ConfigDict
 from typing import Optional, Dict, Any, List
+from uuid import UUID
 
 
 class BudgetLine(BaseModel):
-    id: str
-    budget_id: str
+    id: UUID
+    budget_id: UUID
     description: str
     amount: float
     extra_fields: Optional[Dict[str, Any]] = None
@@ -18,11 +19,11 @@ class BudgetLinesResponse(BaseModel):
 
 
 class Budget(BaseModel):
-    id: str
-    # budget_id: str
+    id: UUID
+    # budget_id: UUID
     name: str
-    ngo_id: str
-    donor_id: str
+    ngo_id: UUID
+    donor_id: UUID
     lines: list[BudgetLine]
 
     model_config = ConfigDict(from_attributes=True)

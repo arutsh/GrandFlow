@@ -1,7 +1,9 @@
 # /services/budget/app/models/budget.py
 
+import uuid
 from sqlalchemy import String, ForeignKey, Float, JSON
 from sqlalchemy.orm import relationship, Mapped, mapped_column
+from app.utils.type_decorators import GUID
 
 from app.models.base import Base
 
@@ -9,9 +11,14 @@ from app.models.base import Base
 class BudgetModel(Base):
     __tablename__ = "budgets"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, index=True)
-    ngo_id: Mapped[str] = mapped_column(String, nullable=False)
-    donor_id: Mapped[str] = mapped_column(String, nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(
+        GUID(),
+        primary_key=True,
+        index=True,
+        default=lambda: str(uuid.uuid4()),  # auto-generate UUID4
+    )
+    ngo_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False)
+    donor_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
 
     lines: Mapped[list["BudgetLineModel"]] = relationship(
@@ -22,8 +29,10 @@ class BudgetModel(Base):
 class BudgetLineModel(Base):
     __tablename__ = "budget_lines"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, index=True)
-    budget_id: Mapped[str] = mapped_column(String, ForeignKey("budgets.id"), nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(
+        GUID(), primary_key=True, index=True, default=lambda: uuid.uuid4()
+    )
+    budget_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("budgets.id"), nullable=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     amount: Mapped[float | None] = mapped_column(Float, nullable=True)
 
