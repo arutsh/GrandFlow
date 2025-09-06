@@ -45,6 +45,7 @@ pure_eval==0.2.3
 pyasn1==0.6.1
 pycountry==24.6.1
 pydantic==2.11.7
+pydantic-settings==2.10.1
 pydantic_core==2.33.2
 Pygments==2.19.2
 python-dateutil==2.9.0.post0
