@@ -1,8 +1,9 @@
 import requests
+from app.core.config import settings
 from functools import lru_cache
 import uuid
 
-CUSTOMER_SERVICE_URL = "http://users-service:8000/customers/"
+CUSTOMER_SERVICE_URL = settings.customer_service_url
 
 
 class CustomerServiceError(Exception):

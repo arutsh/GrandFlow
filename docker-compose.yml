@@ -38,9 +38,10 @@ services:
     volumes:
       - ./shared:/app/shared:ro
       - ./services/users:/app
+    env_file:
+      - ./services/users/.env.users.dev
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+psycopg2://users:users_pass@users-db:5432/users_db
     depends_on:
       - users-db
 
@@ -55,9 +56,10 @@ services:
     volumes:
       - ./shared:/app/shared:ro
       - ./services/budget:/app
+    env_file:
+      - ./services/budget/.env.budget.dev
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+psycopg2://budget:budget_pass@budget-db:5432/budget_db
     depends_on:
       - budget-db
 
@@ -72,10 +74,10 @@ services:
     volumes:
       - ./shared:/app/shared:ro
       - ./services/users:/app
+    env_file:
+      - ./services/users/.env.users.dev
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+psycopg2://users:users_pass@users-db:5432/users_db
-
   budget-migrations:
     build:
       context: .
@@ -87,9 +89,10 @@ services:
     volumes:
       - ./shared:/app/shared:ro
       - ./services/budget:/app
+    env_file:
+      - ./services/budget/.env.budget.dev
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+psycopg2://budget:budget_pass@budget-db:5432/budget_db
 
 volumes:
   users_data:
