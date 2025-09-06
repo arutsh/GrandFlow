@@ -1,5 +1,4 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # services/users/app/core
@@ -15,7 +14,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=ENV_FILE, case_sensitive=False)
 
 
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]
 print(f"Base dir: {BASE_DIR}")
 print(f"settings.users_database_url: {settings.users_database_url}")
 print(f"settings.debug: {settings.debug}")
