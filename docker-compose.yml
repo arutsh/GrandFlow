@@ -42,3 +42,4 @@ services:
       - ./services/budget:/app
     environment:
       - PYTHONPATH=/app
+

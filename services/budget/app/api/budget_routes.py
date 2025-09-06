@@ -25,7 +25,7 @@ def create_budget_endpoint(
     budget: Budget, db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
 
-    db_budget = create_budget(db, budget.name, budget.ngo_id, budget.donor_id)
+    db_budget = create_budget(db, budget.name, budget.ngo_id, budget.donor_id, user["user_id"])
 
     for line in budget.lines:
         db_line = BudgetLineModel(
