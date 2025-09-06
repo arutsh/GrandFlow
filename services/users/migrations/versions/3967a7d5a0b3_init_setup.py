@@ -1,8 +1,8 @@
-"""updateing model id to be filled with uuid auto
+"""init setup
 
-Revision ID: 9f2088bca40c
+Revision ID: 3967a7d5a0b3
 Revises: 
-Create Date: 2025-08-26 16:58:33.566156
+Create Date: 2025-09-06 14:49:40.599761
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '9f2088bca40c'
+revision: str = '3967a7d5a0b3'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
