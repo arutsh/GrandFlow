@@ -3,20 +3,21 @@
 import uuid
 from sqlalchemy import String, ForeignKey, Float, JSON
 from sqlalchemy.orm import relationship, Mapped, mapped_column
-from app.utils.type_decorators import GUID
+from app.utils.db import GUID
 
 from app.models.base import Base
+from shared.db.audit_mixin import AuditMixin
 
 
-class BudgetModel(Base):
+class BudgetModel(Base, AuditMixin):
     __tablename__ = "budgets"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        GUID(),
-        primary_key=True,
-        index=True,
-        default=lambda: str(uuid.uuid4()),  # auto-generate UUID4
-    )
+    # id: Mapped[uuid.UUID] = mapped_column(
+    #     GUID(),
+    #     primary_key=True,
+    #     index=True,
+    #     default=lambda: str(uuid.uuid4()),  # auto-generate UUID4
+    # )
     ngo_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False)
     donor_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
