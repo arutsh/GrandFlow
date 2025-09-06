@@ -9,7 +9,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    env:
+      USERS_DATABASE_URL: ${{ secrets.USERS_DATABASE_URL }}
+      BUDGET_DATABASE_URL: ${{ secrets.BUDGET_DATABASE_URL }}
+      CUSTOMER_SERVICE_URL: ${{ secrets.CUSTOMER_SERVICE_URL }}
     strategy:
       matrix:
         service: [users, budget]
