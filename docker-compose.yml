@@ -1,6 +1,32 @@
 version: "3.9"
 
 services:
+  users-db:
+    image: postgres:15
+    container_name: users-db
+    restart: always
+    environment:
+      POSTGRES_USER: users
+      POSTGRES_PASSWORD: users_pass
+      POSTGRES_DB: users_db
+    ports:
+      - "5433:5432"   # host:container
+    volumes:
+      - users_data:/var/lib/postgresql/data
+
+  budget-db:
+    image: postgres:15
+    container_name: budget-db
+    restart: always
+    environment:
+      POSTGRES_USER: budget
+      POSTGRES_PASSWORD: budget_pass
+      POSTGRES_DB: budget_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - budget_data:/var/lib/postgresql/data
+
   users:
     build:
       context: .
@@ -14,6 +40,9 @@ services:
       - ./services/users:/app
     environment:
       - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+psycopg2://users:users_pass@users-db:5432/users_db
+    depends_on:
+      - users-db
 
   budget:
     build:
@@ -21,13 +50,31 @@ services:
       dockerfile: services/budget/Dockerfile
     container_name: budget-service
     ports:
-      - "8001:8000"   # FastAPI (internal 8000)
+      - "8001:8000"   # FastAPI
       - "5680:5680"   # Debugpy
     volumes:
       - ./shared:/app/shared:ro
       - ./services/budget:/app
     environment:
       - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+psycopg2://budget:budget_pass@budget-db:5432/budget_db
+    depends_on:
+      - budget-db
+
+  users-migrations:
+    build:
+      context: .
+      dockerfile: services/users/Dockerfile
+    container_name: users-migrations
+    command: alembic upgrade head
+    depends_on:
+      - users-db
+    volumes:
+      - ./shared:/app/shared:ro
+      - ./services/users:/app
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+psycopg2://users:users_pass@users-db:5432/users_db
 
   budget-migrations:
     build:
@@ -36,10 +83,14 @@ services:
     container_name: budget-migrations
     command: alembic upgrade head
     depends_on:
-      - budget   # or your DB container if defined separately
+      - budget-db
     volumes:
       - ./shared:/app/shared:ro
       - ./services/budget:/app
     environment:
       - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+psycopg2://budget:budget_pass@budget-db:5432/budget_db
 
+volumes:
+  users_data:
+  budget_data:
