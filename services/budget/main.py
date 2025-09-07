@@ -13,8 +13,8 @@ print("✅ VS Code debugger is listening on port 5680")
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-app.include_router(budget_routes.router)
-app.include_router(budget_line_routes.router)
+app.include_router(budget_routes.router, prefix="/api")
+app.include_router(budget_line_routes.router, prefix="/api")
 
 
 def custom_openapi():

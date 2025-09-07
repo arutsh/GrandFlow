@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     debug: bool = True
     users_database_url: str
 
-    model_config = SettingsConfigDict(env_file=ENV_FILE, case_sensitive=False)
+    model_config = SettingsConfigDict(env_file=ENV_FILE, case_sensitive=False, extra="ignore")
 
 
 settings = Settings()  # type: ignore[call-arg]

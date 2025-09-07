@@ -5,10 +5,8 @@ services:
     image: postgres:15
     container_name: users-db
     restart: always
-    environment:
-      POSTGRES_USER: users
-      POSTGRES_PASSWORD: users_pass
-      POSTGRES_DB: users_db
+    env_file:
+      - ./services/users/.env.users.dev
     ports:
       - "5433:5432"   # host:container
     volumes:
@@ -18,10 +16,8 @@ services:
     image: postgres:15
     container_name: budget-db
     restart: always
-    environment:
-      POSTGRES_USER: budget
-      POSTGRES_PASSWORD: budget_pass
-      POSTGRES_DB: budget_db
+    env_file:
+      - ./services/budget/.env.budget.dev
     ports:
       - "5434:5432"
     volumes:
