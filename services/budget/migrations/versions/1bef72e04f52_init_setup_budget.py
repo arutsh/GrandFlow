@@ -1,8 +1,8 @@
-"""creating new AuditMixin
+"""init setup budget
 
-Revision ID: 052d75844324
-Revises: b48f65c75af9
-Create Date: 2025-08-27 17:14:55.335712
+Revision ID: 1bef72e04f52
+Revises: 
+Create Date: 2025-09-07 16:09:23.523822
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '052d75844324'
-down_revision: Union[str, Sequence[str], None] = 'b48f65c75af9'
+revision: str = '1bef72e04f52'
+down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
