@@ -12,12 +12,12 @@ from shared.db.audit_mixin import AuditMixin
 class BudgetModel(Base, AuditMixin):
     __tablename__ = "budgets"
 
-    # id: Mapped[uuid.UUID] = mapped_column(
-    #     GUID(),
-    #     primary_key=True,
-    #     index=True,
-    #     default=lambda: str(uuid.uuid4()),  # auto-generate UUID4
-    # )
+    id: Mapped[uuid.UUID] = mapped_column(
+        GUID(),
+        primary_key=True,
+        index=True,
+        default=lambda: str(uuid.uuid4()),  # auto-generate UUID4
+    )
     ngo_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False)
     donor_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)

@@ -90,6 +90,11 @@ services:
     environment:
       - PYTHONPATH=/app
 
+  redis:
+    image: redis:7-alpine
+    container_name: grandflow-redis
+    ports:
+      - "6379:6379"
 volumes:
   users_data:
   budget_data:

@@ -1,6 +1,6 @@
 # /services/budget/app/main.py
 from fastapi import FastAPI
-from app.api import budget_routes, budget_line_routes
+from app.api import budget_routes, budget_line_routes, mapping_routes
 from app.models.budget import Base
 from app.db.session import engine
 
@@ -15,6 +15,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 app.include_router(budget_routes.router, prefix="/api")
 app.include_router(budget_line_routes.router, prefix="/api")
+app.include_router(mapping_routes.router, prefix="/api")
 
 
 def custom_openapi():

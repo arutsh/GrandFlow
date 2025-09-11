@@ -12,7 +12,8 @@ class Settings(BaseSettings):
 
     # Service URLs
     customer_service_url: str
-
+    REDIS_URL: str
+    OPENAI_API_KEY: str | None = None
     # Databases
     budget_database_url: str
 
@@ -24,3 +25,5 @@ print(f"Base dir: {BASE_DIR}")
 print(f"settings.debug: {settings.debug}")
 print(f"settings.budget_database_url: {settings.budget_database_url}")
 print(f"settings.customer_service_url: {settings.customer_service_url}")
+print(f"settings.REDIS_URL: {settings.REDIS_URL}")
+print(f"settings.OPENAI_API_KEY: {'set' if settings.OPENAI_API_KEY else 'not set'}")
