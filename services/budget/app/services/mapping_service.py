@@ -12,6 +12,7 @@ REDIS_URL = settings.REDIS_URL
 if REDIS_URL:
     try:
         import redis
+
         redis_client = redis.from_url(REDIS_URL)
     except Exception:
         redis_client = None
@@ -23,6 +24,7 @@ use_openai = False
 if OPENAI_API_KEY:
     try:
         from openai import OpenAI
+
         openai_client = OpenAI(api_key=OPENAI_API_KEY)
         use_openai = True
     except Exception:
@@ -58,9 +60,11 @@ def _embedding(text: str) -> List[float]:
 
     if use_openai:
         # text-embedding-3-small is cost-effective for this use
-        emb = openai_client.embeddings.create(
-            model="text-embedding-3-small", input=text
-        ).data[0].embedding
+        emb = (
+            openai_client.embeddings.create(model="text-embedding-3-small", input=text)
+            .data[0]
+            .embedding
+        )
     else:
         # Fallback: character frequency vector (very rough) just to keep code runnable
         vec = np.zeros(128, dtype=float)
@@ -95,9 +99,7 @@ def suggest_mapping(ngo_fields: List[str], donor_fields: List[str]) -> List[Dict
             match = difflib.get_close_matches(nf, donor_fields, n=1, cutoff=0.0)
             best = match[0] if match else donor_fields[0]
             conf = difflib.SequenceMatcher(a=nf.lower(), b=best.lower()).ratio()
-            suggestions.append(
-                {"ngo_field": nf, "donor_field": best, "confidence": round(conf, 3)}
-            )
+            suggestions.append({"ngo_field": nf, "donor_field": best, "confidence": round(conf, 3)})
         return suggestions
 
     # With embeddings
@@ -110,7 +112,5 @@ def suggest_mapping(ngo_fields: List[str], donor_fields: List[str]) -> List[Dict
             score = _cosine(nf_vec, dv)
             if score > best_score:
                 best_field, best_score = df, score
-        out.append(
-            {"ngo_field": nf, "donor_field": best_field, "confidence": round(best_score, 3)}
-        )
+        out.append({"ngo_field": nf, "donor_field": best_field, "confidence": round(best_score, 3)})
     return out
