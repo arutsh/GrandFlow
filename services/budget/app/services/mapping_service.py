@@ -1,5 +1,4 @@
 from __future__ import annotations
-import os
 import json
 import difflib
 from typing import List, Dict, Optional

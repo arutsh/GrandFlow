@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 from typing import List
 
 # from app.db.session import get_db
@@ -77,12 +78,16 @@ def list_fields(template_id: int, db: Session = Depends(get_db), user=Depends(ge
 # --- AI suggestions ---
 @router.post("/suggest", response_model=MappingResponse)
 def suggest(payload: MappingRequest, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    donor_fields = (
-        db.query(DonorFieldModel.field_name)
-        .filter(DonorFieldModel.donor_template_id == payload.donor_template_id)
+    donor_fields = list(
+        db.execute(
+            select(DonorFieldModel.field_name).where(
+                DonorFieldModel.donor_template_id == payload.donor_template_id
+            )
+        )
+        .scalars()
         .all()
     )
-    donor_fields = [row[0] for row in donor_fields]
+    # donor_fields = [row[0] for row in donor_fields]
     suggestions = suggest_mapping(payload.ngo_fields, donor_fields)
     return MappingResponse(suggestions=[MappingSuggestion(**s) for s in suggestions])
 
