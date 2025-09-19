@@ -7,12 +7,24 @@ from app.db.session import engine
 from fastapi.openapi.utils import get_openapi
 import debugpy
 
+from fastapi.middleware.cors import CORSMiddleware
+
+
 debugpy.listen(("0.0.0.0", 5680))
 print("✅ VS Code debugger is listening on port 5680")
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(budget_routes.router, prefix="/api")
 app.include_router(budget_line_routes.router, prefix="/api")
 app.include_router(mapping_routes.router, prefix="/api")

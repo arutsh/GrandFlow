@@ -89,7 +89,19 @@ services:
       - ./services/budget/.env.budget.dev
     environment:
       - PYTHONPATH=/app
-
+  frontend:
+      build:
+        context: ./frontend-typescript
+        dockerfile: Dockerfile
+      container_name: frontend
+      ports:
+        - "3000:3000"
+      environment:
+        - VITE_API_BASE=http://localhost:8001/api
+      volumes:
+        - ./frontend-typescript:/app
+        - /app/node_modules
+      command: npm run dev
   redis:
     image: redis:7-alpine
     container_name: grandflow-redis
