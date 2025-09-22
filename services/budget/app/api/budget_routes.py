@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from app.db.session import SessionLocal
 from app.models.budget import BudgetLineModel
-from app.schemas.budget_schema import Budget
+from app.schemas.budget_schema import Budget, BudgetCreate
 from app.utils.security import get_current_user
 from app.crud.budget_crud import create_budget, get_budget, list_budgets
 
@@ -22,7 +22,7 @@ def get_db():
 
 @router.post("/budgets/")
 def create_budget_endpoint(
-    budget: Budget, db: Session = Depends(get_db), user=Depends(get_current_user)
+    budget: BudgetCreate, db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
 
     db_budget = create_budget(db, budget.name, budget.ngo_id, budget.donor_id, user["user_id"])

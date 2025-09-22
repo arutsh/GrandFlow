@@ -32,10 +32,11 @@ def list_budgets(session: Session, limit: int = 100):
 
 def update_budget_name(session: Session, budget_id: str, new_name: str) -> BudgetModel | None:
     budget = get_budget(session, budget_id)
-    if budget:
-        budget.name = new_name
-        session.commit()
-        session.refresh(budget)
+    if not budget:
+        return None
+    budget.name = new_name
+    session.commit()
+    session.refresh(budget)
     return budget
 
 
