@@ -11,6 +11,7 @@ from app.crud.budget_line_crud import (
     list_budget_lines,
     update_budget_line,
 )
+from uuid import UUID
 
 router = APIRouter(prefix="/budget-lines", tags=["Budget Lines"])
 
@@ -44,14 +45,14 @@ def create_budget_line_view(
 
 @router.get("/by-budget/{budget_id}", response_model=List[BudgetLine])
 def get_budget_lines_by_budget_view(
-    budget_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)
+    budget_id: UUID, db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
     return list_budget_lines(db, budget_id=budget_id)
 
 
 @router.get("/{budget_line_id}", response_model=BudgetLine)
 def get_budget_line_view(
-    budget_line_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)
+    budget_line_id: UUID, db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
     budget_line = get_budget_line(db, budget_line_id)
     if not budget_line:
@@ -61,7 +62,7 @@ def get_budget_line_view(
 
 @router.put("/{budget_line_id}", response_model=BudgetLine)
 def update_budget_line_view(
-    budget_line_id: str,
+    budget_line_id: UUID,
     budget_line: BudgetLineCreate,
     db: Session = Depends(get_db),
     user=Depends(get_current_user),

@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from uuid import uuid4, UUID  # noqa: F401
 
 from app.db.session import SessionLocal
-from app.models.budget import BudgetLineModel
 from app.schemas.budget_schema import Budget, BudgetBase, BudgetCreate
 from app.utils.security import get_current_user
 from app.crud.budget_crud import create_budget, get_budget, list_budgets, update_budget
