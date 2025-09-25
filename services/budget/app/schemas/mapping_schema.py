@@ -3,30 +3,38 @@ from typing import List
 from pydantic import BaseModel, Field
 
 
-class DonorTemplateCreate(BaseModel):
+# Donor Template Schemas
+class DonorTemplateBase(BaseModel):
     name: str = Field(min_length=2)
 
 
-class DonorTemplate(BaseModel):
+class DonorTemplateCreate(DonorTemplateBase):
+    pass
+
+
+class DonorTemplate(DonorTemplateBase):
     id: int
-    name: str
 
     model_config = {"from_attributes": True}
 
 
-class DonorFieldCreate(BaseModel):
+# Donor Field Schemas
+class DonorFieldBase(BaseModel):
     donor_template_id: int
     field_name: str = Field(min_length=1)
 
 
-class DonorField(BaseModel):
+class DonorFieldCreate(DonorFieldBase):
+    pass
+
+
+class DonorField(DonorFieldBase):
     id: int
-    donor_template_id: int
-    field_name: str
 
     model_config = {"from_attributes": True}
 
 
+# NGO Mapping Schemas
 class MappingSuggestion(BaseModel):
     ngo_field: str
     donor_field: str
@@ -42,18 +50,18 @@ class MappingResponse(BaseModel):
     suggestions: List[MappingSuggestion]
 
 
-class NgoMappingCreate(BaseModel):
+class NgoMappingBase(BaseModel):
     ngo_id: str
     ngo_field: str
     donor_field_id: int
     confidence: float
 
 
-class NgoMapping(BaseModel):
+class NgoMappingCreate(NgoMappingBase):
+    pass
+
+
+class NgoMapping(NgoMappingBase):
     id: int
-    ngo_id: str
-    ngo_field: str
-    donor_field_id: int
-    confidence: float
 
     model_config = {"from_attributes": True}

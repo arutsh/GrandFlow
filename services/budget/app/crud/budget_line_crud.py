@@ -2,44 +2,56 @@ from sqlalchemy.orm import Session
 from app.models.budget import BudgetLineModel
 from uuid import UUID
 
+from app.schemas.budget_schema import BudgetLineCreate
+
 
 def create_budget_line(
     session: Session,
-    name: str,
     budget_id: UUID,
+    description: str,
+    amount: float,
+    extra_fields: dict | None = None,
 ) -> BudgetLineModel:
     """
     Create a budget line after validating NGO and Donor IDs.
     """
     # Validate external customer IDs
 
-    budget_line = BudgetLineModel(name=name, budget_id=budget_id)
+    budget_line = BudgetLineModel(
+        budget_id=budget_id, description=description, amount=amount, extra_fields=extra_fields
+    )
     session.add(budget_line)
     session.commit()
     session.refresh(budget_line)
     return budget_line
 
 
-def get_budget_line(session: Session, budget_line_id: str) -> BudgetLineModel | None:
+def get_budget_line(session: Session, budget_line_id: UUID) -> BudgetLineModel | None:
     return session.query(BudgetLineModel).filter(BudgetLineModel.id == budget_line_id).first()
 
 
-def list_budget_lines(session: Session, limit: int = 100):
-    return session.query(BudgetLineModel).limit(limit).all()
+def list_budget_lines(session: Session, budget_id: UUID | None = None, limit: int = 100):
+    query = session.query(BudgetLineModel)
+    if budget_id:
+        query = query.filter(BudgetLineModel.budget_id == budget_id)
+    return query.limit(limit).all()
 
 
-def update_budget_line_name(
-    session: Session, budget_line_id: str, new_name: str
+def update_budget_line(
+    session: Session, budget_line_id: UUID, budget_line: BudgetLineCreate
 ) -> BudgetLineModel | None:
-    budget_line = get_budget_line(session, budget_line_id)
-    if budget_line:
-        budget_line.name = new_name
-        session.commit()
-        session.refresh(budget_line)
-    return budget_line
+    existing_line = get_budget_line(session, budget_line_id)
+    if not existing_line:
+        return None
+    existing_line.description = budget_line.description
+    existing_line.amount = budget_line.amount
+    existing_line.extra_fields = budget_line.extra_fields
+    session.commit()
+    session.refresh(existing_line)
+    return existing_line
 
 
-def delete_budget_line(session: Session, budget_line_id: str) -> bool:
+def delete_budget_line(session: Session, budget_line_id: UUID) -> bool:
     budget_line = get_budget_line(session, budget_line_id)
     if budget_line:
         session.delete(budget_line)
