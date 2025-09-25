@@ -28,16 +28,6 @@ def get_budget_lines_view(db: Session = Depends(get_db), user=Depends(get_curren
     return list_budget_lines(db)
 
 
-@router.get("/{budget_line_id}", response_model=BudgetLine)
-def get_budget_line_view(
-    budget_line_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)
-):
-    budget_line = get_budget_line(db, budget_line_id)
-    if not budget_line:
-        return {"error": "Budget line not found"}
-    return budget_line
-
-
 @router.post("/", response_model=BudgetLine)
 def create_budget_line_view(
     budget_line: BudgetLineCreate, db: Session = Depends(get_db), user=Depends(get_current_user)
@@ -50,6 +40,23 @@ def create_budget_line_view(
         amount=budget_line.amount,
         extra_fields=budget_line.extra_fields,
     )
+
+
+@router.get("/by-budget/{budget_id}", response_model=List[BudgetLine])
+def get_budget_lines_by_budget_view(
+    budget_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)
+):
+    return list_budget_lines(db, budget_id=budget_id)
+
+
+@router.get("/{budget_line_id}", response_model=BudgetLine)
+def get_budget_line_view(
+    budget_line_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)
+):
+    budget_line = get_budget_line(db, budget_line_id)
+    if not budget_line:
+        return {"error": "Budget line not found"}
+    return budget_line
 
 
 @router.put("/{budget_line_id}", response_model=BudgetLine)

@@ -33,7 +33,6 @@ class BudgetBase(BaseModel):
     name: str
     ngo_id: UUID
     donor_id: UUID
-    lines: list[BudgetLine]
 
 
 class BudgetCreate(BudgetBase):
@@ -42,4 +41,5 @@ class BudgetCreate(BudgetBase):
 
 class Budget(BudgetBase):
     id: UUID
+    lines: list[BudgetLine] = []
     model_config = ConfigDict(from_attributes=True)

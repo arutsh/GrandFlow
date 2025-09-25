@@ -1,13 +1,13 @@
 # /services/budget/app/api/budget_routes.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from uuid import uuid4
+from uuid import uuid4, UUID  # noqa: F401
 
 from app.db.session import SessionLocal
 from app.models.budget import BudgetLineModel
-from app.schemas.budget_schema import Budget, BudgetCreate
+from app.schemas.budget_schema import Budget, BudgetBase, BudgetCreate
 from app.utils.security import get_current_user
-from app.crud.budget_crud import create_budget, get_budget, list_budgets
+from app.crud.budget_crud import create_budget, get_budget, list_budgets, update_budget
 
 router = APIRouter()
 
@@ -26,28 +26,41 @@ def create_budget_endpoint(
 ):
 
     db_budget = create_budget(db, budget.name, budget.ngo_id, budget.donor_id, user["user_id"])
+    # Will keep if later needed
+    # for line in budget.lines:
+    #     db_line = BudgetLineModel(
+    #         id=str(uuid4()),
+    #         budget_id=db_budget.id,
+    #         description=line.description,
+    #         amount=line.amount,
+    #     )
+    #     db.add(db_line)
+    # db.commit()
 
-    for line in budget.lines:
-        db_line = BudgetLineModel(
-            id=str(uuid4()),
-            budget_id=db_budget.id,
-            description=line.description,
-            amount=line.amount,
-        )
-        db.add(db_line)
-    db.commit()
-
-    return {"id": db_budget.id, "status": "created"}
+    return {"id": db_budget.id, "status": "created", "budget": db_budget}
 
 
 @router.get("/budgets/{budget_id}", response_model=Budget)
 def get_budget_endpoint(
-    budget_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)
+    budget_id: UUID, db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
     budget = get_budget(db, budget_id)
     if not budget:
         return {"error": "Budget not found"}
     return budget
+
+
+@router.put("/budgets/{budget_id}", response_model=Budget)
+def update_budget_endpoint(
+    budget_id: UUID,
+    budget: BudgetBase,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    updated_budget = update_budget(db, budget_id, budget)
+    if not updated_budget:
+        return {"error": "Budget not found"}
+    return updated_budget
 
 
 @router.get("/budgets/")
