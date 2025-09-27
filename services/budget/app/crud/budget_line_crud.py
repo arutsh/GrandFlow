@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from app.models.budget import BudgetLineModel
 from uuid import UUID
 
-from app.schemas.budget_schema import BudgetLineCreate
+from app.schemas import BudgetLineCreate
 
 
 def create_budget_line(

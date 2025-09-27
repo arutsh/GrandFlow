@@ -4,6 +4,7 @@ from functools import lru_cache
 import uuid
 
 CUSTOMER_SERVICE_URL = settings.customer_service_url
+CUSTOMER_TYPES = {"donor", "ngo"}
 
 
 class CustomerServiceError(Exception):

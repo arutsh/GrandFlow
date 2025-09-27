@@ -3,20 +3,23 @@ from app.models.budget import BudgetModel
 from app.services.customer_client import validate_customer_type
 from uuid import UUID
 
-from app.schemas.budget_schema import BudgetBase
+from app.schemas.budget_schema import BudgetBase, BudgetCreate
 
 
-def create_budget(
-    session: Session, name: str, ngo_id: UUID, donor_id: UUID, user_id: UUID
-) -> BudgetModel:
+def create_budget(session: Session, budget: BudgetCreate, user_id: UUID) -> BudgetModel:
     """
-    Create a budget after validating NGO and Donor IDs.
+    Create a budget after validating owner and funding customer IDs.
     """
     # Validate external customer IDs
-    validate_customer_type(ngo_id, "ngo")
-    validate_customer_type(donor_id, "donor")
+    validate_customer_type(budget.owner_id, "ngo")
+    if budget.funding_customer_id:
+        validate_customer_type(budget.funding_customer_id, "donor")
     budget = BudgetModel(
-        name=name, ngo_id=ngo_id, donor_id=donor_id, created_by=user_id, updated_by=user_id
+        name=budget.name,
+        owner_id=budget.owner_id,
+        funding_customer_id=budget.funding_customer_id,
+        created_by=user_id,
+        updated_by=user_id,
     )
     session.add(budget)
     session.commit()
@@ -47,11 +50,12 @@ def update_budget(session: Session, budget_id: UUID, new_budget: BudgetBase) -> 
     if not budget:
         return None
     # Validate external customer IDs
-    validate_customer_type(new_budget.ngo_id, "ngo")
-    validate_customer_type(new_budget.donor_id, "donor")
+    validate_customer_type(new_budget.owner_id, "ngo")
+    if new_budget.funding_customer_id:
+        validate_customer_type(new_budget.funding_customer_id, "donor")
     budget.name = new_budget.name
-    budget.ngo_id = new_budget.ngo_id
-    budget.donor_id = new_budget.donor_id
+    budget.owner_id = new_budget.owner_id
+    budget.funding_customer_id = new_budget.funding_customer_id
     session.commit()
     session.refresh(budget)
     return budget
