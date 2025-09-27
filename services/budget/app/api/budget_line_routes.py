@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
 from app.db.session import SessionLocal
-from app.schemas.budget_schema import BudgetLine, BudgetLineCreate
+from app.schemas import BudgetLine, BudgetLineCreate
 from app.utils.security import get_current_user
 from app.crud.budget_line_crud import (
     create_budget_line,

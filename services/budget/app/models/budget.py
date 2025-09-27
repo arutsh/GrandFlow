@@ -18,8 +18,9 @@ class BudgetModel(Base, AuditMixin):
         index=True,
         default=lambda: str(uuid.uuid4()),  # auto-generate UUID4
     )
-    ngo_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False)
-    donor_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False)
+    owner_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False)
+    funding_customer_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), nullable=True)
+    external_funder_name: Mapped[str | None] = mapped_column(String, nullable=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
 
     lines: Mapped[list["BudgetLineModel"]] = relationship(

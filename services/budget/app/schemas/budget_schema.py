@@ -1,38 +1,15 @@
 # /services/budget/app/schemas/budget.py
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, Dict, Any, List
 from uuid import UUID
-
-# Budget Line schema
-
-
-class BudgetLineBase(BaseModel):
-
-    budget_id: UUID
-    description: str
-    amount: float
-    extra_fields: Optional[Dict[str, Any]] = None
-
-
-class BudgetLineCreate(BudgetLineBase):
-    pass
-
-
-class BudgetLine(BudgetLineBase):
-    id: UUID
-
-    model_config = {"from_attributes": True}
-
-
-class BudgetLinesResponse(BaseModel):
-    budget_lines: List[BudgetLine]
+from app.schemas import BudgetLine
 
 
 # Budget Schemas
 class BudgetBase(BaseModel):
     name: str
-    ngo_id: UUID
-    donor_id: UUID
+    owner_id: UUID
+    funding_customer_id: UUID | None = None
+    external_funder_name: str | None = None
 
 
 class BudgetCreate(BudgetBase):

@@ -36,8 +36,8 @@ class NgoMappingModel(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     # Customer (NGO) id string/uuid from users-service JWT
-    ngo_id: Mapped[str] = mapped_column(String(64), index=True)
-    ngo_field: Mapped[str] = mapped_column(String(255), nullable=False)
+    owner_id: Mapped[str] = mapped_column(String(64), index=True)
+    owner_field: Mapped[str] = mapped_column(String(255), nullable=False)
 
     donor_field_id: Mapped[int] = mapped_column(
         ForeignKey("donor_fields.id", ondelete="CASCADE"), index=True
