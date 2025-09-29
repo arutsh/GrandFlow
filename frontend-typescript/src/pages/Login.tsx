@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { loginUser } from "@/api/usersApi";
 import { useNavigate } from "react-router-dom";
+import Button from "@/components/ui/Button";
 
 export default function Login() {
   const { isAuthenticated, login } = useAuth();
@@ -13,7 +14,6 @@ export default function Login() {
 
   // 🔹 Redirect to dashboard if already logged in
   useEffect(() => {
-    console.log("login  useEffect isAuthenticated = ", isAuthenticated);
     if (isAuthenticated) {
       navigate("/dashboard");
     }
@@ -31,7 +31,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-100">
+    <div className="flex h-screen items-center justify-center bg-slate-300">
       <form
         onSubmit={handleLogin}
         className="bg-white p-6 rounded-xl shadow-lg w-96"
@@ -60,12 +60,15 @@ export default function Login() {
           />
           Remember me
         </label>
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
-          Sign In
-        </button>
+        <Button type="submit" variant="primary">
+          Login
+        </Button>
+        <p className="text-center text-navy mt-4">
+          Don't have an account?{" "}
+          <a href="/register" className="text-blue hover:underline">
+            Register
+          </a>
+        </p>
       </form>
     </div>
   );

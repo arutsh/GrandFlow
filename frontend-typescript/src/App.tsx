@@ -1,8 +1,10 @@
 import { Routes, Route, Navigate, BrowserRouter } from "react-router-dom";
 import { useAuth, AuthProvider } from "./context/AuthContext";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./pages/Dashboard/Dashboard";
 import { JSX } from "react";
+import Register from "./pages/Register";
+import Onboarding from "./pages/OnBoarding";
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const { isAuthenticated } = useAuth();
@@ -15,6 +17,8 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route
             path="/dashboard"
             element={
