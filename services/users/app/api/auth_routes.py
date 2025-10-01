@@ -38,7 +38,7 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
     user = UserModel(
         id=str(uuid4()),
         email=req.email,
-        first_name=req.first_name,
+        first_name=req.first_name,  # safe, may be None
         last_name=req.last_name,
         role=req.role,
         customer_id=req.customer_id,
@@ -63,7 +63,7 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(session)
     token = create_access_token({"sub": user.id, "session_id": session.id})
 
-    return TokenResponse(access_token=token, refresh_token=refresh_token)
+    return TokenResponse(access_token=token, refresh_token=refresh_token, status=user.status)
 
 
 @router.post("/auth/login", response_model=TokenResponse)
@@ -87,7 +87,7 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
     db.refresh(session)
     token = create_access_token({"sub": user.id, "session_id": session.id})
 
-    return TokenResponse(access_token=token, refresh_token=refresh_token)
+    return TokenResponse(access_token=token, refresh_token=refresh_token, status=user.status)
 
 
 @router.post("/auth/refresh", response_model=TokenResponse)

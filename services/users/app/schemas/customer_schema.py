@@ -1,6 +1,7 @@
 from pydantic import BaseModel, field_validator
 from enum import Enum
 import pycountry
+from app.models import CustomerType
 
 
 def create_country_enum():
@@ -13,9 +14,9 @@ CountryEnum = create_country_enum()
 COUNTRY_NAMES = {c.alpha_2: c.name for c in pycountry.countries}
 
 
-class CustomerType(str, Enum):
-    donor = "donor"
-    ngo = "ngo"
+# class CustomerType(str, Enum):
+#     donor = "donor"
+#     ngo = "ngo"
 
 
 class Customer(BaseModel):

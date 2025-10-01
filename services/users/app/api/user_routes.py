@@ -20,9 +20,10 @@ def get_db():
 @router.post("/users/", response_model=User)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     # Ensure customer exists
-    customer = db.query(CustomerModel).filter(CustomerModel.id == user.customer_id).first()
-    if not customer:
-        raise HTTPException(status_code=400, detail="Invalid customer_id")
+    if user.customer_id:
+        customer = db.query(CustomerModel).filter(CustomerModel.id == user.customer_id).first()
+        if not customer:
+            raise HTTPException(status_code=400, detail="Invalid customer_id")
 
     db_user = UserModel(id=str(uuid4()), **user.model_dump())
     db.add(db_user)

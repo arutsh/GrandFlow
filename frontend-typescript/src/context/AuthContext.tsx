@@ -1,3 +1,4 @@
+import { stat } from "fs";
 import {
   createContext,
   useContext,
@@ -6,11 +7,22 @@ import {
   useEffect,
 } from "react";
 
+export const STATUS = {
+  PENDING: "pending",
+  ACTIVE: "active",
+};
+
 interface AuthContextType {
   username: string | null;
   token: string | null;
   isAuthenticated: boolean;
-  login: (token: string, username: string, remember: boolean) => void;
+  isRegistering: boolean;
+  login: (
+    token: string,
+    username: string,
+    remember: boolean,
+    status: string
+  ) => void;
   logout: () => void;
 }
 
@@ -24,6 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.getItem("username")
   );
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,7 +61,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false); // ✅ auth check finished
   }, []);
 
-  const login = (token: string, username: string, remember: boolean) => {
+  const login = (
+    token: string,
+    username: string,
+    remember: boolean,
+    status: string
+  ) => {
     setToken(token);
     setUsername(username);
 
@@ -60,6 +78,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       sessionStorage.setItem("username", username);
     }
     setIsAuthenticated(true);
+    status === STATUS.PENDING
+      ? setIsRegistering(true)
+      : setIsRegistering(false);
   };
 
   const logout = () => {
@@ -68,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.clear();
     sessionStorage.clear();
     setIsAuthenticated(false);
+    setIsRegistering(false);
   };
 
   // 🔹 Don’t render children until we finish checking storage
@@ -76,7 +98,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
   return (
     <AuthContext.Provider
-      value={{ username, token, isAuthenticated: !!token, login, logout }}
+      value={{
+        username,
+        token,
+        isAuthenticated: !!token,
+        login,
+        logout,
+        isRegistering,
+      }}
     >
       {children}
     </AuthContext.Provider>

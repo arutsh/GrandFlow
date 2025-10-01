@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from app.schemas.customer_schema import Customer
+from app.models import UserStatus
 
 
 class UserBase(BaseModel):
@@ -8,6 +9,7 @@ class UserBase(BaseModel):
     email: EmailStr
     role: str
     customer_id: str
+    status: UserStatus
 
 
 class UserCreate(UserBase):

@@ -7,7 +7,10 @@ import Register from "./pages/Register";
 import Onboarding from "./pages/OnBoarding";
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isRegistering } = useAuth();
+
+  console.log("PrivateRoute - isAuthenticated:", isAuthenticated);
+  console.log("PrivateRoute - isRegistering:", isRegistering);
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 }
 
@@ -18,7 +21,14 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/onboarding" element={<Onboarding />} />
+          <Route
+            path="/onboarding"
+            element={
+              <PrivateRoute>
+                <Onboarding />
+              </PrivateRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={
@@ -27,7 +37,7 @@ export default function App() {
               </PrivateRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* <Route path="*" element={<Navigate to="/dashboard" replace />} /> */}
         </Routes>
       </BrowserRouter>
     </AuthProvider>

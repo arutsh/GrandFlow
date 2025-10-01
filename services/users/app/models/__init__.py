@@ -1,6 +1,6 @@
-from .customer import CustomerModel
-from .user import UserModel
+from .customer import CustomerModel, CustomerType
+from .user import UserModel, UserStatus
 from .session import SessionModel  # noqa: F401
 
 
-__all__ = ["UserModel", "CustomerModel"]
+__all__ = ["UserModel", "CustomerModel", "CustomerType", "UserStatus"]

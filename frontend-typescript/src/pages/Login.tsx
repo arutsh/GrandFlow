@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { STATUS, useAuth } from "@/context/AuthContext";
 import { loginUser } from "@/api/usersApi";
 import { useNavigate } from "react-router-dom";
 import Button from "@/components/ui/Button";
 
 export default function Login() {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, isRegistering, login } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +15,7 @@ export default function Login() {
   // 🔹 Redirect to dashboard if already logged in
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      isRegistering ? navigate("/onboarding") : navigate("/dashboard");
     }
   }, [isAuthenticated]);
 
@@ -23,8 +23,7 @@ export default function Login() {
     e.preventDefault();
     try {
       const res = await loginUser(username, password);
-      login(res.access_token, username, remember);
-      navigate("/dashboard", { replace: true });
+      login(res.access_token, username, remember, res.status);
     } catch (err: any) {
       setError("Invalid username or password");
     }
