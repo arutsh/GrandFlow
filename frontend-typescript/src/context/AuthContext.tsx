@@ -6,6 +6,7 @@ import {
   ReactNode,
   useEffect,
 } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const STATUS = {
   PENDING: "pending",
@@ -24,6 +25,7 @@ interface AuthContextType {
     status: string
   ) => void;
   logout: () => void;
+  loading?: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,7 +56,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const usernameFromStorage =
       localStorage.getItem("username") || sessionStorage.getItem("username");
     setUsername(usernameFromStorage);
-
+    const status = sessionStorage.getItem("status");
+    setIsRegistering(status === STATUS.PENDING);
     setIsAuthenticated(!!tokenFromStorage);
     console.log("token is true, is authenticated set as true");
 
@@ -76,11 +79,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
       sessionStorage.setItem("token", token);
       sessionStorage.setItem("username", username);
+      sessionStorage.setItem("status", status);
     }
     setIsAuthenticated(true);
-    status === STATUS.PENDING
-      ? setIsRegistering(true)
-      : setIsRegistering(false);
+    setIsRegistering(status === STATUS.PENDING);
   };
 
   const logout = () => {
@@ -105,6 +107,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         logout,
         isRegistering,
+        loading,
       }}
     >
       {children}

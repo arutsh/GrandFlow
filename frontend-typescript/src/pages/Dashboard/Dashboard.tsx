@@ -1,10 +1,18 @@
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "./DashboardLayout";
+import { useEffect } from "react";
 
 export default function Dashboard() {
-  const { username, logout } = useAuth();
+  const { username, logout, isRegistering } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log("Dashboard - isRegistering:", isRegistering);
+    if (isRegistering) {
+      navigate("/onboarding");
+    }
+  }, [isRegistering]);
 
   const handleLogout = () => {
     logout();

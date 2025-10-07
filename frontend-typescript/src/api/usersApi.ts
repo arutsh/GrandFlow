@@ -1,5 +1,7 @@
+import { getUserIdFromToken } from "@/utils/token";
 import { createAxiosInstance } from "./axiosConfig";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext";
 
 const usersApi = createAxiosInstance(
   import.meta.env.API_USER_SERVICE || "http://localhost:8000/api"
@@ -23,4 +25,17 @@ export const registerUser = async (
 export default usersApi;
 
 
-
+export const userOnboarding = async (
+  first_name: string,
+  last_name: string,
+  customer_name: string,
+  user_id: string | null
+) => {
+  
+    const { data } = await usersApi.patch(`/users/${user_id}/`, {
+    first_name: first_name,
+    last_name: last_name,
+    new_customer_name: customer_name
+  });
+  return data;
+}

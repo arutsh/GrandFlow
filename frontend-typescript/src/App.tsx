@@ -7,11 +7,10 @@ import Register from "./pages/Register";
 import Onboarding from "./pages/OnBoarding";
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
-  const { isAuthenticated, isRegistering } = useAuth();
-
-  console.log("PrivateRoute - isAuthenticated:", isAuthenticated);
-  console.log("PrivateRoute - isRegistering:", isRegistering);
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return <div>Loading...</div>;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return children;
 }
 
 export default function App() {
@@ -37,7 +36,7 @@ export default function App() {
               </PrivateRoute>
             }
           />
-          {/* <Route path="*" element={<Navigate to="/dashboard" replace />} /> */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

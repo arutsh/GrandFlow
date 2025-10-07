@@ -22,6 +22,8 @@ export default function Register() {
       registerUser(email, password),
     onSuccess: (data) => {
       login(data.access_token, email, false, data.status);
+      console.log("Registration successful");
+      navigate("/onboarding");
     },
     onError: (error: any) => {
       console.error("Registration failed", error);
@@ -31,12 +33,6 @@ export default function Register() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     mutation.mutate({ email, password });
-    if (mutation.isError) {
-      setError("Registration failed. Please try again.");
-      return;
-    }
-    // TODO: call backend API to register user
-    // console.log("Register form submitted:", form);
   };
   if (mutation.isPending) {
     return <div>Loading...</div>;

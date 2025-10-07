@@ -1,3 +1,4 @@
+from uuid import UUID
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 
@@ -8,7 +9,7 @@ class RegisterRequest(BaseModel):
     last_name: Optional[str] = ""  # optional field
     password: str
     role: Optional[str] = "user"  # default value
-    customer_id: Optional[str] = None  # optional field
+    customer_id: Optional[UUID] = None  # optional field
 
 
 class LoginRequest(BaseModel):

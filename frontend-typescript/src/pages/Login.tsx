@@ -12,18 +12,16 @@ export default function Login() {
   const [error, setError] = useState("");
   const [remember, setRemember] = useState(false);
 
-  // 🔹 Redirect to dashboard if already logged in
-  useEffect(() => {
-    if (isAuthenticated) {
-      isRegistering ? navigate("/onboarding") : navigate("/dashboard");
-    }
-  }, [isAuthenticated]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const res = await loginUser(username, password);
       login(res.access_token, username, remember, res.status);
+      if (res.status === STATUS.PENDING) {
+        navigate("/onboarding");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err: any) {
       setError("Invalid username or password");
     }

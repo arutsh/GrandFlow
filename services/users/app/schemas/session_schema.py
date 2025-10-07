@@ -1,11 +1,12 @@
 from pydantic import BaseModel, field_serializer
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from uuid import UUID
 
 
 class Session(BaseModel):
-    id: str
-    user_id: str
+    id: UUID
+    user_id: UUID
     issued_at: datetime
     expires_at: datetime
     revoked: bool
