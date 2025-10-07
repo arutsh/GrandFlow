@@ -1,5 +1,5 @@
 # app/models/session.py
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import String, Boolean, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, validates, Mapped, mapped_column
 import uuid
