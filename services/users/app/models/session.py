@@ -1,7 +1,9 @@
 # app/models/session.py
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import String, Boolean, DateTime, ForeignKey
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship, validates
+from sqlalchemy.orm import relationship, validates, Mapped, mapped_column
+import uuid
+from app.utils.db import GUID
 from datetime import datetime, timedelta, timezone
 from app.models.user import Base
 from app.utils.security import ACCESS_TOKEN_EXPIRE_MINUTES
@@ -10,15 +12,17 @@ from app.utils.security import ACCESS_TOKEN_EXPIRE_MINUTES
 class SessionModel(Base):
     __tablename__ = "user_sessions"
 
-    id = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)
-    issued_at = Column(DateTime, default=func.now())
-    expires_at = Column(
+    id: Mapped[uuid.UUID] = mapped_column(
+        GUID(), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False, index=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("users.id"), nullable=False)
+    issued_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=lambda: datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     )
-    revoked = Column(Boolean, default=False)
-    refresh_token_hash = Column(String, nullable=True)
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+    refresh_token_hash: Mapped[str | None] = mapped_column(String, nullable=True)
 
     user = relationship("UserModel", back_populates="sessions")
 

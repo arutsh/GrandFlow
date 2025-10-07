@@ -1,37 +1,34 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { STATUS, useAuth } from "@/context/AuthContext";
 import { loginUser } from "@/api/usersApi";
 import { useNavigate } from "react-router-dom";
+import Button from "@/components/ui/Button";
 
 export default function Login() {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, isRegistering, login } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [remember, setRemember] = useState(false);
 
-  // 🔹 Redirect to dashboard if already logged in
-  useEffect(() => {
-    console.log("login  useEffect isAuthenticated = ", isAuthenticated);
-    if (isAuthenticated) {
-      navigate("/dashboard");
-    }
-  }, [isAuthenticated]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const res = await loginUser(username, password);
-      login(res.access_token, username, remember);
-      navigate("/dashboard", { replace: true });
+      login(res.access_token, username, remember, res.status);
+      if (res.status === STATUS.PENDING) {
+        navigate("/onboarding");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err: any) {
       setError("Invalid username or password");
     }
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-100">
+    <div className="flex h-screen items-center justify-center bg-slate-300">
       <form
         onSubmit={handleLogin}
         className="bg-white p-6 rounded-xl shadow-lg w-96"
@@ -60,12 +57,15 @@ export default function Login() {
           />
           Remember me
         </label>
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
-          Sign In
-        </button>
+        <Button type="submit" variant="primary">
+          Login
+        </Button>
+        <p className="text-center text-navy mt-4">
+          Don't have an account?{" "}
+          <a href="/register" className="text-blue hover:underline">
+            Register
+          </a>
+        </p>
       </form>
     </div>
   );

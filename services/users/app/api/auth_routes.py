@@ -1,21 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from uuid import uuid4
-from datetime import datetime, timedelta
+
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from app.schemas.auth_schema import RegisterRequest, LoginRequest, TokenResponse
-from app.models import UserModel, SessionModel
+
 from app.db.session import SessionLocal
 from app.utils.security import (
-    hash_password,
     verify_password,
     create_access_token,
     create_refresh_token,
     hash_token,
     verify_token_hash,
-    REFRESH_TOKEN_EXPIRE_DAYS,
 )
+from app.crud.sessions_curd import create_session, get_non_revoked_sessions
+from app.crud.user_crud import get_user_by_email, create_user
 
 
 router = APIRouter()
@@ -30,72 +30,57 @@ def get_db():
 
 
 @router.post("/register", response_model=TokenResponse)
-def register(req: RegisterRequest, db: Session = Depends(get_db)):
-    existing = db.query(UserModel).filter(UserModel.email == req.email).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Email already registered")
+def register_endpoint(req: RegisterRequest, db: Session = Depends(get_db)):
 
-    user = UserModel(
-        id=str(uuid4()),
-        email=req.email,
-        first_name=req.first_name,
-        last_name=req.last_name,
-        role=req.role,
-        customer_id=req.customer_id,
-        hashed_password=hash_password(req.password),
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
+    try:
+        user = create_user(
+            session=db,
+            email=req.email,
+            password=req.password,
+            first_name=req.first_name,
+            last_name=req.last_name,
+            role=req.role,
+            customer_id=req.customer_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     refresh_token = create_refresh_token()
-    issue_at = datetime.now(ZoneInfo("UTC"))
-    session = SessionModel(
-        id=str(uuid4()),
+    session = create_session(
+        session=db,
         user_id=user.id,
-        issued_at=issue_at,
-        expires_at=issue_at + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
-        refresh_token_hash=hash_token(refresh_token),
+        refresh_token_hash=refresh_token,
     )
 
-    db.add(session)
-    db.commit()
-    db.refresh(session)
-    token = create_access_token({"sub": user.id, "session_id": session.id})
+    token = create_access_token({"user_id": user.id, "session_id": session.id})
 
-    return TokenResponse(access_token=token, refresh_token=refresh_token)
+    return TokenResponse(access_token=token, refresh_token=refresh_token, status=user.status)
 
 
 @router.post("/auth/login", response_model=TokenResponse)
 def login(req: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(UserModel).filter(UserModel.email == req.email).first()
+    user = get_user_by_email(db, req.email)
     if not user or not verify_password(req.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     refresh_token = create_refresh_token()
-    issue_at = datetime.now(ZoneInfo("UTC"))
-    session = SessionModel(
-        id=str(uuid4()),
+
+    session = create_session(
+        session=db,
         user_id=user.id,
-        issued_at=issue_at,
-        expires_at=issue_at + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
-        refresh_token_hash=hash_token(refresh_token),
+        refresh_token_hash=refresh_token,
     )
 
-    db.add(session)
-    db.commit()
-    db.refresh(session)
-    token = create_access_token({"sub": user.id, "session_id": session.id})
+    token = create_access_token({"user_id": user.id, "session_id": session.id})
 
-    return TokenResponse(access_token=token, refresh_token=refresh_token)
+    return TokenResponse(access_token=token, refresh_token=refresh_token, status=user.status)
 
 
 @router.post("/auth/refresh", response_model=TokenResponse)
 def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
 
-    session = db.query(SessionModel).filter(SessionModel.revoked.is_(False)).all()
+    sessions = get_non_revoked_sessions(db)
 
-    for s in session:
+    for s in sessions:
         # Session model always has naive datetime, assume UTC
         if s.expires_at.replace(tzinfo=ZoneInfo("UTC")) < datetime.now(ZoneInfo("UTC")):
             continue
@@ -105,8 +90,10 @@ def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
             s.refresh_token_hash = hash_token(new_refresh)
             db.commit()
 
-            access_token = create_access_token({"sub": s.user_id, "session_id": s.id})
+            access_token = create_access_token({"user_id": s.user_id, "session_id": s.id})
 
-            return TokenResponse(access_token=access_token, refresh_token=new_refresh)
+            return TokenResponse(
+                access_token=access_token, refresh_token=new_refresh, status=s.user.status
+            )
 
     raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
