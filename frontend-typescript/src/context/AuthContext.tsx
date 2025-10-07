@@ -26,6 +26,7 @@ interface AuthContextType {
   ) => void;
   logout: () => void;
   loading?: boolean;
+  setIsRegistering: (isRegistering: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -108,6 +109,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         logout,
         isRegistering,
         loading,
+        setIsRegistering,
       }}
     >
       {children}

@@ -13,9 +13,7 @@ export default function Register() {
 
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, login } = useAuth();
-  const queryClient = useQueryClient();
-  // const form = { first_name, last_name, email, customer_name, password };
+  const { login } = useAuth();
 
   const mutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>

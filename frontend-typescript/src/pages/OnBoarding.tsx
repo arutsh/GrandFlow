@@ -12,7 +12,8 @@ export default function Onboarding() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [orgName, setOrgName] = useState("");
-  const { isAuthenticated, token, login, isRegistering } = useAuth();
+  const { isAuthenticated, token, login, isRegistering, setIsRegistering } =
+    useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function Onboarding() {
     onSuccess: (data) => {
       console.log("User onboarding successful", data);
       sessionStorage.removeItem("status");
+      setIsRegistering(false);
       navigate("/dashboard");
     },
     onError: (error: any) => {
