@@ -64,3 +64,10 @@ def update_user(session: Session, user: UserModel, updates: dict):
     session.commit()
     session.refresh(user)
     return user
+
+
+def get_user_customer_id(session: Session, user_id: UUID) -> UUID | None:
+    user = get_user(session, user_id)
+    if user:
+        return user.customer_id
+    return None

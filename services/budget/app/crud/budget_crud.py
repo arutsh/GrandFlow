@@ -31,8 +31,11 @@ def get_budget(session: Session, budget_id: UUID) -> BudgetModel | None:
     return session.query(BudgetModel).filter(BudgetModel.id == budget_id).first()
 
 
-def list_budgets(session: Session, limit: int = 100):
-    return session.query(BudgetModel).limit(limit).all()
+def list_budgets(session: Session, customer_id: UUID | None = None, limit: int = 100):
+    query = session.query(BudgetModel)
+    if customer_id:
+        query = query.filter(BudgetModel.owner_id == customer_id)
+    return query.limit(limit).all()
 
 
 def update_budget_name(session: Session, budget_id: UUID, new_name: str) -> BudgetModel | None:

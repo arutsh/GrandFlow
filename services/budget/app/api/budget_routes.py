@@ -1,5 +1,5 @@
 # /services/budget/app/api/budget_routes.py
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from uuid import uuid4, UUID  # noqa: F401
 
@@ -7,6 +7,7 @@ from app.db.session import SessionLocal
 from app.schemas.budget_schema import Budget, BudgetBase, BudgetCreate
 from app.utils.security import get_current_user
 from app.crud.budget_crud import create_budget, get_budget, list_budgets, update_budget
+from app.services.user_client import get_user_customer_id, is_superuser
 
 router = APIRouter()
 
@@ -63,5 +64,17 @@ def update_budget_endpoint(
 
 
 @router.get("/budgets/")
-def get_budgets(db: Session = Depends(get_db), user=Depends(get_current_user)):
-    return list_budgets(db)
+def get_all_budgets_endpoint(
+    request: Request, db: Session = Depends(get_db), user=Depends(get_current_user)
+):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        raise HTTPException(status_code=401, detail="Missing Authorization header")
+    if is_superuser(user["user_id"], token=auth_header.split(" ")[1]):
+        return list_budgets(db)
+    customer_id = get_user_customer_id(user["user_id"], token=auth_header.split(" ")[1])
+    if customer_id:
+        return list_budgets(db, customer_id=customer_id)
+    raise ValueError(
+        "User has no associated customer_id"
+    )  # happens only if user has on going boarding
