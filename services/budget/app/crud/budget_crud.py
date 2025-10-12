@@ -3,21 +3,26 @@ from app.models.budget import BudgetModel
 from app.services.customer_client import validate_customer_type
 from uuid import UUID
 
-from app.schemas.budget_schema import BudgetBase, BudgetCreate
+from app.schemas.budget_schema import BudgetBase
 
 
-def create_budget(session: Session, budget: BudgetCreate, user_id: UUID) -> BudgetModel:
+def create_budget(
+    session: Session,
+    user_id: UUID,
+    name: str,
+    funding_customer_id: UUID | None = None,
+    external_funder_name: str | None = None,
+    owner_id: UUID | None = None,
+) -> BudgetModel:
     """
     Create a budget after validating owner and funding customer IDs.
     """
-    # Validate external customer IDs
-    validate_customer_type(budget.owner_id, "ngo")
-    if budget.funding_customer_id:
-        validate_customer_type(budget.funding_customer_id, "donor")
+
     budget = BudgetModel(
-        name=budget.name,
-        owner_id=budget.owner_id,
-        funding_customer_id=budget.funding_customer_id,
+        name=name,
+        owner_id=owner_id,
+        funding_customer_id=funding_customer_id,
+        external_funder_name=external_funder_name,
         created_by=user_id,
         updated_by=user_id,
     )

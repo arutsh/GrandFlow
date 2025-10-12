@@ -6,8 +6,10 @@ from uuid import uuid4, UUID  # noqa: F401
 from app.db.session import SessionLocal
 from app.schemas.budget_schema import Budget, BudgetBase, BudgetCreate
 from app.utils.security import get_current_user
-from app.crud.budget_crud import create_budget, get_budget, list_budgets, update_budget
+from app.crud.budget_crud import get_budget, list_budgets, update_budget
 from app.services.user_client import get_user_customer_id, is_superuser
+from app.services.budget_services import create_budget_service
+
 
 router = APIRouter()
 
@@ -22,22 +24,12 @@ def get_db():
 
 @router.post("/budgets/")
 def create_budget_endpoint(
-    budget: BudgetCreate, db: Session = Depends(get_db), user=Depends(get_current_user)
+    budget: BudgetCreate,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
 ):
 
-    db_budget = create_budget(session=db, budget=budget, user_id=user["user_id"])
-    # Will keep if later needed
-    # for line in budget.lines:
-    #     db_line = BudgetLineModel(
-    #         id=str(uuid4()),
-    #         budget_id=db_budget.id,
-    #         description=line.description,
-    #         amount=line.amount,
-    #     )
-    #     db.add(db_line)
-    # db.commit()
-
-    return {"id": db_budget.id, "status": "created", "budget": db_budget}
+    return create_budget_service(budget, user, db)
 
 
 @router.get("/budgets/{budget_id}", response_model=Budget)
@@ -67,14 +59,12 @@ def update_budget_endpoint(
 def get_all_budgets_endpoint(
     request: Request, db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-    if is_superuser(user["user_id"], token=auth_header.split(" ")[1]):
+
+    if is_superuser(user["user_id"], token=user["token"]):
         return list_budgets(db)
-    customer_id = get_user_customer_id(user["user_id"], token=auth_header.split(" ")[1])
+    customer_id = get_user_customer_id(user["user_id"], token=user["token"])
     if customer_id:
         return list_budgets(db, customer_id=customer_id)
-    raise ValueError(
-        "User has no associated customer_id"
+    raise HTTPException(
+        status_code=400, detail="User has no associated customer_id"
     )  # happens only if user has on going boarding
