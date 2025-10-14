@@ -1,19 +1,20 @@
 from fastapi import status
-from app.crud.budget_crud import create_budget
-from app.core.exceptions import DomainError
-from app.services.user_client import is_superuser, get_valid_user
+from app.crud.budget_crud import create_budget, get_budget, update_budget, list_budgets
+from app.core.exceptions import DomainError, PermissionDenied
+
 from app.services.customer_client import validate_customer_type
+from app.schemas.budget_schema import BudgetCreate
+from uuid import UUID
 
 
-def create_budget_service(budget, user, db):
-    valid_user = get_valid_user(user["user_id"], user["token"])
+def create_budget_service(budget: BudgetCreate, valid_user: dict, db):
 
     if budget.funding_customer_id:
         validate_customer_type(budget.funding_customer_id, "donor", raise_domain_error=True)
 
     owner_id = valid_user["customer_id"]
 
-    if is_superuser(user["user_id"], user["token"]):
+    if valid_user["role"] == "superuser":
         if not budget.owner_id:
             raise DomainError(
                 "Superuser must specify owner_id (not associated with a customer).",
@@ -32,3 +33,51 @@ def create_budget_service(budget, user, db):
         external_funder_name=budget.external_funder_name,
         owner_id=owner_id,
     )
+
+
+def update_budget_service(budget_id: UUID, budget: BudgetCreate, valid_user: dict, db):
+
+    if budget.funding_customer_id:
+        validate_customer_type(budget.funding_customer_id, "donor", raise_domain_error=True)
+
+    owner_id = valid_user["customer_id"]
+
+    if valid_user["role"] == "superuser" and budget.owner_id:
+        validate_customer_type(budget.owner_id, "ngo", raise_domain_error=True)
+        owner_id = budget.owner_id
+
+    elif valid_user["role"] != "superuser" and (
+        not budget.owner_id or valid_user["customer_id"] != budget.owner_id
+    ):
+        raise PermissionDenied()
+
+    return update_budget(
+        session=db,
+        budget_id=budget_id,
+        name=budget.name,
+        owner_id=owner_id,
+        funding_customer_id=budget.funding_customer_id,
+        external_funder_name=budget.external_funder_name,
+    )
+
+
+def get_budget_service(budget_id, valid_user, db):
+
+    budget = (
+        get_budget(db, budget_id)
+        if valid_user["role"] == "superuser"
+        else get_budget(db, budget_id, valid_user["customer_id"])
+    )
+    if not budget:
+        raise DomainError(
+            "Budget Not found",
+            status.HTTP_400_BAD_REQUEST,
+        )
+    return budget
+
+
+def list_budget_service(valid_user, db):
+    if valid_user["role"] == "superuser":
+        return list_budgets(db)
+
+    return list_budgets(db, customer_id=valid_user["customer_id"])

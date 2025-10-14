@@ -32,6 +32,7 @@ def get_user_cached(user_id: str | uuid.UUID, token: str) -> dict:
 
 
 def get_valid_user(user_id: str | uuid.UUID, token: str) -> dict:
+
     user = get_user_cached(user_id, token)
     if not user:
         raise ValueError(f"User {user_id} not found")

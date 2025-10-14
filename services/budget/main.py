@@ -8,7 +8,7 @@ from fastapi.openapi.utils import get_openapi
 import debugpy
 
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.exceptions import DomainError
+from app.core.exceptions import DomainError, PermissionDenied
 from app.core.error_handlers import domain_error_handler
 
 debugpy.listen(("0.0.0.0", 5680))
@@ -32,6 +32,7 @@ app.include_router(mapping_routes.router, prefix="/api")
 
 # Register global exception handler
 app.add_exception_handler(DomainError, domain_error_handler)
+app.add_exception_handler(PermissionDenied, domain_error_handler)
 
 
 def custom_openapi():

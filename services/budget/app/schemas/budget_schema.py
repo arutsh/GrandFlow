@@ -11,14 +11,15 @@ class BudgetBase(BaseModel):
     funding_customer_id: UUID | None = None
     external_funder_name: str | None = None
 
-
-class BudgetCreate(BudgetBase):
-
     @model_validator(mode="after")
     def check_funder(self):
         if not self.funding_customer_id and not self.external_funder_name:
             raise ValueError("Funding source is required")
         return self
+
+
+class BudgetCreate(BudgetBase):
+    pass
 
 
 class Budget(BudgetBase):
