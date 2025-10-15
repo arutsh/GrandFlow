@@ -15,6 +15,7 @@ from app.services.budget_services import (
     get_budget_service,
     update_budget_service,
     list_budget_service,
+    delete_budget_service,
 )
 
 
@@ -76,3 +77,10 @@ def update_budget_endpoint(
 def get_all_budgets_endpoint(db: Session = Depends(get_db), valid_user=Depends(get_validated_user)):
 
     return list_budget_service(db=db, valid_user=valid_user)
+
+
+@router.delete("/budgets/{budget_id}")
+def delete_budget_endpoint(
+    budget_id: UUID, db: Session = Depends(get_db), valid_user=Depends(get_validated_user)
+):
+    return {"success": delete_budget_service(budget_id=budget_id, valid_user=valid_user, db=db)}

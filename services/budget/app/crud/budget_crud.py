@@ -29,7 +29,9 @@ def create_budget(
     return budget
 
 
-def get_budget(session: Session, budget_id: UUID, customer_id: UUID = None) -> BudgetModel | None:
+def get_budget(
+    session: Session, budget_id: UUID, customer_id: UUID | None = None
+) -> BudgetModel | None:
     query = session.query(BudgetModel)
     if customer_id:
         return query.filter(
@@ -61,7 +63,7 @@ def update_budget(
     name: str | None = None,
     owner_id: UUID | None = None,
     funding_customer_id: UUID | None = None,
-    external_funder_name: UUID | None = None,
+    external_funder_name: str | None = None,
 ) -> BudgetModel | None:
     budget = get_budget(session, budget_id)
     if not budget:
@@ -76,10 +78,7 @@ def update_budget(
     return budget
 
 
-def delete_budget(session: Session, budget_id: UUID) -> bool:
-    budget = get_budget(session, budget_id)
-    if budget:
-        session.delete(budget)
-        session.commit()
-        return True
-    return False
+def delete_budget(session: Session, budget: BudgetModel) -> bool:
+    session.delete(budget)
+    session.commit()
+    return True

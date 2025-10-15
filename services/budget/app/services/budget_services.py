@@ -1,5 +1,11 @@
 from fastapi import status
-from app.crud.budget_crud import create_budget, get_budget, update_budget, list_budgets
+from app.crud.budget_crud import (
+    create_budget,
+    get_budget,
+    update_budget,
+    list_budgets,
+    delete_budget,
+)
 from app.core.exceptions import DomainError, PermissionDenied
 
 from app.services.customer_client import validate_customer_type
@@ -81,3 +87,12 @@ def list_budget_service(valid_user, db):
         return list_budgets(db)
 
     return list_budgets(db, customer_id=valid_user["customer_id"])
+
+
+def delete_budget_service(budget_id: UUID, valid_user: dict, db):
+    # fetch valid budget, if user does not have access relevant error will be raised
+    valid_budget = get_budget_service(budget_id=budget_id, valid_user=valid_user, db=db)
+
+    if valid_budget:
+        return delete_budget(session=db, budget=valid_budget)
+    return False
