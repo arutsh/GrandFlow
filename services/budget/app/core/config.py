@@ -12,6 +12,8 @@ class Settings(BaseSettings):
 
     # Service URLs
     customer_service_url: str
+    user_service_url: str
+    user_all_services_url: str
     REDIS_URL: str
     OPENAI_API_KEY: str | None = None
     # Databases

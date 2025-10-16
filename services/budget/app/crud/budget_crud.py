@@ -1,23 +1,25 @@
 from sqlalchemy.orm import Session
 from app.models.budget import BudgetModel
-from app.services.customer_client import validate_customer_type
 from uuid import UUID
 
-from app.schemas.budget_schema import BudgetBase, BudgetCreate
 
-
-def create_budget(session: Session, budget: BudgetCreate, user_id: UUID) -> BudgetModel:
+def create_budget(
+    session: Session,
+    user_id: UUID,
+    name: str,
+    funding_customer_id: UUID | None = None,
+    external_funder_name: str | None = None,
+    owner_id: UUID | None = None,
+) -> BudgetModel:
     """
     Create a budget after validating owner and funding customer IDs.
     """
-    # Validate external customer IDs
-    validate_customer_type(budget.owner_id, "ngo")
-    if budget.funding_customer_id:
-        validate_customer_type(budget.funding_customer_id, "donor")
+
     budget = BudgetModel(
-        name=budget.name,
-        owner_id=budget.owner_id,
-        funding_customer_id=budget.funding_customer_id,
+        name=name,
+        owner_id=owner_id,
+        funding_customer_id=funding_customer_id,
+        external_funder_name=external_funder_name,
         created_by=user_id,
         updated_by=user_id,
     )
@@ -27,12 +29,22 @@ def create_budget(session: Session, budget: BudgetCreate, user_id: UUID) -> Budg
     return budget
 
 
-def get_budget(session: Session, budget_id: UUID) -> BudgetModel | None:
-    return session.query(BudgetModel).filter(BudgetModel.id == budget_id).first()
+def get_budget(
+    session: Session, budget_id: UUID, customer_id: UUID | None = None
+) -> BudgetModel | None:
+    query = session.query(BudgetModel)
+    if customer_id:
+        return query.filter(
+            BudgetModel.id == budget_id, BudgetModel.owner_id == customer_id
+        ).first()
+    return query.filter(BudgetModel.id == budget_id).first()
 
 
-def list_budgets(session: Session, limit: int = 100):
-    return session.query(BudgetModel).limit(limit).all()
+def list_budgets(session: Session, customer_id: UUID | None = None, limit: int = 100):
+    query = session.query(BudgetModel)
+    if customer_id:
+        query = query.filter(BudgetModel.owner_id == customer_id)
+    return query.limit(limit).all()
 
 
 def update_budget_name(session: Session, budget_id: UUID, new_name: str) -> BudgetModel | None:
@@ -45,26 +57,28 @@ def update_budget_name(session: Session, budget_id: UUID, new_name: str) -> Budg
     return budget
 
 
-def update_budget(session: Session, budget_id: UUID, new_budget: BudgetBase) -> BudgetModel | None:
+def update_budget(
+    session: Session,
+    budget_id: UUID,
+    name: str | None = None,
+    owner_id: UUID | None = None,
+    funding_customer_id: UUID | None = None,
+    external_funder_name: str | None = None,
+) -> BudgetModel | None:
     budget = get_budget(session, budget_id)
     if not budget:
         return None
-    # Validate external customer IDs
-    validate_customer_type(new_budget.owner_id, "ngo")
-    if new_budget.funding_customer_id:
-        validate_customer_type(new_budget.funding_customer_id, "donor")
-    budget.name = new_budget.name
-    budget.owner_id = new_budget.owner_id
-    budget.funding_customer_id = new_budget.funding_customer_id
+
+    budget.name = name or budget.name
+    budget.owner_id = owner_id or budget.owner_id
+    budget.funding_customer_id = funding_customer_id or budget.funding_customer_id
+    budget.external_funder_name = external_funder_name or budget.external_funder_name
     session.commit()
     session.refresh(budget)
     return budget
 
 
-def delete_budget(session: Session, budget_id: UUID) -> bool:
-    budget = get_budget(session, budget_id)
-    if budget:
-        session.delete(budget)
-        session.commit()
-        return True
-    return False
+def delete_budget(session: Session, budget: BudgetModel) -> bool:
+    session.delete(budget)
+    session.commit()
+    return True
