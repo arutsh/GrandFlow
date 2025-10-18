@@ -2,7 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.schemas.customer_schema import Customer
 from app.db.session import SessionLocal
-from app.crud.customer_crud import create_customer, get_customers, get_customer
+from app.crud.customer_crud import (
+    create_customer,
+    get_customers,
+    get_customer,
+    get_customers_by_ids,
+)
 from uuid import UUID
 
 router = APIRouter()
@@ -40,3 +45,14 @@ def get_customer_endpoint(customer_id: UUID, db: Session = Depends(get_db)):
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
     return customer
+
+
+@router.post("/customers/by_ids/", response_model=list[Customer])
+def get_customers_by_ids_endpoint(
+    customer_ids: list[UUID],
+    db: Session = Depends(get_db),
+):
+    # NOTE: this end point is for internal service use only,
+    # hence no need to check current_user permissions
+    # calling service should ensure proper authorization
+    return get_customers_by_ids(session=db, customer_ids=customer_ids)

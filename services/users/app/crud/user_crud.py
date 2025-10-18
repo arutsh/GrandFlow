@@ -25,6 +25,10 @@ def get_users_query(session: Session, user_ids: list[UUID] | None = None):
     return query
 
 
+def get_users_by_ids(session: Session, user_ids: list[UUID]):
+    return get_users_query(session, user_ids).all()
+
+
 def get_users(session: Session, limit: int = 100):
     return get_users_query(session).limit(limit).all()
 

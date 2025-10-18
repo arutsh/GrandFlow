@@ -1,6 +1,7 @@
 # async client to call budgets service
 import httpx
-from typing import Any, List
+from typing import List
+from utils.gateway_wrapper import service_call_exception_handler
 
 BUDGETS_SERVICE_URL = None
 _client: httpx.AsyncClient | None = None
@@ -20,9 +21,9 @@ async def close_urls():
         print("🛑 Budgets client closed")
 
 
+@service_call_exception_handler
 async def get_budgets(token: str) -> List[dict]:
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     r = await _client.get(f"{BUDGETS_SERVICE_URL}/budgets/", headers=headers)
     r.raise_for_status()
     return r.json()
-

@@ -1,8 +1,7 @@
 import httpx
-from typing import List, Dict, Optional
-from fastapi import HTTPException, status
+from typing import List, Dict
 from utils.gateway_wrapper import service_call_exception_handler
-from shared.schemas.auth_schema import LoginRequest, TokenResponse, RegisterRequest
+from shared.schemas.auth_schema import RegisterRequest
 
 USERS_SERVICE_URL = None
 _client: httpx.AsyncClient = None
@@ -47,7 +46,7 @@ async def get_users_by_ids(ids: List[str], token: str) -> Dict[str, dict]:
     headers = {"Authorization": f"Bearer {token}"} if token else {}
 
     # call a batch endpoint if available (recommended)
-    r = await _client.get(f"{USERS_SERVICE_URL}/users/", headers=headers)
+    r = await _client.post(f"{USERS_SERVICE_URL}/users/by_ids/", headers=headers, json=ids)
     r.raise_for_status()
     items = r.json()
     return {it["id"]: it for it in items}
@@ -60,7 +59,7 @@ async def get_customers_by_ids(ids: List[str], token: str) -> Dict[str, dict]:
     headers = {"Authorization": f"Bearer {token}"} if token else {}
 
     # call a batch endpoint if available (recommended)
-    r = await _client.get(f"{USERS_SERVICE_URL}/customers/", headers=headers)
+    r = await _client.post(f"{USERS_SERVICE_URL}/customers/by_ids/", headers=headers, json=ids)
     r.raise_for_status()
     items = r.json()
     return {it["id"]: it for it in items}
