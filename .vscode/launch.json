@@ -54,6 +54,24 @@
         }
       ],
       "justMyCode": false
+    },
+    {
+      // Use this configuration to attach to a running FastAPI service in Docker
+      // Ensure the service is started with debugpy enabled (see main.py)
+      "name": "Attach to API Gateway (Docker)",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5682
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/api-gateway",
+          "remoteRoot": "/app"
+        }
+      ],
+      "justMyCode": false
     }
   ]
 }
