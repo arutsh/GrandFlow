@@ -22,17 +22,6 @@ def get_db():
         db.close()
 
 
-# def get_validated_user(user=Depends(get_current_user)):
-#     """
-#     FastAPI dependency that validates the user and returns the user object.
-#     Raises DomainError if validation fails.
-#     """
-#     try:
-#         return get_valid_user(user["user_id"], user["token"])
-#     except ValueError as e:
-#         raise DomainError(str(e))
-
-
 @router.post("/users/", response_model=User)
 def create_user_endpoint(user: UserCreate, db: Session = Depends(get_db)):
     # Ensure customer exists

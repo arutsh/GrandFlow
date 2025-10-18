@@ -7,16 +7,20 @@ const usersApi = createAxiosInstance(
   import.meta.env.API_USER_SERVICE || "http://localhost:8000/api"
 );
 
+const gatewayApi = createAxiosInstance(
+  import.meta.env.API_GATEWAY_SERVICE || "http://localhost:8080/api"
+);
+
 // Example API calls
 export const loginUser = async (email: string, password: string) => {
-  const { data } = await usersApi.post("/auth/login", { email, password });
+  const { data } = await gatewayApi.post("/login", { email, password });
   return data;
 };
 
 export const registerUser = async (
   email: string,
   password: string) => {
-  const { data } = await usersApi.post("/register", {
+  const { data } = await gatewayApi.post("/register", {
     email,
     password,
   });
@@ -32,7 +36,7 @@ export const userOnboarding = async (
   user_id: string | null
 ) => {
   
-    const { data } = await usersApi.patch(`/users/${user_id}/`, {
+    const { data } = await gatewayApi.patch(`/users/${user_id}/`, {
     first_name: first_name,
     last_name: last_name,
     new_customer_name: customer_name

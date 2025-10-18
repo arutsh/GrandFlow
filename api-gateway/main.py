@@ -12,7 +12,7 @@ from services.users_client import (
     init_urls as init_users_url,
     close_urls as close_users_url,
 )
-
+from fastapi.middleware.cors import CORSMiddleware
 from api.budget_router import router as budget_router
 from api.user_router import router as user_router
 import debugpy
@@ -57,6 +57,21 @@ app = FastAPI(title="GrandFlow API Gateway", lifespan=lifespan)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- Routes ---
 app.include_router(budget_router, prefix="/api")
