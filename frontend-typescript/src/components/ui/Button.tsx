@@ -4,7 +4,7 @@ type ButtonProps = {
   children: React.ReactNode;
   onClick?: () => void;
   type?: "button" | "submit" | "reset";
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "danger";
   className?: string;
 };
 
@@ -22,6 +22,7 @@ export default function Button({
     primary: "bg-slate-600 text-white rounded hover:bg-slate-700",
     secondary:
       "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
+    danger: "bg-red-600 text-white rounded hover:bg-red-700",
   };
 
   return (

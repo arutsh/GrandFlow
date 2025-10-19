@@ -41,6 +41,8 @@ async def list_budgets(token: str = Depends(oauth2_scheme)):
             or {"name": b.get("external_funder_name")},
             "created_by": users_map.get(b.get("created_by")),
             "updated_by": users_map.get(b.get("updated_by")),
+            "created_at": b.get("created_at"),
+            "updated_at": b.get("updated_at"),
         }
         for b in budgets
     ]

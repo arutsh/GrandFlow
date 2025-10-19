@@ -23,3 +23,5 @@ class BudgetOut(BaseModel):
     funder: Optional[CustomerOut | dict] = None
     created_by: Optional[UserOut] = None
     updated_by: Optional[UserOut] = None
+    created_at: Optional[Any] = None
+    updated_at: Optional[Any] = None
