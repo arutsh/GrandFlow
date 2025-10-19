@@ -10,6 +10,7 @@ from app.crud.user_crud import get_users_query, is_superuser, update_user, get_u
 from app.crud.customer_crud import create_customer, get_customer
 from app.utils.dict_tools import filter_dict_keys
 
+
 router = APIRouter()
 
 
@@ -54,6 +55,18 @@ def list_users_endpoint(db: Session = Depends(get_db), current_user=Depends(get_
         raise HTTPException(status_code=403, detail="Not authorized to list users")
 
     return users.all()
+
+
+@router.post("/users/by_ids/", response_model=list[User])
+def get_users_by_ids_endpoint(
+    user_ids: list[UUID],
+    db: Session = Depends(get_db),
+):
+    # NOTE: this end point is for internal service use only,
+    # hence no need to check current_user permissions
+    # calling service should ensure proper authorization
+
+    return get_users_query(db, user_ids).all()
 
 
 @router.patch("/users/{user_id}/", response_model=User)

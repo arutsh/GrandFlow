@@ -25,3 +25,7 @@ def create_customer(
     session.commit()
     session.refresh(customer)
     return customer
+
+
+def get_customers_by_ids(session: Session, customer_ids: list[UUID]):
+    return session.query(CustomerModel).filter(CustomerModel.id.in_(customer_ids)).all()

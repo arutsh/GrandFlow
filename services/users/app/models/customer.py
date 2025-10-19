@@ -1,14 +1,9 @@
 import uuid
 from sqlalchemy import Column, String, Enum
 from sqlalchemy.orm import relationship, Mapped, mapped_column
-import enum
 from app.models.base import Base
 from app.utils.db import GUID
-
-
-class CustomerType(str, enum.Enum):
-    donor = "donor"
-    ngo = "ngo"
+from app.schemas.customer_schema import CustomerType
 
 
 class CustomerModel(Base):

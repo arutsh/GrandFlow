@@ -2,15 +2,11 @@
 from sqlalchemy import String, ForeignKey, Enum, text
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.models.base import Base
-import enum
+
+# import enum
 import uuid
 from app.utils.db import GUID
-
-
-class UserStatus(str, enum.Enum):
-    active = "active"
-    pending = "pending"
-    disabled = "disabled"
+from shared.schemas.user_schema import UserStatus
 
 
 class UserModel(Base):

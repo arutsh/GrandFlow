@@ -89,6 +89,28 @@ services:
       - ./services/budget/.env.budget.dev
     environment:
       - PYTHONPATH=/app
+  
+  gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"   # Gateway listens on 8080
+      - "5682:5682"   # Debugpy
+    volumes:
+      - ./shared:/app/shared:ro
+      - ./api-gateway:/app
+    env_file:
+      - ./api-gateway/.env.gateway.dev
+    depends_on:
+      - users
+      - budget
+    environment:
+      - PYTHONPATH=/app
+
+  
+  
   frontend:
       build:
         context: ./frontend-typescript
