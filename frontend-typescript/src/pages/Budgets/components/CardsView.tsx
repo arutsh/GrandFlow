@@ -1,7 +1,13 @@
 import Button from "@/components/ui/Button";
 import { utcToLocal } from "@/utils/datetime";
 
-export function CardsView({ data }: { data: any[] }) {
+export function CardsView({
+  data,
+  onEdit,
+}: {
+  data: any[];
+  onEdit: (budget: any) => void;
+}) {
   return (
     <ul className="space-y-4 w-full max-w-5xl mx-auto">
       {data.map((budget: any) => (
@@ -25,7 +31,7 @@ export function CardsView({ data }: { data: any[] }) {
             </p>
           </div>
           <div className="flex space-x-2 mt-2 md:mt-0">
-            <Button>Edit</Button>
+            <Button onClick={() => onEdit(budget)}>Edit</Button>
             <Button variant="danger">Delete</Button>
           </div>
         </li>

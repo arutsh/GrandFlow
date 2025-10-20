@@ -12,10 +12,25 @@ import { utcToLocal } from "@/utils/datetime";
 import { HiViewGrid, HiViewList } from "react-icons/hi";
 import { TableView } from "./components/TableView";
 import { CardsView } from "./components/CardsView";
+import { EditBudgetModal } from "./components/EditBudget";
+import { CardTableToggle } from "@/components/ui/CardTableToggle";
 
 const BudgetsPage: React.FC = () => {
   // Placeholder content for the Budgets page
   const [view, setView] = useState<"cards" | "table">("cards");
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingBudget, setEditingBudget] = useState<any>(null);
+
+  const openEditModal = (budget: any) => {
+    setEditingBudget(budget);
+    setIsEditOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setEditingBudget(null);
+    setIsEditOpen(false);
+  };
+
   const { isPending, isError, data, error } = useQuery({
     queryKey: ["budgets"],
     queryFn: fetchAllBudgets,
@@ -31,33 +46,23 @@ const BudgetsPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col items-center  min-h-screen bg-gray-50">
+      <EditBudgetModal
+        isOpen={isEditOpen}
+        onClose={closeEditModal}
+        data={editingBudget}
+      />
+      <div className="flex bg-blue-700 flex-col items-center  min-h-screen bg-gray-50">
         <h1 className="text-2xl font-bold mb-4">Budgets Page</h1>
-        <div className="flex justify-end mb-4 space-x-2">
-          <button
-            onClick={() => setView("cards")}
-            className={`p-2 rounded ${
-              view === "cards" ? "bg-blue-500 text-white" : "bg-gray-200"
-            }`}
-          >
-            <HiViewGrid size={20} />
-          </button>
-          <button
-            onClick={() => setView("table")}
-            className={`p-2 rounded ${
-              view === "table" ? "bg-blue-500 text-white" : "bg-gray-200"
-            }`}
-          >
-            <HiViewList size={20} />
-          </button>
-        </div>
-
+        <CardTableToggle
+          view={view}
+          onViewChange={(newView) => setView(newView)}
+        />
         {data && data.length > 0 ? (
           <>
             {view === "cards" ? (
-              <CardsView data={data} />
+              <CardsView data={data} onEdit={openEditModal} />
             ) : (
-              <TableView data={data} />
+              <TableView data={data} onEdit={openEditModal} />
             )}
           </>
         ) : (
