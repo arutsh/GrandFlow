@@ -2,6 +2,7 @@
 import httpx
 from typing import List
 from utils.gateway_wrapper import service_call_exception_handler
+from schemas.budget_schema import BudgetCreate
 
 BUDGETS_SERVICE_URL = None
 _client: httpx.AsyncClient | None = None
@@ -25,5 +26,40 @@ async def close_urls():
 async def get_budgets(token: str) -> List[dict]:
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     r = await _client.get(f"{BUDGETS_SERVICE_URL}/budgets/", headers=headers)
+    r.raise_for_status()
+    return r.json()
+
+
+@service_call_exception_handler
+async def update_budget_client(budget_id: str, budget_data: BudgetCreate, token: str) -> dict:
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
+    r = await _client.patch(
+        f"{BUDGETS_SERVICE_URL}/budgets/{budget_id}",
+        json=budget_data.model_dump(mode="json"),
+        headers=headers,
+    )
+    r.raise_for_status()
+    return r.json()
+
+
+@service_call_exception_handler
+async def delete_budget_client(budget_id: str, token: str) -> dict:
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
+    r = await _client.delete(
+        f"{BUDGETS_SERVICE_URL}/budgets/{budget_id}",
+        headers=headers,
+    )
+    r.raise_for_status()
+    return r.json()
+
+
+@service_call_exception_handler
+async def create_budget_client(budget_data: BudgetCreate, token: str) -> dict:
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
+    r = await _client.post(
+        f"{BUDGETS_SERVICE_URL}/budgets/",
+        json=budget_data.model_dump(mode="json"),
+        headers=headers,
+    )
     r.raise_for_status()
     return r.json()

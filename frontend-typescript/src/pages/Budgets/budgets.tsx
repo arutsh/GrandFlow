@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { userOnboarding } from "@/api/usersApi";
 import { useAuth } from "@/context/AuthContext";
 import { getUserIdFromToken } from "@/utils/token";
@@ -14,20 +19,32 @@ import { TableView } from "./components/TableView";
 import { CardsView } from "./components/CardsView";
 import { EditBudgetModal } from "./components/EditBudget";
 import { CardTableToggle } from "@/components/ui/CardTableToggle";
+import { Budget } from "./types/budget";
 
 const BudgetsPage: React.FC = () => {
   // Placeholder content for the Budgets page
   const [view, setView] = useState<"cards" | "table">("cards");
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editingBudget, setEditingBudget] = useState<any>(null);
-
-  const openEditModal = (budget: any) => {
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const queryClient = useQueryClient();
+  const openEditModal = (budget: Budget) => {
     setEditingBudget(budget);
+
     setIsEditOpen(true);
   };
 
-  const closeEditModal = () => {
+  const closeEditModal = (updatedBudget: Budget | null) => {
+    if (updatedBudget) {
+      queryClient.setQueryData(["budgets"], (oldData: Budget[] | undefined) => {
+        if (!oldData) return [];
+        return oldData.map((b) =>
+          b.id === updatedBudget.id ? { ...b, ...updatedBudget } : b
+        );
+      });
+    }
     setEditingBudget(null);
+    // I want to add  budget edit here based on the returned value from the modal
+    //instead of fetching all budgets again
     setIsEditOpen(false);
   };
 
@@ -46,11 +63,13 @@ const BudgetsPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <EditBudgetModal
-        isOpen={isEditOpen}
-        onClose={closeEditModal}
-        data={editingBudget}
-      />
+      {isEditOpen && editingBudget && (
+        <EditBudgetModal
+          isOpen={isEditOpen}
+          onClose={(val) => closeEditModal(val)}
+          data={editingBudget}
+        />
+      )}
       <div className="flex bg-blue-700 flex-col items-center  min-h-screen bg-gray-50">
         <h1 className="text-2xl font-bold mb-4">Budgets Page</h1>
         <CardTableToggle

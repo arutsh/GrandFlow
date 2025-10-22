@@ -7,7 +7,7 @@ import moment from "moment";
  * @param format - Optional display format, e.g., "YYYY-MM-DD HH:mm"
  * @returns Local datetime string
  */
-export function utcToLocal(utcDate: string, format: string = "YYYY-MM-DD HH:mm") {
+export function utcToLocal(utcDate: string | null | undefined, format: string = "YYYY-MM-DD HH:mm") {
   if (!utcDate) return "N/A";
   const m = moment.utc(utcDate);
   if (!m.isValid()) return "N/A";

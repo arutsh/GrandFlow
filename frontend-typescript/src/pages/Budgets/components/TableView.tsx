@@ -9,49 +9,6 @@ import { flexRender } from "@tanstack/react-table";
 
 const columnHelper = createColumnHelper<any>();
 
-const columns = [
-  columnHelper.accessor("name", { header: "Name" }),
-  columnHelper.accessor("funder", {
-    header: "Funder",
-    cell: (info) => info.getValue()?.name || "N/A",
-  }),
-  columnHelper.accessor("amount", {
-    header: "Amount",
-    cell: (info) => `$${info.getValue()?.toFixed(2) || "0.00"}`,
-  }),
-  columnHelper.accessor("created_at", {
-    header: "Created At",
-    cell: (info) => utcToLocal(info.getValue()),
-  }),
-  columnHelper.accessor("created_by", {
-    header: "Created By",
-    cell: (info) =>
-      `${info.getValue()?.first_name || ""} ${
-        info.getValue()?.last_name || ""
-      }`,
-  }),
-  columnHelper.accessor("updated_at", {
-    header: "Updated At",
-    cell: (info) => utcToLocal(info.getValue()),
-  }),
-  columnHelper.accessor("updated_by", {
-    header: "Updated By",
-    cell: (info) =>
-      `${info.getValue()?.first_name || ""} ${
-        info.getValue()?.last_name || ""
-      }`,
-  }),
-  columnHelper.display({
-    id: "actions",
-    cell: (info) => (
-      <div className="flex space-x-2">
-        <Button onClick={() => onEdit(info.row.original)}>Edit</Button>
-        <Button variant="danger">Delete</Button>
-      </div>
-    ),
-  }),
-];
-
 export function TableView({
   data,
   onEdit,
@@ -69,26 +26,26 @@ export function TableView({
       header: "Amount",
       cell: (info) => `$${info.getValue()?.toFixed(2) || "0.00"}`,
     }),
-    columnHelper.accessor("created_at", {
+    columnHelper.accessor("trace", {
       header: "Created At",
-      cell: (info) => utcToLocal(info.getValue()),
+      cell: (info) => utcToLocal(info.getValue()?.created.event_date),
     }),
-    columnHelper.accessor("created_by", {
+    columnHelper.accessor("trace", {
       header: "Created By",
       cell: (info) =>
-        `${info.getValue()?.first_name || ""} ${
-          info.getValue()?.last_name || ""
+        `${info.getValue()?.created.user?.first_name || ""} ${
+          info.getValue()?.created.user?.last_name || ""
         }`,
     }),
-    columnHelper.accessor("updated_at", {
+    columnHelper.accessor("trace", {
       header: "Updated At",
-      cell: (info) => utcToLocal(info.getValue()),
+      cell: (info) => utcToLocal(info.getValue()?.updated.event_date),
     }),
-    columnHelper.accessor("updated_by", {
+    columnHelper.accessor("trace", {
       header: "Updated By",
       cell: (info) =>
-        `${info.getValue()?.first_name || ""} ${
-          info.getValue()?.last_name || ""
+        `${info.getValue()?.updated.user?.first_name || ""} ${
+          info.getValue()?.updated.user?.last_name || ""
         }`,
     }),
     columnHelper.display({
