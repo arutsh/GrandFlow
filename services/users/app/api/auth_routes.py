@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -14,9 +13,9 @@ from app.utils.security import (
     hash_token,
     verify_token_hash,
 )
-from app.crud.sessions_curd import create_session, get_non_revoked_sessions
+from app.crud.sessions_curd import create_session, get_session_by_id
 from app.crud.user_crud import get_user_by_email, create_user
-
+from app.utils.redis import _cache_get, _delete_key
 
 router = APIRouter()
 
@@ -77,23 +76,30 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 
 @router.post("/auth/refresh", response_model=TokenResponse)
 def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
+    redis_key = f"refresh:{refresh_token}"
+    session_id = _cache_get(redis_key)
+    _delete_key(redis_key)
+    if not session_id:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
 
-    sessions = get_non_revoked_sessions(db)
+    s = get_session_by_id(db, session_id)
+    if not s:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
 
-    for s in sessions:
-        # Session model always has naive datetime, assume UTC
-        if s.expires_at.replace(tzinfo=ZoneInfo("UTC")) < datetime.now(ZoneInfo("UTC")):
-            continue
-        if verify_token_hash(refresh_token, s.refresh_token_hash):
-            # Rotate new refresh token
-            new_refresh = create_refresh_token()
-            s.refresh_token_hash = hash_token(new_refresh)
-            db.commit()
+    # Session model always has naive datetime, assume UTC
+    if s.expires_at.replace(tzinfo=ZoneInfo("UTC")) < datetime.now(ZoneInfo("UTC")):
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
 
-            access_token = create_access_token({"user_id": s.user_id, "session_id": s.id})
+    if verify_token_hash(refresh_token, s.refresh_token_hash):
+        # Rotate new refresh token
+        new_refresh = create_refresh_token()
+        s.refresh_token_hash = hash_token(new_refresh)
+        db.commit()
 
-            return TokenResponse(
-                access_token=access_token, refresh_token=new_refresh, status=s.user.status
-            )
+        access_token = create_access_token({"user_id": s.user_id, "session_id": s.id})
+
+        return TokenResponse(
+            access_token=access_token, refresh_token=new_refresh, status=s.user.status
+        )
 
     raise HTTPException(status_code=401, detail="Invalid or expired refresh token")

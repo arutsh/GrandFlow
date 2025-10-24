@@ -33,6 +33,14 @@ async def login_via_gateway(payload: dict) -> dict:
 
 
 @service_call_exception_handler
+async def refresh_token_via_gateway(refresh_token: str) -> dict:
+
+    r = await _client.post(f"{USERS_SERVICE_URL}/auth/refresh?refresh_token={refresh_token}")
+    r.raise_for_status()
+    return r.json()
+
+
+@service_call_exception_handler
 async def register_via_gateway(payload: RegisterRequest) -> dict:
 
     r = await _client.post(f"{USERS_SERVICE_URL}/register", json=payload.model_dump(mode="json"))

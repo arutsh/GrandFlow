@@ -92,10 +92,6 @@ async def update_budget(
                 "event_date": updated_budget.get("updated_at"),
             },
         },
-        # "created_by": users_map.get(updated_budget.get("created_by")),
-        # "updated_by": users_map.get(updated_budget.get("updated_by")),
-        # "created_at": updated_budget.get("created_at"),
-        # "updated_at": updated_budget.get("updated_at"),
     }
     return enriched_budget
 

@@ -1,4 +1,3 @@
-import { stat } from "fs";
 import {
   createContext,
   useContext,
@@ -6,7 +5,6 @@ import {
   ReactNode,
   useEffect,
 } from "react";
-import { useNavigate } from "react-router-dom";
 
 export const STATUS = {
   PENDING: "pending",
@@ -22,7 +20,8 @@ interface AuthContextType {
     token: string,
     username: string,
     remember: boolean,
-    status: string
+    status: string,
+    refreshToken: string
   ) => void;
   logout: () => void;
   loading?: boolean;
@@ -69,7 +68,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     token: string,
     username: string,
     remember: boolean,
-    status: string
+    status: string,
+    refreshToken: string
   ) => {
     setToken(token);
     setUsername(username);
@@ -77,10 +77,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (remember) {
       localStorage.setItem("token", token);
       localStorage.setItem("username", username);
+      localStorage.setItem("refreshToken", refreshToken);
     } else {
       sessionStorage.setItem("token", token);
       sessionStorage.setItem("username", username);
       sessionStorage.setItem("status", status);
+      sessionStorage.setItem("refreshToken", refreshToken);
     }
     setIsAuthenticated(true);
     setIsRegistering(status === STATUS.PENDING);

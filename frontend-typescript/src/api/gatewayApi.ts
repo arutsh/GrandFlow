@@ -25,6 +25,11 @@ export const registerUser = async (
   return data;
 }
 
+export const refreshToken = async (refresh_token: string) => {
+  const { data } = await gatewayApi.post(`auth/refresh/refresh-token?refresh_token=${refresh_token}`, {
+  });
+  return data;
+}
 
 
 export const userOnboarding = async (
