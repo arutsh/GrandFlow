@@ -1,11 +1,28 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance, AxiosError } from "axios";
 
 
+// const baseURL = import.meta.env.API_GATEWAY_SERVICE || "http://localhost:8080/api";
 // 👇 add this outside the component
 export const getAuthToken = (): string | null => {
  
   return localStorage.getItem("token") || sessionStorage.getItem("token");
 };
+
+export const getRefreshToken = () =>
+  localStorage.getItem("refreshToken") || sessionStorage.getItem("refreshToken");
+
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+const subscribeTokenRefresh = (cb: (token: string) => void) => {
+  refreshSubscribers.push(cb);
+};
+
+const onTokenRefreshed = (newToken: string) => {
+  refreshSubscribers.forEach((cb) => cb(newToken));
+  refreshSubscribers = [];
+};
+
 
 // Shared interceptor logic
 function createAxiosInstance(baseURL: string): AxiosInstance {
@@ -25,18 +42,60 @@ function createAxiosInstance(baseURL: string): AxiosInstance {
   });
 
   // Response interceptor
-  instance.interceptors.response.use(
+    instance.interceptors.response.use(
     (response) => response,
-    (error) => {
-      if (error.response?.status === 401) {
-        // Handle refresh logic or redirect to login
-        console.warn("Unauthorized, redirecting...");
+    async (error: AxiosError) => {
+      const originalRequest = error.config;
+
+      if (error.response?.status === 401 && !originalRequest?._retry) {
+        originalRequest._retry = true;
+
+        if (isRefreshing) {
+          // wait until token refreshed
+          return new Promise((resolve) => {
+            subscribeTokenRefresh((newToken) => {
+              if (originalRequest?.headers)
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              resolve(instance(originalRequest!));
+            });
+          });
+        }
+
+        isRefreshing = true;
+
+        try {
+          const refreshToken = getRefreshToken();
+          const response = await axios.post(`${baseURL}/auth/refresh?refresh_token=${refreshToken}`);
+
+          const newAccess = response.data.access_token;
+          const newRefresh = response.data.refresh_token;
+
+          localStorage.setItem("token", newAccess);
+          localStorage.setItem("refresh_token", newRefresh);
+
+          instance.defaults.headers.common["Authorization"] = `Bearer ${newAccess}`;
+          onTokenRefreshed(newAccess);
+          isRefreshing = false;
+
+          // retry original request
+          if (originalRequest?.headers)
+            originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+          return instance(originalRequest!);
+        } catch (err) {
+          isRefreshing = false;
+          localStorage.clear();
+          window.location.href = "/login";
+          return Promise.reject(err);
+        }
       }
+
       return Promise.reject(error);
     }
   );
 
   return instance;
 }
+
+// export const api = createAxiosInstance(baseURL);
 
 export { createAxiosInstance };

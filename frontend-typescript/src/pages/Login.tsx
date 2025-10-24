@@ -16,7 +16,13 @@ export default function Login() {
     e.preventDefault();
     try {
       const res = await loginUser(username, password);
-      login(res.access_token, username, remember, res.status);
+      login(
+        res.access_token,
+        username,
+        remember,
+        res.status,
+        res.refresh_token
+      );
       if (res.status === STATUS.PENDING) {
         navigate("/onboarding");
       } else {

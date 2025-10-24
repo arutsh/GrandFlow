@@ -4,6 +4,7 @@ from shared.schemas.auth_schema import LoginRequest, TokenResponse, RegisterRequ
 from services.users_client import (
     get_user_by_id,
     login_via_gateway,
+    refresh_token_via_gateway,
     register_via_gateway,
     update_user_via_gateway,
 )
@@ -17,6 +18,12 @@ router = APIRouter()
 async def login_via_gateway_endpoint(payload: LoginRequest):
     """Login user via users service through the API gateway."""
     return await login_via_gateway(payload.model_dump())
+
+
+@router.post("/auth/refresh", response_model=TokenResponse)
+async def refresh_token_via_gateway_endpoint(refresh_token: str):
+    """Refresh token via users service through the API gateway."""
+    return await refresh_token_via_gateway(refresh_token)
 
 
 @router.post("/register", response_model=TokenResponse)

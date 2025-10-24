@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     env: str = "development"
     debug: bool = True
     users_database_url: str
-
+    REDIS_URL: str
     model_config = SettingsConfigDict(env_file=ENV_FILE, case_sensitive=False, extra="ignore")
 
 
