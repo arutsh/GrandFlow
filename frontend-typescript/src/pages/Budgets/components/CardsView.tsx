@@ -1,13 +1,15 @@
-import Button from "@/components/ui/Button";
+import Button, { ConfirmDeleteButton } from "@/components/ui/Button";
 import { utcToLocal } from "@/utils/datetime";
 import { Budget } from "../types/budget";
 
 export function CardsView({
   data,
   onEdit,
+  onDelete,
 }: {
   data: Budget[];
   onEdit: (budget: Budget) => void;
+  onDelete: (budget_id: string) => void;
 }) {
   return (
     <ul className="space-y-4 w-full max-w-5xl mx-auto">
@@ -32,7 +34,7 @@ export function CardsView({
           </div>
           <div className="flex space-x-2 mt-2 md:mt-0">
             <Button onClick={() => onEdit(budget)}>Edit</Button>
-            <Button variant="danger">Delete</Button>
+            <ConfirmDeleteButton onConfirm={() => onDelete(budget.id)} />
           </div>
         </li>
       ))}

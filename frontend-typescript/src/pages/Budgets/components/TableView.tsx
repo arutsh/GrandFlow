@@ -1,4 +1,4 @@
-import Button from "@/components/ui/Button";
+import Button, { ConfirmDeleteButton } from "@/components/ui/Button";
 import { utcToLocal } from "@/utils/datetime";
 import {
   createColumnHelper,
@@ -12,9 +12,11 @@ const columnHelper = createColumnHelper<any>();
 export function TableView({
   data,
   onEdit,
+  onDelete,
 }: {
   data: any[];
   onEdit: (budget: any) => void;
+  onDelete: (budget_id: string) => void;
 }) {
   const columns = [
     columnHelper.accessor("name", { header: "Name" }),
@@ -53,7 +55,10 @@ export function TableView({
       cell: (info) => (
         <div className="flex space-x-2">
           <Button onClick={() => onEdit(info.row.original)}>Edit</Button>
-          <Button variant="danger">Delete</Button>
+
+          <ConfirmDeleteButton
+            onConfirm={() => onDelete(info.row.original.id)}
+          />
         </div>
       ),
     }),

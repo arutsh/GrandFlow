@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 type ButtonProps = {
   children: React.ReactNode;
@@ -33,5 +33,51 @@ export default function Button({
     >
       {children}
     </button>
+  );
+}
+
+interface ConfirmDeleteButtonProps {
+  onConfirm: () => void;
+  className?: string;
+}
+export function ConfirmDeleteButton({
+  onConfirm,
+  className = "",
+  children,
+}: ConfirmDeleteButtonProps) {
+  const [confirming, setConfirming] = useState(false);
+
+  if (confirming) {
+    return (
+      <div className="flex space-x-2">
+        <Button
+          variant="danger"
+          onClick={() => {
+            onConfirm();
+            setConfirming(false);
+          }}
+          className={className}
+        >
+          Yes
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => setConfirming(false)}
+          className={className}
+        >
+          No
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <Button
+      variant="danger"
+      onClick={() => setConfirming(true)}
+      className={className}
+    >
+      {children || "Delete"}
+    </Button>
   );
 }
