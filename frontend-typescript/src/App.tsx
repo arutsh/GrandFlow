@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import { JSX } from "react";
 import Register from "./pages/Register";
 import Onboarding from "./pages/OnBoarding";
+import BudgetsPage from "./pages/Budgets/budgets";
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const { isAuthenticated, loading } = useAuth();
@@ -33,6 +34,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/budgets"
+            element={
+              <PrivateRoute>
+                <BudgetsPage />
               </PrivateRoute>
             }
           />
