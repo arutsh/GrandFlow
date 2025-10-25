@@ -1,11 +1,12 @@
 # /services/budget/app/models/budget.py
 
 import uuid
-from sqlalchemy import String, ForeignKey, Float, JSON
+from sqlalchemy import String, ForeignKey, Float, JSON, Integer
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.utils.db import GUID
 
 from app.models.base import Base
+
 from shared.db.audit_mixin import AuditMixin
 
 
@@ -22,19 +23,24 @@ class BudgetModel(Base, AuditMixin):
     funding_customer_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), nullable=True)
     external_funder_name: Mapped[str | None] = mapped_column(String, nullable=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
-
+    donor_template_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("donor_templates.id"), nullable=True
+    )
     lines: Mapped[list["BudgetLineModel"]] = relationship(
         "BudgetLineModel", back_populates="budget"
     )
 
 
-class BudgetLineModel(Base):
+class BudgetLineModel(Base, AuditMixin):
     __tablename__ = "budget_lines"
 
     id: Mapped[uuid.UUID] = mapped_column(
         GUID(), primary_key=True, index=True, default=lambda: uuid.uuid4()
     )
     budget_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("budgets.id"), nullable=False)
+    category_id: Mapped[uuid.UUID | None] = mapped_column(
+        GUID(), ForeignKey("budget_categories.id", ondelete="SET NULL"), nullable=True
+    )
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     amount: Mapped[float | None] = mapped_column(Float, nullable=True)
 
@@ -42,3 +48,28 @@ class BudgetLineModel(Base):
     extra_fields: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=dict)
 
     budget: Mapped["BudgetModel"] = relationship("BudgetModel", back_populates="lines")
+    category: Mapped["BudgetCategoryModel | None"] = relationship(
+        "BudgetCategoryModel", back_populates="lines"
+    )
+
+
+class BudgetCategoryModel(Base, AuditMixin):
+    __tablename__ = "budget_categories"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        GUID(), primary_key=True, index=True, default=lambda: uuid.uuid4()
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    code: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
+    donor_template_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("donor_templates.id", ondelete="CASCADE"), nullable=True
+    )
+
+    donor_template: Mapped["DonorTemplateModel | None"] = relationship(
+        "DonorTemplateModel", back_populates="categories"
+    )
+
+    lines: Mapped[list["BudgetLineModel"]] = relationship(
+        "BudgetLineModel", back_populates="category"
+    )
