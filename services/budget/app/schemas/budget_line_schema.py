@@ -8,6 +8,9 @@ from shared.schemas.budget_line_schema import BudgetLine  # noqa: F401
 from shared.schemas.budget_line_schema import BudgetLineBase  # noqa: F401
 from shared.schemas.budget_line_schema import BudgetLineCreate  # noqa: F401
 from shared.schemas.budget_line_schema import BudgetLinesResponse  # noqa: F401
+from shared.schemas.budget_line_schema import BudgetCategory  # noqa: F401
+from shared.schemas.budget_line_schema import BudgetCategoryBase  # noqa: F401
+from shared.schemas.budget_line_schema import BudgetCategoryCreate  # noqa: F401
 
 # class BudgetLineBase(BaseModel):
 

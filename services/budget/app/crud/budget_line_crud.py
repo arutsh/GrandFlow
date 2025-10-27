@@ -7,7 +7,9 @@ from app.schemas import BudgetLineCreate
 
 def create_budget_line(
     session: Session,
+    user_id: UUID,
     budget_id: UUID,
+    category_id: UUID | None,
     description: str,
     amount: float,
     extra_fields: dict | None = None,
@@ -18,7 +20,13 @@ def create_budget_line(
     # Validate external customer IDs
 
     budget_line = BudgetLineModel(
-        budget_id=budget_id, description=description, amount=amount, extra_fields=extra_fields
+        budget_id=budget_id,
+        category_id=category_id,
+        description=description,
+        amount=amount,
+        extra_fields=extra_fields,
+        created_by=user_id,
+        updated_by=user_id,
     )
     session.add(budget_line)
     session.commit()
@@ -30,10 +38,26 @@ def get_budget_line(session: Session, budget_line_id: UUID) -> BudgetLineModel |
     return session.query(BudgetLineModel).filter(BudgetLineModel.id == budget_line_id).first()
 
 
-def list_budget_lines(session: Session, budget_id: UUID | None = None, limit: int = 100):
+def list_budget_lines(
+    session: Session,
+    budget_id: UUID | None = None,
+    customer_id: UUID | None = None,
+    limit: int = 100,
+):
     query = session.query(BudgetLineModel)
     if budget_id:
         query = query.filter(BudgetLineModel.budget_id == budget_id)
+    if customer_id:
+        query = query.filter(BudgetLineModel.customer_id == customer_id)
+    return query.limit(limit).all()
+
+
+def list_budget_lines_by_category(
+    session: Session, category_id: UUID | None = None, limit: int = 100
+):
+    query = session.query(BudgetLineModel)
+    if category_id:
+        query = query.filter(BudgetLineModel.category_id == category_id)
     return query.limit(limit).all()
 
 

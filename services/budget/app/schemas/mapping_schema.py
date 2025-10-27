@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import List
 from pydantic import BaseModel, Field
+from app.schemas.budget_line_schema import BudgetCategory
 
 
 # Donor Template Schemas
@@ -14,7 +15,8 @@ class DonorTemplateCreate(DonorTemplateBase):
 
 class DonorTemplate(DonorTemplateBase):
     id: int
-
+    fields: List[DonorField] = []
+    categories: List[BudgetCategory] = []
     model_config = {"from_attributes": True}
 
 

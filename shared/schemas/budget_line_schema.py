@@ -2,8 +2,24 @@
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from uuid import UUID
+from shared.schemas.audit_mixin import AuditMixinBase
+
 
 # Budget Line schema
+class BudgetCategoryBase(BaseModel):
+    name: str
+    code: Optional[str] = None
+    donor_template_id: Optional[int] = None
+
+
+class BudgetCategoryCreate(BudgetCategoryBase):
+    pass
+
+
+class BudgetCategory(BudgetCategoryBase, AuditMixinBase):
+    id: UUID
+
+    model_config = {"from_attributes": True}
 
 
 class BudgetLineBase(BaseModel):
@@ -12,13 +28,14 @@ class BudgetLineBase(BaseModel):
     description: str
     amount: float
     extra_fields: Optional[Dict[str, Any]] = None
+    category_id: Optional[UUID] = None
 
 
 class BudgetLineCreate(BudgetLineBase):
     pass
 
 
-class BudgetLine(BudgetLineBase):
+class BudgetLine(BudgetLineBase, AuditMixinBase):
     id: UUID
 
     model_config = {"from_attributes": True}
