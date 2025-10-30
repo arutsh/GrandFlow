@@ -1,8 +1,6 @@
 from sqlalchemy.orm import Session
-from app.models.budget import BudgetCategoryModel, BudgetLineModel
+from app.models.budget import BudgetCategoryModel
 from uuid import UUID
-
-from app.schemas import BudgetLineCreate
 
 
 def create_budget_category(
@@ -26,7 +24,7 @@ def create_budget_category(
 
 
 def get_budget_category_by_name_and_template_id(
-    session: Session, name: str, template_id: int
+    session: Session, name: str, template_id: int | None
 ) -> BudgetCategoryModel | None:
     return (
         session.query(BudgetCategoryModel)

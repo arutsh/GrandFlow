@@ -1,5 +1,5 @@
 # /services/budget/app/models/budget.py
-
+from __future__ import annotations
 import uuid
 from sqlalchemy import String, ForeignKey, Float, JSON, Integer
 from sqlalchemy.orm import relationship, Mapped, mapped_column
@@ -8,6 +8,10 @@ from app.utils.db import GUID
 from app.models.base import Base
 
 from shared.db.audit_mixin import AuditMixin
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.mapping import DonorTemplateModel
 
 
 class BudgetModel(Base, AuditMixin):

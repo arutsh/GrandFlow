@@ -1,6 +1,5 @@
 from fastapi import status
 from app.crud.budget_crud import (
-    create_budget,
     get_budget,
     update_budget,
     list_budgets,
@@ -10,8 +9,10 @@ from app.crud.budget_line_crud import (
     create_budget_line,
     get_budget_line,
     list_budget_lines,
-    list_budget_lines_by_category,
     update_budget_line,
+)
+from app.services.budget_services import (
+    get_budget_service,
 )
 
 
@@ -107,11 +108,59 @@ def get_budget_lines_service(
         return list_budget_lines(db, customer_id=valid_user["customer_id"])
 
 
+def get_budget_line_by_id_service(
+    db,
+    valid_user: dict,
+    budget_line_id: UUID,
+):
+    budget_line = get_budget_line(db, budget_line_id)
+    if not budget_line:
+        raise DomainError(
+            "Budget Line not found",
+            status.HTTP_404_NOT_FOUND,
+        )
+
+    budget = (
+        get_budget(db, budget_line.budget_id)
+        if valid_user["role"] == "superuser"
+        else get_budget(db, budget_line.budget_id, valid_user["customer_id"])
+    )
+    if not budget:
+        raise PermissionDenied()
+
+    return budget_line
+
+
 def list_budget_service(valid_user, db):
     if valid_user["role"] == "superuser":
         return list_budgets(db)
 
     return list_budgets(db, customer_id=valid_user["customer_id"])
+
+
+def update_budget_line_service(
+    db,
+    valid_user: dict,
+    budget_line_id: UUID,
+    new_budget_line: BudgetLineCreate,
+):
+    budget_line = get_budget_line_by_id_service(
+        db, valid_user=valid_user, budget_line_id=budget_line_id
+    )
+    if not budget_line:
+        raise DomainError(
+            "Budget Line not found",
+            status.HTTP_404_NOT_FOUND,
+        )
+    updated_line = update_budget_line(
+        db, existing_line=budget_line, new_budget_line=new_budget_line
+    )
+    if not updated_line:
+        raise DomainError(
+            "Budget Line not found",
+            status.HTTP_404_NOT_FOUND,
+        )
+    return updated_line
 
 
 def delete_budget_service(budget_id: UUID, valid_user: dict, db):

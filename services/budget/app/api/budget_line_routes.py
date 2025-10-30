@@ -5,18 +5,17 @@ from typing import List
 from app.db.session import SessionLocal
 from app.schemas import BudgetLine, BudgetLineCreate
 from app.utils.security import get_current_user
-from app.crud.budget_line_crud import (
-    create_budget_line,
-    get_budget_line,
-    list_budget_lines,
-    update_budget_line,
-)
+
 from app.services.user_client import (
     get_valid_user,
 )
 from uuid import UUID
-from app.crud.budget_category_crud import list_budget_categories
-from app.services.budget_line_services import create_budget_line_service, get_budget_lines_service
+from app.services.budget_line_services import (
+    create_budget_line_service,
+    get_budget_lines_service,
+    get_budget_line_by_id_service,
+    update_budget_line_service,
+)
 from app.core.exceptions import DomainError
 
 
@@ -65,13 +64,14 @@ def get_budget_lines_by_budget_view(
 
 
 @router.get("/{budget_line_id}", response_model=BudgetLine)
-def get_budget_line_view(
+def get_budget_line_by_id_view(
     budget_line_id: UUID, db: Session = Depends(get_db), valid_user=Depends(get_validated_user)
 ):
-    budget_line = get_budget_line(db, budget_line_id)
-    if not budget_line:
-        return {"error": "Budget line not found"}
-    return budget_line
+    return get_budget_line_by_id_service(
+        db,
+        valid_user,
+        budget_line_id,
+    )
 
 
 @router.put("/{budget_line_id}", response_model=BudgetLine)
@@ -79,10 +79,8 @@ def update_budget_line_view(
     budget_line_id: UUID,
     budget_line: BudgetLineCreate,
     db: Session = Depends(get_db),
-    user=Depends(get_current_user),
+    valid_user=Depends(get_validated_user),
 ):
-    updated_line = update_budget_line(db, budget_line_id, budget_line)
-
-    if not updated_line:
-        return {"error": "Budget line not found"}
-    return updated_line
+    return update_budget_line_service(
+        db, valid_user=valid_user, budget_line_id=budget_line_id, new_budget_line=budget_line
+    )

@@ -7,7 +7,7 @@ from app.crud.budget_category_crud import (
     create_budget_category,
     get_budget_category_by_name_and_template_id,
 )
-from app.core.exceptions import DomainError, PermissionDenied
+from app.core.exceptions import DomainError
 from fastapi import status
 
 

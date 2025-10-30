@@ -62,14 +62,12 @@ def list_budget_lines_by_category(
 
 
 def update_budget_line(
-    session: Session, budget_line_id: UUID, budget_line: BudgetLineCreate
+    session: Session, existing_line, new_budget_line: BudgetLineCreate
 ) -> BudgetLineModel | None:
-    existing_line = get_budget_line(session, budget_line_id)
-    if not existing_line:
-        return None
-    existing_line.description = budget_line.description
-    existing_line.amount = budget_line.amount
-    existing_line.extra_fields = budget_line.extra_fields
+
+    existing_line.description = new_budget_line.description
+    existing_line.amount = new_budget_line.amount
+    existing_line.extra_fields = new_budget_line.extra_fields
     session.commit()
     session.refresh(existing_line)
     return existing_line

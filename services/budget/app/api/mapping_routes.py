@@ -18,7 +18,6 @@ from app.schemas.mapping_schema import (
     NgoMapping,
 )
 from app.models.mapping import (
-    DonorTemplateModel,
     DonorFieldModel,
     NgoMappingModel,
 )
@@ -69,7 +68,7 @@ def create_template(
     db: Session = Depends(get_db),
     valid_user=Depends(get_validated_user),
 ):
-    return create_donor_template(db, payload)
+    return create_donor_template(db, payload.name)
 
 
 @router.get("/templates", response_model=List[DonorTemplate])
