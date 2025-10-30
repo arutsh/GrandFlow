@@ -52,7 +52,7 @@ class BudgetLineModel(Base, AuditMixin):
     extra_fields: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=dict)
 
     budget: Mapped["BudgetModel"] = relationship("BudgetModel", back_populates="lines")
-    category: Mapped["BudgetCategoryModel | None"] = relationship(
+    category: Mapped["BudgetCategoryModel"] = relationship(
         "BudgetCategoryModel", back_populates="lines"
     )
 
@@ -70,7 +70,7 @@ class BudgetCategoryModel(Base, AuditMixin):
         Integer, ForeignKey("donor_templates.id", ondelete="CASCADE"), nullable=True
     )
 
-    donor_template: Mapped["DonorTemplateModel | None"] = relationship(
+    donor_template: Mapped["DonorTemplateModel"] = relationship(
         "DonorTemplateModel", back_populates="categories"
     )
 

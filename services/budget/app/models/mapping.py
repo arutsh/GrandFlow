@@ -19,7 +19,7 @@ class DonorTemplateModel(Base):
         back_populates="template", cascade="all, delete-orphan"
     )
 
-    categories: Mapped[list["BudgetCategoryModel | None"]] = relationship(
+    categories: Mapped[list["BudgetCategoryModel"]] = relationship(
         back_populates="donor_template", cascade="all, delete-orphan"
     )
 
