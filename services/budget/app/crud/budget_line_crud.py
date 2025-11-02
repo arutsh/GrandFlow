@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.budget import BudgetLineModel
+from app.models.budget import BudgetLineModel, BudgetModel
 from uuid import UUID
 
 from app.schemas import BudgetLineCreate
@@ -48,7 +48,7 @@ def list_budget_lines(
     if budget_id:
         query = query.filter(BudgetLineModel.budget_id == budget_id)
     if customer_id:
-        query = query.filter(BudgetLineModel.customer_id == customer_id)
+        query = query.join(BudgetLineModel.budget).filter(BudgetModel.owner_id == customer_id)
     return query.limit(limit).all()
 
 
@@ -64,19 +64,21 @@ def list_budget_lines_by_category(
 def update_budget_line(
     session: Session, existing_line, new_budget_line: BudgetLineCreate
 ) -> BudgetLineModel | None:
-
-    existing_line.description = new_budget_line.description
-    existing_line.amount = new_budget_line.amount
-    existing_line.extra_fields = new_budget_line.extra_fields
+    if new_budget_line.description is not None:
+        existing_line.description = new_budget_line.description
+    if new_budget_line.amount is not None:
+        existing_line.amount = new_budget_line.amount
+    if new_budget_line.extra_fields is not None:
+        existing_line.extra_fields = {
+            **(existing_line.extra_fields or {}),
+            **new_budget_line.extra_fields,
+        }
     session.commit()
     session.refresh(existing_line)
     return existing_line
 
 
-def delete_budget_line(session: Session, budget_line_id: UUID) -> bool:
-    budget_line = get_budget_line(session, budget_line_id)
-    if budget_line:
-        session.delete(budget_line)
-        session.commit()
-        return True
-    return False
+def delete_budget_line(session: Session, budget_line: BudgetLineModel) -> bool:
+    session.delete(budget_line)
+    session.commit()
+    return True

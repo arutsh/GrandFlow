@@ -7,9 +7,7 @@ from app.db.session import SessionLocal
 from app.schemas.budget_schema import Budget, BudgetCreate
 from app.utils.security import get_current_user
 
-from app.services.user_client import (
-    get_valid_user,
-)
+from app.services.user_client import get_valid_user
 from app.services.budget_services import (
     create_budget_service,
     get_budget_service,
@@ -19,7 +17,8 @@ from app.services.budget_services import (
 )
 
 
-router = APIRouter()
+router = APIRouter(prefix="/budgets", tags=["Public Budgets"])
+private_router = APIRouter(prefix="/budgets", tags=["Private Budgets"])
 
 
 def get_db():
@@ -41,31 +40,31 @@ def get_validated_user(user=Depends(get_current_user)):
         raise DomainError(str(e))
 
 
-@router.post("/budgets/")
-def create_budget_endpoint(
+@router.post("/")
+async def create_budget_endpoint(
     budget: BudgetCreate,
     db: Session = Depends(get_db),
     valid_user=Depends(get_validated_user),
 ):
-    return create_budget_service(budget, valid_user, db)
+    return await create_budget_service(budget, valid_user, db, include_user_datails=True)
 
 
-@router.get("/budgets/{budget_id}", response_model=Budget)
-def get_budget_endpoint(
+@router.get("/{budget_id}")
+async def get_budget_endpoint(
     budget_id: UUID, db: Session = Depends(get_db), valid_user=Depends(get_validated_user)
 ):
 
-    return get_budget_service(budget_id, valid_user, db)
+    return await get_budget_service(budget_id, valid_user, db, include_user_details=True)
 
 
-@router.patch("/budgets/{budget_id}", response_model=Budget)
-def update_budget_endpoint(
+@router.patch("/{budget_id}", response_model=Budget)
+async def update_budget_endpoint(
     budget_id: UUID,
     budget: BudgetCreate,
     db: Session = Depends(get_db),
     valid_user=Depends(get_validated_user),
 ):
-    updated_budget = update_budget_service(
+    updated_budget = await update_budget_service(
         budget_id=budget_id, budget=budget, valid_user=valid_user, db=db
     )
     if not updated_budget:
@@ -73,14 +72,17 @@ def update_budget_endpoint(
     return updated_budget
 
 
-@router.get("/budgets/")
-def get_all_budgets_endpoint(db: Session = Depends(get_db), valid_user=Depends(get_validated_user)):
+@router.get("/")
+async def get_all_budgets_endpoint(
+    db: Session = Depends(get_db), valid_user=Depends(get_validated_user)
+):
+    return await list_budget_service(db=db, valid_user=valid_user, include_user_details=True)
 
-    return list_budget_service(db=db, valid_user=valid_user)
 
-
-@router.delete("/budgets/{budget_id}")
-def delete_budget_endpoint(
+@router.delete("/{budget_id}")
+async def delete_budget_endpoint(
     budget_id: UUID, db: Session = Depends(get_db), valid_user=Depends(get_validated_user)
 ):
-    return {"success": delete_budget_service(budget_id=budget_id, valid_user=valid_user, db=db)}
+    return {
+        "success": await delete_budget_service(budget_id=budget_id, valid_user=valid_user, db=db)
+    }

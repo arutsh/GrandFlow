@@ -3,16 +3,13 @@ from app.crud.budget_crud import (
     get_budget,
     update_budget,
     list_budgets,
-    delete_budget,
 )
 from app.crud.budget_line_crud import (
     create_budget_line,
     get_budget_line,
     list_budget_lines,
     update_budget_line,
-)
-from app.services.budget_services import (
-    get_budget_service,
+    delete_budget_line,
 )
 
 
@@ -22,7 +19,7 @@ from app.services.budget_category_services import get_or_create_category_service
 from app.services.customer_client import validate_customer_type
 from app.schemas.budget_schema import BudgetCreate
 from uuid import UUID
-from app.schemas import BudgetLineCreate
+from app.schemas import BudgetLineCreate, BudgetLineUpdate
 
 
 def create_budget_line_service(
@@ -142,7 +139,7 @@ def update_budget_line_service(
     db,
     valid_user: dict,
     budget_line_id: UUID,
-    new_budget_line: BudgetLineCreate,
+    new_budget_line: BudgetLineUpdate,
 ):
     budget_line = get_budget_line_by_id_service(
         db, valid_user=valid_user, budget_line_id=budget_line_id
@@ -163,10 +160,12 @@ def update_budget_line_service(
     return updated_line
 
 
-def delete_budget_service(budget_id: UUID, valid_user: dict, db):
+def delete_budget_line_service(budget_line_id: UUID, valid_user: dict, db):
     # fetch valid budget, if user does not have access relevant error will be raised
-    valid_budget = get_budget_service(budget_id=budget_id, valid_user=valid_user, db=db)
+    valid_budget_line = get_budget_line_by_id_service(
+        db=db, valid_user=valid_user, budget_line_id=budget_line_id
+    )
 
-    if valid_budget:
-        return delete_budget(session=db, budget=valid_budget)
+    if valid_budget_line:
+        return delete_budget_line(session=db, budget_line=valid_budget_line)
     return False

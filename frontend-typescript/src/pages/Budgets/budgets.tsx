@@ -17,10 +17,12 @@ import { utcToLocal } from "@/utils/datetime";
 import { HiPlus } from "react-icons/hi";
 import { TableView } from "./components/TableView";
 import { CardsView } from "./components/CardsView";
-import { EditBudgetModal } from "./components/EditBudget";
+
 import { CardTableToggle } from "@/components/ui/CardTableToggle";
 import { Budget } from "./types/budget";
 import { deleteBudget } from "@/api/budgetApi";
+import { AddBudgetModal } from "./components/AddBudget";
+import { EditBudgetModal } from "./components/EditBudget";
 
 const BudgetsPage: React.FC = () => {
   // Placeholder content for the Budgets page
@@ -91,7 +93,7 @@ const BudgetsPage: React.FC = () => {
         />
       )}
       {isAddOpen && (
-        <EditBudgetModal
+        <AddBudgetModal
           isOpen={isAddOpen}
           onClose={(val) => closeAddModal(val)}
         />

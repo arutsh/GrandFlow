@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
 from app.db.session import SessionLocal
-from app.schemas import BudgetLine, BudgetLineCreate
+from app.schemas import BudgetLine, BudgetLineCreate, BudgetLineUpdate
 from app.utils.security import get_current_user
 
 from app.services.user_client import (
@@ -15,6 +15,7 @@ from app.services.budget_line_services import (
     get_budget_lines_service,
     get_budget_line_by_id_service,
     update_budget_line_service,
+    delete_budget_line_service,
 )
 from app.core.exceptions import DomainError
 
@@ -52,7 +53,7 @@ def create_budget_line_view(
     db: Session = Depends(get_db),
     valid_user=Depends(get_validated_user),
 ):
-    # TODO check if user has right to create budget line against budget
+
     return create_budget_line_service(db, valid_user, budget_line)
 
 
@@ -74,13 +75,21 @@ def get_budget_line_by_id_view(
     )
 
 
-@router.put("/{budget_line_id}", response_model=BudgetLine)
+@router.patch("/{budget_line_id}", response_model=BudgetLine)
 def update_budget_line_view(
     budget_line_id: UUID,
-    budget_line: BudgetLineCreate,
+    budget_line: BudgetLineUpdate,
     db: Session = Depends(get_db),
     valid_user=Depends(get_validated_user),
 ):
     return update_budget_line_service(
         db, valid_user=valid_user, budget_line_id=budget_line_id, new_budget_line=budget_line
     )
+
+
+@router.delete("/{budget_line_id}")
+def delete_budget_line_view(
+    budget_line_id: UUID, db: Session = Depends(get_db), valid_user=Depends(get_validated_user)
+):
+
+    return delete_budget_line_service(budget_line_id=budget_line_id, valid_user=valid_user, db=db)

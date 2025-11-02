@@ -35,9 +35,17 @@ class BudgetLineCreate(BudgetLineBase):
     pass
 
 
+class BudgetLineUpdate(BaseModel):
+    budget_id: UUID
+    description: str | None = None
+    amount: Optional[float] = None
+    extra_fields: Optional[Dict[str, Any]] = None
+    category_id: Optional[UUID] = None
+
+
 class BudgetLine(BudgetLineBase, AuditMixinBase):
     id: UUID
-
+    category: Optional[BudgetCategory] = None
     model_config = {"from_attributes": True}
 
 

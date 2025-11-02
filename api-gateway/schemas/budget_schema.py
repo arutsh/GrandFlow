@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, Any
 from uuid import UUID
 from shared.schemas.budget_schema import BudgetCreate, Budget, BudgetBase  # noqa: F401
+from shared.schemas.budget_line_schema import BudgetCategory, BudgetLine  # noqa: F401
 from datetime import datetime
 
 
