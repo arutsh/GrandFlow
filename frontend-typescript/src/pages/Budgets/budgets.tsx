@@ -19,7 +19,7 @@ import { TableView } from "./components/TableView";
 import { CardsView } from "./components/CardsView";
 
 import { CardTableToggle } from "@/components/ui/CardTableToggle";
-import { Budget } from "./types/budget";
+import { Budget, BudgetPatched } from "./types/budget";
 import { deleteBudget } from "@/api/budgetApi";
 import { AddBudgetModal } from "./components/AddBudget";
 import { EditBudgetModal } from "./components/EditBudget";
@@ -48,13 +48,19 @@ const BudgetsPage: React.FC = () => {
     setIsAddOpen(false);
   };
 
-  const closeEditModal = (updatedBudget: Budget | null) => {
+  const closeEditModal = (updatedBudget: BudgetPatched | null) => {
     if (updatedBudget) {
       queryClient.setQueryData(["budgets"], (oldData: Budget[] | undefined) => {
         if (!oldData) return [];
-        return oldData.map((b) =>
-          b.id === updatedBudget.id ? { ...b, ...updatedBudget } : b
-        );
+        return oldData.map((b) => {
+          if (b.id === updatedBudget.id) {
+            b.name = updatedBudget.name;
+            b.funder = {};
+            b.funder.name = updatedBudget?.external_funder_name;
+            b.funder.id = updatedBudget?.funding_customer_id;
+          }
+          return b;
+        });
       });
     }
     setEditingBudget(null);

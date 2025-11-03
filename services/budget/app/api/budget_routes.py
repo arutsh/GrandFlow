@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 from uuid import uuid4, UUID  # noqa: F401
 from app.core.exceptions import DomainError
 from app.db.session import SessionLocal
-from app.schemas.budget_schema import Budget, BudgetCreate
+from app.schemas.budget_schema import BudgetCreate, BudgetUpdate, BudgetWithLines
 from app.utils.security import get_current_user
-
+from app.services.budget_line_services import get_budget_lines_service
 from app.services.user_client import get_valid_user
 from app.services.budget_services import (
     create_budget_service,
@@ -49,15 +49,20 @@ async def create_budget_endpoint(
     return await create_budget_service(budget, valid_user, db, include_user_datails=True)
 
 
-@router.get("/{budget_id}")
+@router.get("/{budget_id}", response_model=BudgetWithLines)
 async def get_budget_endpoint(
-    budget_id: UUID, db: Session = Depends(get_db), valid_user=Depends(get_validated_user)
+    budget_id: UUID,
+    db: Session = Depends(get_db),
+    valid_user=Depends(get_validated_user),
 ):
+    budget = await get_budget_service(budget_id, valid_user, db, include_user_details=True)
+    if budget:
+        budget_lines = get_budget_lines_service(db=db, valid_user=valid_user, budget_id=budget_id)
+        budget["lines"] = budget_lines
+    return budget
 
-    return await get_budget_service(budget_id, valid_user, db, include_user_details=True)
 
-
-@router.patch("/{budget_id}", response_model=Budget)
+@router.patch("/{budget_id}", response_model=BudgetUpdate)
 async def update_budget_endpoint(
     budget_id: UUID,
     budget: BudgetCreate,
@@ -76,6 +81,7 @@ async def update_budget_endpoint(
 async def get_all_budgets_endpoint(
     db: Session = Depends(get_db), valid_user=Depends(get_validated_user)
 ):
+
     return await list_budget_service(db=db, valid_user=valid_user, include_user_details=True)
 
 

@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 
 
 const gatewayApi = createAxiosInstance(
-  import.meta.env.API_GATEWAY_SERVICE || "http://localhost:8080/api"
+  import.meta.env.API_GATEWAY || "http://localhost:8082/api/v1"
 );
 
 // Example API calls

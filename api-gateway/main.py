@@ -7,13 +7,10 @@ from services.users_client import (
     init_urls as init_users_url,
     close_urls as close_users_url,
 )
-from services.budget_lines_client import (
-    init_urls as init_budget_lines_url,
-    close_urls as close_budget_lines_url,
-)
+
 from fastapi.middleware.cors import CORSMiddleware
 from api.user_router import router as user_router
-from api.budget_line_router import router as budget_line_router
+
 import debugpy
 
 
@@ -41,7 +38,7 @@ async def lifespan(app: FastAPI):
     # Startup
 
     await init_users_url(settings.model_dump())
-    await init_budget_lines_url(settings.model_dump())
+
     print("✅ Gateway initialized external service URLs")
 
     yield  # Application runs here
@@ -49,7 +46,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
 
     await close_users_url()
-    await close_budget_lines_url()
+
     print("🛑 Gateway connections closed")
 
 
@@ -76,7 +73,7 @@ app.add_middleware(
 
 # --- Routes ---
 
-app.include_router(budget_line_router, prefix="/api")
+
 app.include_router(user_router, prefix="/api")
 
 

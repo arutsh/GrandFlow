@@ -8,7 +8,7 @@ from shared.utils.gateway_wrapper import service_call_exception_handler
 
 
 USER_SERVICE_URL = settings.user_all_services_url
-_client: httpx.AsyncClient = None
+_client: httpx.AsyncClient = httpx.AsyncClient(base_url=USER_SERVICE_URL)
 
 
 async def init_urls():
@@ -21,7 +21,7 @@ async def init_urls():
 
 async def close_urls():
     """Gracefully close HTTP client session."""
-    global _client
+    global _client  # noqa F824
     if _client:
         await _client.aclose()
         print("🛑 Users client closed")
