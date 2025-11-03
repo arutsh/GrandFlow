@@ -8,12 +8,12 @@ const usersApi = createAxiosInstance(
 );
 
 const gatewayApi = createAxiosInstance(
-  import.meta.env.API_GATEWAY_SERVICE || "http://localhost:8080/api"
+  import.meta.env.API_GATEWAY || "http://localhost:8082/api/v1"
 );
 
 // Example API calls
 export const loginUser = async (email: string, password: string) => {
-  const { data } = await gatewayApi.post("/login", { email, password });
+  const { data } = await gatewayApi.post("/auth/login", { email, password });
   return data;
 };
 

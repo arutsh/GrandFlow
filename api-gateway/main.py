@@ -3,18 +3,14 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from pydantic_settings import BaseSettings
-
-from services.budgets_client import (
-    init_urls as init_budgets_url,
-    close_urls as close_budgets_url,
-)
 from services.users_client import (
     init_urls as init_users_url,
     close_urls as close_users_url,
 )
+
 from fastapi.middleware.cors import CORSMiddleware
-from api.budget_router import router as budget_router
 from api.user_router import router as user_router
+
 import debugpy
 
 
@@ -40,15 +36,17 @@ settings = Settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    await init_budgets_url(settings.model_dump())
+
     await init_users_url(settings.model_dump())
+
     print("✅ Gateway initialized external service URLs")
 
     yield  # Application runs here
 
     # Shutdown
-    await close_budgets_url()
+
     await close_users_url()
+
     print("🛑 Gateway connections closed")
 
 
@@ -74,7 +72,8 @@ app.add_middleware(
 )
 
 # --- Routes ---
-app.include_router(budget_router, prefix="/api")
+
+
 app.include_router(user_router, prefix="/api")
 
 

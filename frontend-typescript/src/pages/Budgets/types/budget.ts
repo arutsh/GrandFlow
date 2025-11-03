@@ -25,7 +25,7 @@ export interface Budget {
   id: string;
   name?: string;
   owner?: CustomerOut;
-  funder?: CustomerOut | { name?: string };
+  funder?: CustomerOut | { name?: string , id?: string};
   trace?: TraceOut;
 }
 
@@ -36,3 +36,12 @@ export interface BudgetUpdate {
   funding_customer_id?: string;
   external_funder_name?: string;
 }
+
+export interface BudgetPatched {
+  id:string, 
+  name?: string;
+  owner_id?: string;
+  funding_customer_id?: string;
+  external_funder_name?: string;
+}
+

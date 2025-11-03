@@ -4,12 +4,12 @@ import gatewayApi from "@/api/gatewayApi";
 
 
 export const editBudget = async (id: string, budgetData: BudgetUpdate): Promise<Budget> => {
-  const { data } = await gatewayApi.patch(`/budgets/${id}/`, budgetData);
+  const { data } = await gatewayApi.patch(`/budgets/${id}`, budgetData);
   return data;
 };
 
 export const deleteBudget = async (id: string) => {
-  const { data } = await gatewayApi.delete(`/budgets/${id}/`);
+  const { data } = await gatewayApi.delete(`/budgets/${id}`);
   return data;
 }
 

@@ -1,8 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
 
 
-// const baseURL = import.meta.env.API_GATEWAY_SERVICE || "http://localhost:8080/api";
-// 👇 add this outside the component
+
 export const getAuthToken = (): string | null => {
  
   return localStorage.getItem("token") || sessionStorage.getItem("token");

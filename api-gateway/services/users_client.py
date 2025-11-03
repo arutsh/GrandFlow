@@ -49,32 +49,6 @@ async def register_via_gateway(payload: RegisterRequest) -> dict:
 
 
 @service_call_exception_handler
-async def get_users_by_ids(ids: List[str], token: str) -> Dict[str, dict]:
-    if not ids:
-        return {}
-    headers = {"Authorization": f"Bearer {token}"} if token else {}
-
-    # call a batch endpoint if available (recommended)
-    r = await _client.post(f"{USERS_SERVICE_URL}/users/by_ids/", headers=headers, json=ids)
-    r.raise_for_status()
-    items = r.json()
-    return {it["id"]: it for it in items}
-
-
-@service_call_exception_handler
-async def get_customers_by_ids(ids: List[str], token: str) -> Dict[str, dict]:
-    if not ids:
-        return {}
-    headers = {"Authorization": f"Bearer {token}"} if token else {}
-
-    # call a batch endpoint if available (recommended)
-    r = await _client.post(f"{USERS_SERVICE_URL}/customers/by_ids/", headers=headers, json=ids)
-    r.raise_for_status()
-    items = r.json()
-    return {it["id"]: it for it in items}
-
-
-@service_call_exception_handler
 async def get_user_by_id(id: str, token: str) -> Dict[str, dict]:
     if not id:
         return {}

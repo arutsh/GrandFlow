@@ -3,6 +3,10 @@ from __future__ import annotations
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Integer, String, Float, ForeignKey
 from app.models.base import Base
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.budget import BudgetCategoryModel
 
 
 class DonorTemplateModel(Base):
@@ -13,6 +17,10 @@ class DonorTemplateModel(Base):
 
     fields: Mapped[list["DonorFieldModel"]] = relationship(
         back_populates="template", cascade="all, delete-orphan"
+    )
+
+    categories: Mapped[list["BudgetCategoryModel"]] = relationship(
+        back_populates="donor_template", cascade="all, delete-orphan"
     )
 
 
