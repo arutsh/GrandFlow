@@ -4,7 +4,7 @@ type ButtonProps = {
   children: React.ReactNode;
   onClick?: () => void;
   type?: "button" | "submit" | "reset";
-  variant?: "primary" | "secondary" | "danger";
+  variant?: "primary" | "secondary" | "danger" | "simpleX" | "text";
   className?: string;
 };
 
@@ -16,13 +16,15 @@ export default function Button({
   className = "",
 }: ButtonProps) {
   const baseStyles =
-    "w-full rounded-md py-2 px-4 font-semibold focus:outline-none transition";
+    "rounded-md py-2 px-4 font-semibold focus:outline-none transition";
 
   const variants: Record<string, string> = {
     primary: "bg-slate-600 text-white rounded hover:bg-slate-700",
     secondary:
       "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
     danger: "bg-red-600 text-white rounded hover:bg-red-700",
+    simpleX: "text-red-500 font-bold",
+    text: "text-slate-600 underline",
   };
 
   return (

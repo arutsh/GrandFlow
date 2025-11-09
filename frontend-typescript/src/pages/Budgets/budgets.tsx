@@ -7,10 +7,6 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { userOnboarding } from "@/api/usersApi";
-import { useAuth } from "@/context/AuthContext";
-import { getUserIdFromToken } from "@/utils/token";
-import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../Dashboard/DashboardLayout";
 import { fetchAllBudgets } from "@/api/gatewayApi";
 import { utcToLocal } from "@/utils/datetime";

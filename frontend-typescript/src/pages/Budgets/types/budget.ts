@@ -20,13 +20,36 @@ export interface TraceOut {
   created?: TraceEvent;
   updated?: TraceEvent;
 }
+export interface BudgetCategory {
+  id: string;
+  name: string;
+  code: string;
+  donor_template_id?: string;
+}
+
+export interface BudgetLine {
+  id: string;
+  description: string;
+  amount: number;
+  extra_fields?: Record<string, string>;
+  category?: BudgetCategory;
+}
+
+export interface NewBudgetLine {
+  description: string;
+  amount: number;
+  extra_fields?: Record<string, string>;
+  categoryName?: string;
+  categoryId?: string;
+}
 
 export interface Budget {
   id: string;
   name?: string;
   owner?: CustomerOut;
-  funder?: CustomerOut | { name?: string , id?: string};
+  funder?: CustomerOut | { name?: string; id?: string };
   trace?: TraceOut;
+  lines?: BudgetLine[];
 }
 
 // Define a separate type for editing (input data)
@@ -38,10 +61,9 @@ export interface BudgetUpdate {
 }
 
 export interface BudgetPatched {
-  id:string, 
+  id: string;
   name?: string;
   owner_id?: string;
   funding_customer_id?: string;
   external_funder_name?: string;
 }
-

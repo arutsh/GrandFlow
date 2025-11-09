@@ -6,6 +6,9 @@ import { JSX } from "react";
 import Register from "./pages/Register";
 import Onboarding from "./pages/OnBoarding";
 import BudgetsPage from "./pages/Budgets/budgets";
+import SingleBudgetView, {
+  SingleBudgetViewContainer,
+} from "./pages/Budgets/SingleBudgetView";
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const { isAuthenticated, loading } = useAuth();
@@ -42,6 +45,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <BudgetsPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/budgets/:id"
+            element={
+              <PrivateRoute>
+                <SingleBudgetViewContainer />
               </PrivateRoute>
             }
           />
