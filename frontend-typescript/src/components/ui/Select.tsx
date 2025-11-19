@@ -10,7 +10,7 @@ type SelectProps = {
   name: string;
   value?: string;
   options: Option[];
-  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onChange?: (value: string) => void;
   required?: boolean;
   showLabel?: boolean;
   disabled?: boolean;
@@ -51,7 +51,7 @@ export default function Select({
         id={name}
         name={name}
         value={value}
-        onChange={onChange}
+        onChange={(e) => onChange?.(e.target.value)}
         required={required}
         disabled={disabled}
         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-brand-blue focus:border-brand-blue sm:text-sm"

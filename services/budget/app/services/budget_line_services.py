@@ -11,11 +11,8 @@ from app.crud.budget_line_crud import (
     update_budget_line,
     delete_budget_line,
 )
-
-
 from app.core.exceptions import DomainError, PermissionDenied
 from app.services.budget_category_services import get_or_create_category_service
-
 from app.services.customer_client import validate_customer_type
 from app.schemas.budget_schema import BudgetCreate
 from uuid import UUID
@@ -39,9 +36,7 @@ def create_budget_line_service(
             status.HTTP_400_BAD_REQUEST,
         )
     category = get_or_create_category_service(
-        db,
-        valid_user,
-        category_id=budget_line.category_id,
+        db, valid_user, category_id=budget_line.category_id, category_name=budget_line.category_name
     )
 
     return create_budget_line(

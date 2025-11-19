@@ -6,6 +6,8 @@ import {
   flexRender,
   ColumnDef,
   SortingState,
+  getGroupedRowModel,
+  getExpandedRowModel,
 } from "@tanstack/react-table";
 import { useState } from "react";
 
@@ -34,23 +36,20 @@ export function TableHeaderCell({
   onClick?: (value: any) => void;
 }) {
   return (
-    <th
+    <td
       key={key}
       className="px-4 py-2 text-left text-sm font-medium  text-gray-700"
       onClick={onClick}
     >
       {children}
-    </th>
+    </td>
   );
 }
-export function TableCell({ key, children }: { key?: any; children: any }) {
+export function TableCell({ children }: { children: any }) {
   return (
-    <th
-      key={key}
-      className="px-4 py-2 text-left text-sm font-normal  text-gray-700"
-    >
+    <td className="px-4 py-2 text-left text-sm font-normal  text-gray-700">
       {children}
-    </th>
+    </td>
   );
 }
 
@@ -66,13 +65,16 @@ export function TableCommon({
   columns: any[];
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const table = useReactTable({
     data,
     columns,
-    state: { sorting },
-    onSortingChange: setSorting,
+    // state: { sorting, grouping: ["category"], expanded },
+    initialState: { grouping: ["category"] }, // let table manage expanded/sorting
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getGroupedRowModel: getGroupedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
   });
 
   return (
@@ -113,17 +115,77 @@ export function TableCommon({
           </TableRow>
         ))}
       </TableHead>
-      <TableBody>
+      <tbody className="divide-y divide-gray-200">
         {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
-            {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
-            ))}
-          </TableRow>
+          <tr key={row.id}>
+            {row.getVisibleCells().map((cell) => {
+              // IMPORTANT: use cell-level helpers (v8)
+              const isGrouped = cell.getIsGrouped();
+              const isAggregated = cell.getIsAggregated();
+              const isPlaceholder = cell.getIsPlaceholder();
+
+              // Render grouped row: usually only one column (the grouped column) should show
+              if (isGrouped) {
+                // show expander + the grouped value + count of subRows
+                return (
+                  <td
+                    key={cell.id}
+                    className="px-4 py-2 text-left text-sm font-normal text-gray-700"
+                  >
+                    <button
+                      onClick={row.getToggleExpandedHandler()}
+                      aria-label="Toggle group"
+                      className="mr-2"
+                    >
+                      {row.getIsExpanded() ? "▼" : "▶"}
+                    </button>
+                    <strong className="mr-2">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </strong>
+                    <span className="text-gray-400">
+                      ({row.subRows.length})
+                    </span>
+                  </td>
+                );
+              }
+
+              // Aggregated (subtotal) cell
+              if (isAggregated) {
+                return (
+                  <td
+                    key={cell.id}
+                    className="px-4 py-2 text-left text-sm font-normal text-gray-700"
+                  >
+                    {flexRender(
+                      cell.column.columnDef.aggregatedCell ??
+                        cell.column.columnDef.cell,
+                      cell.getContext()
+                    )}
+                  </td>
+                );
+              }
+
+              // Placeholder cell for grouped layout (keep cell empty)
+              if (isPlaceholder) {
+                return <td key={cell.id} className="px-4 py-2" />;
+              }
+
+              // Normal cell
+              return (
+                <td
+                  key={cell.id}
+                  className="px-4 py-2 text-left text-sm font-normal text-gray-700"
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              );
+            })}
+          </tr>
         ))}
-      </TableBody>
+      </tbody>
     </Table>
   );
 }

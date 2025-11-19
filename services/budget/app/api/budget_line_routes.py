@@ -75,7 +75,7 @@ def get_budget_line_by_id_view(
     )
 
 
-@router.patch("/{budget_line_id}", response_model=BudgetLine)
+@router.patch("/{budget_line_id}/", response_model=BudgetLine)
 def update_budget_line_view(
     budget_line_id: UUID,
     budget_line: BudgetLineUpdate,
@@ -87,7 +87,7 @@ def update_budget_line_view(
     )
 
 
-@router.delete("/{budget_line_id}")
+@router.delete("/{budget_line_id}/")
 def delete_budget_line_view(
     budget_line_id: UUID, db: Session = Depends(get_db), valid_user=Depends(get_validated_user)
 ):

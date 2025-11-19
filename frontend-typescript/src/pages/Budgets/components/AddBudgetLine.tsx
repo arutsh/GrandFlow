@@ -2,12 +2,13 @@ import { editBudget, createBudget } from "@/api/budgetApi";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import { useMutation } from "@tanstack/react-query";
-import { HandPlatter } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Budget } from "../types/budget";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BudgetLine, NewBudgetLine } from "../types/budget";
 import { useDetailedBudget } from "../SingleBudgetViewContext";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import { createBudgetLine, updateBudgetLines } from "@/api/gatewayApi";
 
 interface ExtraField {
   key: string;
@@ -15,43 +16,82 @@ interface ExtraField {
 }
 
 export function AddBudgetLineModal({
+  budgetLine,
   isOpen,
   onClose,
   onSave,
 }: {
+  budgetLine: BudgetLine | undefined;
   isOpen: boolean;
   onClose: () => void;
   onSave: (line: any) => void; // Replace `any` with proper BudgetLine type
 }) {
-  const { budget, budgetCategories, budgetCategoryNames } = useDetailedBudget();
+  const {
+    budget,
+    setBudget,
+    budgetCategories,
+    existingExtraKeys,
+    budgetCategoryNames,
+  } = useDetailedBudget();
   const [categoryName, setCategoryName] = useState("");
+  const [newCategory, setNewCategory] = useState("");
+  const [categoryNameError, setCategoryNameError] = useState<string | null>(
+    null
+  );
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState<number>(0);
   const [extraFields, setExtraFields] = useState<ExtraField[]>([]);
+  const fieldRefs = useRef<Record<string, HTMLInputElement>>({});
+  const [errorFields, setErrorFields] = useState<Set<string>>(new Set());
+  const [serverError, setServerError] = useState<boolean | string | null>(
+    false
+  );
 
-  // 🧠 Extract all unique extra field keys from the existing budget lines
-  const existingExtraKeys = useMemo(() => {
-    if (!budget?.lines?.length) return [];
-    const keys = new Set<string>();
-    for (const line of budget.lines) {
-      if (line.extra_fields) {
-        Object.keys(line.extra_fields).forEach((key) => keys.add(key));
-      }
+  useEffect(() => {
+    if (budgetLine) {
+      // setCategoryId(budgetLine.category?.id ?? "");
+      setCategoryName(budgetLine.category?.id ?? "");
+      setDescription(budgetLine.description ?? "");
+      setAmount(budgetLine.amount ?? 0);
+      setExtraFields(
+        Object.entries(budgetLine.extra_fields ?? {}).map(([key, value]) => ({
+          key,
+          value: String(value ?? ""),
+        }))
+      );
+    } else {
+      // Reset when adding
+      setNewCategory("");
+      setDescription("");
+      setAmount(0);
+      setExtraFields([]);
     }
-    return Array.from(keys);
-  }, [budget]);
+  }, [budgetLine]);
 
-  // 🧩 When modal opens, prepopulate existing fields
+  // When modal opens, prepopulate existing fields
   useEffect(() => {
     if (isOpen) {
-      const prefilled = existingExtraKeys.map((key) => ({
-        key,
-        value: "",
-      }));
+      const prefilled =
+        existingExtraKeys?.map((key) => ({
+          key,
+          value: "",
+        })) ?? [];
       setExtraFields(prefilled);
     }
   }, [isOpen, existingExtraKeys]);
 
+  const handleNewCategoryName = (name: string) => {
+    const found = budgetCategoryNames.find(
+      (item) => item.toLocaleLowerCase() === name.trim().toLocaleLowerCase()
+    );
+    setNewCategory(name);
+
+    if (!found) {
+      setCategoryNameError(null);
+    } else {
+      setCategoryNameError("The category exists, please choose from the list");
+    }
+  };
   const handleAddExtraField = () => {
     setExtraFields([...extraFields, { key: "", value: "" }]);
   };
@@ -67,46 +107,91 @@ export function AddBudgetLineModal({
   ) => {
     const newFields = [...extraFields];
     newFields[index][field] = value;
+    if (field === "key") {
+      const lowerValue = value.toLowerCase().trim();
+      const duplicateInNew = newFields.some(
+        (f, i) => i !== index && f.key.toLowerCase().trim() === lowerValue
+      );
+      if (duplicateInNew) {
+        setErrorFields((prev) => new Set(prev).add(`key-${index}`));
+      } else {
+        setErrorFields((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(`key-${index}`);
+          return newSet;
+        });
+      }
+    }
+
     setExtraFields(newFields);
   };
 
   const mutation = useMutation({
-    mutationFn: ({
-      budgetName,
-      funderName,
-    }: {
-      budgetName: string;
-      funderName: string;
-    }) =>
-      createBudget({
-        name: budgetName,
-        external_funder_name: funderName,
-      }),
+    mutationFn: (newLine: NewBudgetLine | BudgetLine) => {
+      if ("id" in newLine) {
+        return updateBudgetLines(newLine);
+      }
 
-    onSuccess: (newBudget) => {
-      setErrorMessage("");
-      onClose(newBudget);
+      return createBudgetLine(newLine);
+    },
+
+    onSuccess: (newBudgetLine) => {
+      setServerError(false);
+      if (!budget) return;
+      if (budgetLine) {
+        // Editing existing line
+        const updatedLines = budget.lines?.map((line) =>
+          line.id === newBudgetLine.id ? newBudgetLine : line
+        );
+        const updatedBudget = {
+          ...budget,
+          lines: updatedLines,
+        };
+        setBudget(updatedBudget);
+        onClose();
+        return;
+      } else {
+        const updatedBudget = {
+          ...budget,
+          lines: [...(budget?.lines ?? []), newBudgetLine],
+        };
+        setBudget(updatedBudget);
+      }
+
+      onClose();
     },
     onError: () => {
-      setErrorMessage("Failed to update budget");
+      setServerError("Failed to Creat, Please try again");
     },
   });
 
   const handleSave = () => {
     // Construct extraFields as object
     const extraFieldsObj = extraFields.reduce((acc, { key, value }) => {
-      if (key) acc[key] = value;
+      if (key && value) acc[key] = value;
       return acc;
     }, {} as Record<string, string>);
 
     const newLine = {
-      category: { name: categoryName },
-      description,
-      amount,
+      budget_id: budget?.id ?? "",
+      description: description,
+      amount: amount,
       extra_fields: extraFieldsObj,
+      category_name: newCategory,
+      category_id: categoryName !== "__new" ? categoryName : undefined,
     };
 
-    onSave(newLine);
+    if (budgetLine) {
+      const existingLine = {
+        ...newLine,
+        id: budgetLine.id,
+      } satisfies BudgetLine;
+      mutation.mutate(existingLine);
+    } else {
+      mutation.mutate(newLine);
+    }
+    // onSave(newLine);
+
     // Reset form
     setCategoryName("");
     setDescription("");
@@ -123,7 +208,9 @@ export function AddBudgetLineModal({
         label="Category"
         name="category"
         value={categoryName}
-        onChange={(e) => setCategoryName(e.target.value)}
+        onChange={(e) => {
+          setCategoryName(e);
+        }}
         placeholder="-- Select Category --"
         allowCreate={true}
         createLabel="Create New..."
@@ -136,9 +223,10 @@ export function AddBudgetLineModal({
           name="categories"
           type="text"
           placeholder="New category name"
-          value={categoryName === "__new" ? "" : categoryName}
-          onChange={(e) => setCategoryName(e.target.value)}
+          value={newCategory}
+          onChange={(e) => handleNewCategoryName(e.target.value)}
           showLabel={false}
+          errorMsg={categoryNameError}
         />
       )}
 
@@ -174,7 +262,16 @@ export function AddBudgetLineModal({
               onChange={(e) =>
                 handleExtraFieldChange(index, "key", e.target.value)
               }
-              disabled={existingExtraKeys.includes(field.key)} // existing keys locked
+              disabled={
+                existingExtraKeys?.includes(field.key) &&
+                !errorFields.has(`key-${index}`)
+              } // existing keys locked
+              ref={(el) => (fieldRefs.current[`key-${index}`] = el)}
+              errorMsg={
+                errorFields.has(`key-${index}`)
+                  ? "This key already exists"
+                  : null
+              }
             />
             <Input
               name={field.value}
@@ -186,7 +283,7 @@ export function AddBudgetLineModal({
                 handleExtraFieldChange(index, "value", e.target.value)
               }
             />
-            {!existingExtraKeys.includes(field.key) && (
+            {!existingExtraKeys?.includes(field.key) && (
               <Button
                 type="button"
                 onClick={() => handleRemoveExtraField(index)}

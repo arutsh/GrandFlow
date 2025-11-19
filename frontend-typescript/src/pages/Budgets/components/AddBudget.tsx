@@ -2,8 +2,8 @@ import { editBudget, createBudget } from "@/api/budgetApi";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import { useMutation } from "@tanstack/react-query";
-import { HandPlatter } from "lucide-react";
-import { useEffect, useState } from "react";
+
+import { useState } from "react";
 import { Budget } from "../types/budget";
 
 export function AddBudgetModal({

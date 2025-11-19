@@ -1,8 +1,6 @@
-import { getUserIdFromToken } from "@/utils/token";
 import { createAxiosInstance } from "./axiosConfig";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/context/AuthContext";
-import { NewBudgetLine } from "@/pages/Budgets/types/budget";
+
+import { BudgetLine, NewBudgetLine } from "@/pages/Budgets/types/budget";
 
 const gatewayApi = createAxiosInstance(
   import.meta.env.API_GATEWAY || "http://localhost:8082/api/v1"
@@ -61,7 +59,23 @@ export const fetchBudgetById = async (id: string) => {
 };
 
 export const createBudgetLine = async (new_budget_line: NewBudgetLine) => {
-  
+  const { data } = await gatewayApi.post("budget-lines/", new_budget_line);
+  return data;
+};
+
+export const updateBudgetLines = async (existing_budget_line: BudgetLine) => {
+  console.log("updating budget line!!!", existing_budget_line);
+  const { data } = await gatewayApi.patch(
+    `budget-lines/${existing_budget_line.id}/`,
+    existing_budget_line
+  );
+
+  return data;
+};
+
+export const deleteBudgetLine = async (budget_line_id: string) => {
+  const { data } = await gatewayApi.delete(`budget-lines/${budget_line_id}/`);
+  return data;
 };
 
 export default gatewayApi;

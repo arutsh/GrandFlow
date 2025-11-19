@@ -19,6 +19,7 @@ import { BudgetViewTraces } from "./components/BudgetViewTraces";
 import { BudgetViewSummary } from "./components/BudgetViewSummary";
 import { AddBudgetModal } from "./components/AddBudget";
 import { Budget, BudgetCategory } from "./types/budget";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface SingleBudgetViewContextType {
   budget: Budget | null;
@@ -26,6 +27,7 @@ interface SingleBudgetViewContextType {
   budgetCategories: BudgetCategory[];
   budgetCategoryNames: string[];
   totalAmount: Number;
+  existingExtraKeys?: string[];
   // isAddOpen: boolean;
   // openAddModal: () => void;
   // closeAddModal: () => void;
@@ -35,9 +37,22 @@ const SingleBudgetViewContext = createContext<
 >(undefined);
 
 export const SingleBudgetViewContextProvider: React.FC<{
+  id: string; // ✅ pass budget ID as prop
   children: React.ReactNode;
-}> = ({ children }) => {
-  const [budget, setBudget] = useState<Budget | null>(null);
+}> = ({ id, children }) => {
+  // const [budget, setBudget] = useState<Budget | null>(null);
+  const queryClient = useQueryClient();
+  // ✅ Fetch budget here
+  const {
+    data: budget,
+    isPending,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["budgetDetails", id],
+    queryFn: () => fetchBudgetById(id),
+  });
 
   const totalAmount = useMemo(() => {
     if (!budget?.lines) return 0;
@@ -58,10 +73,26 @@ export const SingleBudgetViewContextProvider: React.FC<{
     return unique;
   }, [budget]);
 
+  const existingExtraKeys = useMemo(() => {
+    if (!budget?.lines?.length) return [];
+    const keys = new Set<string>();
+    for (const line of budget.lines) {
+      if (line.extra_fields) {
+        Object.keys(line.extra_fields).forEach((key) => keys.add(key));
+      }
+    }
+    return Array.from(keys);
+  }, [budget]);
+
   // ✅ Extract category names from categories
   const budgetCategoryNames = useMemo(() => {
     return budgetCategories.map((c) => c?.name).filter(Boolean) as string[];
   }, [budgetCategories]);
+
+  // ✅ Wrapper setter (updates both state + query cache)
+  const setBudget = (updated: Budget | null) => {
+    queryClient.setQueryData(["budgetDetails", id], updated);
+  };
 
   return (
     <SingleBudgetViewContext.Provider
@@ -71,6 +102,7 @@ export const SingleBudgetViewContextProvider: React.FC<{
         budgetCategories,
         budgetCategoryNames,
         totalAmount,
+        existingExtraKeys,
       }}
     >
       {children}

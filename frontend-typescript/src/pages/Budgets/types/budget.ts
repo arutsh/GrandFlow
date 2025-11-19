@@ -27,20 +27,18 @@ export interface BudgetCategory {
   donor_template_id?: string;
 }
 
-export interface BudgetLine {
-  id: string;
+export interface NewBudgetLine {
+  budget_id: string;
   description: string;
   amount: number;
   extra_fields?: Record<string, string>;
-  category?: BudgetCategory;
+  category_name?: string;
+  category_id?: string;
 }
 
-export interface NewBudgetLine {
-  description: string;
-  amount: number;
-  extra_fields?: Record<string, string>;
-  categoryName?: string;
-  categoryId?: string;
+export interface BudgetLine extends NewBudgetLine {
+  id: string;
+  category?: BudgetCategory;
 }
 
 export interface Budget {
