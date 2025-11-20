@@ -32,7 +32,7 @@ class BudgetLineBase(BaseModel):
 
 
 class BudgetLineCreate(BudgetLineBase):
-    pass
+    category_name: str | None = None
 
 
 class BudgetLineUpdate(BaseModel):

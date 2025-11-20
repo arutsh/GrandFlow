@@ -12,9 +12,7 @@ from fastapi import status
 
 
 def get_or_create_category_service(
-    db: Session,
-    valid_user: dict,
-    category_id: UUID | None = None,
+    db: Session, valid_user: dict, category_id: UUID | None = None, category_name: str | None = None
 ) -> BudgetCategoryModel:
     """The service to get or create a budget category.
     the idea is if category_id is not provided, then try to fetch 'Miscellaneous' category,
@@ -29,9 +27,12 @@ def get_or_create_category_service(
             )
         return category
 
+    donor_template_id = None
     name = "Miscellaneous"
     code = "MISC"
-    donor_template_id = None
+    if category_name:
+        name = category_name
+        code = "_".join(category_name.split()).upper()
 
     category = get_budget_category_by_name_and_template_id(db, name, donor_template_id)
 
