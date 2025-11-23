@@ -44,6 +44,9 @@ export interface BudgetLine extends NewBudgetLine {
 export interface Budget {
   id: string;
   name?: string;
+  status: string;
+  duration_months?: number;
+  local_currency?: string;
   owner?: CustomerOut;
   funder?: CustomerOut | { name?: string; id?: string };
   trace?: TraceOut;

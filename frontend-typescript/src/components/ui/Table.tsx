@@ -60,9 +60,11 @@ export function TableBody({ children }: { children: any }) {
 export function TableCommon({
   data,
   columns,
+  onRowClick,
 }: {
   data: any[];
   columns: any[];
+  onRowClick?: (row: any) => void;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -117,7 +119,11 @@ export function TableCommon({
       </TableHead>
       <tbody className="divide-y divide-gray-200">
         {table.getRowModel().rows.map((row) => (
-          <tr key={row.id}>
+          <tr
+            key={row.id}
+            onClick={() => onRowClick?.(row.original)}
+            className="hover:bg-slate-50 cursor-pointer"
+          >
             {row.getVisibleCells().map((cell) => {
               // IMPORTANT: use cell-level helpers (v8)
               const isGrouped = cell.getIsGrouped();

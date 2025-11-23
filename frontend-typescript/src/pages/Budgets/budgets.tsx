@@ -22,7 +22,7 @@ import { EditBudgetModal } from "./components/EditBudget";
 
 const BudgetsPage: React.FC = () => {
   // Placeholder content for the Budgets page
-  const [view, setView] = useState<"cards" | "table">("cards");
+  const [view, setView] = useState<"cards" | "table">();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
