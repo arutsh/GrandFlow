@@ -1,7 +1,7 @@
 # /services/budget/app/models/budget.py
 from __future__ import annotations
 import uuid
-from sqlalchemy import Boolean, String, ForeignKey, Float, JSON, Integer, Enum as SQLEnum, text
+from sqlalchemy import String, ForeignKey, Float, JSON, Integer, Enum as SQLEnum, text
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.utils.db import GUID
 

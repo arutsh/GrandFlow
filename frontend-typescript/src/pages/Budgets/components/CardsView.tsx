@@ -41,7 +41,7 @@ export function CardsView({
               {utcToLocal(budget?.trace?.updated?.event_date)}
             </p>
           </div>
-          <div className="flex space-x-2 mt-2 md:mt-0">
+          <div className="flex space-x-2 mt-2 md:mt-0" onClick={(e) => e.stopPropagation()}>
             <Button onClick={() => onEdit(budget)}>Edit</Button>
             <ConfirmDeleteButton onConfirm={() => onDelete(budget.id)} />
           </div>

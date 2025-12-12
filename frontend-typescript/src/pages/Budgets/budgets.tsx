@@ -16,7 +16,7 @@ import { CardsView } from "./components/CardsView";
 
 import { CardTableToggle } from "@/components/ui/CardTableToggle";
 import { Budget, BudgetPatched } from "./types/budget";
-import { deleteBudget } from "@/api/budgetApi";
+import { archiveBudget, deleteBudget } from "@/api/budgetApi";
 import { AddBudgetModal } from "./components/AddBudget";
 import { EditBudgetModal } from "./components/EditBudget";
 
@@ -63,7 +63,7 @@ const BudgetsPage: React.FC = () => {
     setIsEditOpen(false);
   };
   const deleteBudgetMutation = useMutation({
-    mutationFn: async (budgetId: string) => deleteBudget(budgetId),
+    mutationFn: async (budgetId: string) => archiveBudget(budgetId),
     onSuccess: (_, budgetId) => {
       // Invalidate and refetch budgets after deletion
       queryClient.setQueryData(["budgets"], (oldData: Budget[] | undefined) => {

@@ -48,7 +48,7 @@ export function TableView({
     columnHelper.display({
       id: "actions",
       cell: (info) => (
-        <div className="flex space-x-2">
+        <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
           <Button onClick={() => onEdit(info.row.original)}>Edit</Button>
 
           <ConfirmDeleteButton
@@ -64,5 +64,11 @@ export function TableView({
     window.location.href = `/budgets/${budgetId}`;
   };
 
-  return <TableCommon data={data} columns={columns} onRowClick={(row) => redirectToBudget(row.id) } />;
+  return (
+    <TableCommon
+      data={data}
+      columns={columns}
+      onRowClick={(row) => redirectToBudget(row.id)}
+    />
+  );
 }

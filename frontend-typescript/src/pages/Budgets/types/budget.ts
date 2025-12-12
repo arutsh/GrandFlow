@@ -67,4 +67,7 @@ export interface BudgetPatched {
   owner_id?: string;
   funding_customer_id?: string;
   external_funder_name?: string;
+  status?: string;
+  duration_months?: number;
+  local_currency?: string;
 }
