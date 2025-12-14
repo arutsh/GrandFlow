@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.budget import BudgetModel
+from app.models.budget import BudgetModel, BudgetStatus
 from uuid import UUID
 
 
@@ -64,12 +64,18 @@ def update_budget(
     owner_id: UUID | None = None,
     funding_customer_id: UUID | None = None,
     external_funder_name: str | None = None,
+    status: BudgetStatus | None = None,
+    duration_months: int | None = None,
+    local_currency: str | None = None,
 ) -> BudgetModel | None:
     budget = get_budget(session, budget_id)
     if not budget:
         return None
 
     budget.name = name or budget.name
+    budget.status = status or budget.status
+    budget.duration_months = duration_months or budget.duration_months
+    budget.local_currency = local_currency or budget.local_currency
     budget.owner_id = owner_id or budget.owner_id
     budget.funding_customer_id = funding_customer_id or budget.funding_customer_id
     budget.external_funder_name = external_funder_name or budget.external_funder_name

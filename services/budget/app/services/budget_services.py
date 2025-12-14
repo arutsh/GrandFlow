@@ -77,6 +77,9 @@ async def update_budget_service(budget_id: UUID, budget: BudgetCreate, valid_use
         session=db,
         budget_id=budget_id,
         name=budget.name,
+        status=budget.status,
+        duration_months=budget.duration_months,
+        local_currency=budget.local_currency,
         owner_id=owner_id,
         funding_customer_id=budget.funding_customer_id,
         external_funder_name=budget.external_funder_name,
@@ -140,6 +143,9 @@ async def populate_budget_with_user_details(budgets: List[BudgetModel], valid_us
         {
             "id": b.id,
             "name": b.name,
+            "status": b.status,
+            "duration_months": b.duration_months,
+            "local_currency": b.local_currency,
             "owner": customers_map.get(b.owner_id),
             "funder": customers_map.get(b.funding_customer_id) or {"name": b.external_funder_name},
             "trace": {

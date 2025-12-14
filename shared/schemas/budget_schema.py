@@ -5,17 +5,32 @@ from uuid import UUID
 from shared.schemas.budget_line_schema import BudgetLine
 from datetime import datetime
 
+from enum import Enum
 
-# Budget Schemas
+
+class BudgetStatus(str, Enum):
+    draft = "draft"
+    confirmed = "confirmed"
+    archived = "archived"
+
+
+# Budget Schemass
 class BudgetBase(BaseModel):
-    name: str
+    name: str | None = None
     owner_id: UUID | None = None
     funding_customer_id: UUID | None = None
+    local_currency: str | None = None
+    status: BudgetStatus = BudgetStatus.draft
+    duration_months: int | None = None
     external_funder_name: str | None = None
     created_by: UUID | None = None
     updated_by: UUID | None = None
     updated_at: datetime | None = None
     created_at: datetime | None = None
+
+
+class BudgetCreate(BudgetBase):
+    name: str
 
     @model_validator(mode="after")
     def check_funder(self):
@@ -24,12 +39,8 @@ class BudgetBase(BaseModel):
         return self
 
 
-class BudgetCreate(BudgetBase):
-    pass
-
-
 class BudgetUpdate(BudgetBase):
-    id: UUID
+    id: UUID | None = None
 
 
 class Budget(BudgetBase):

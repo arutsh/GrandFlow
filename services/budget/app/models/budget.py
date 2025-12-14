@@ -1,7 +1,7 @@
 # /services/budget/app/models/budget.py
 from __future__ import annotations
 import uuid
-from sqlalchemy import String, ForeignKey, Float, JSON, Integer
+from sqlalchemy import String, ForeignKey, Float, JSON, Integer, Enum as SQLEnum, text
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.utils.db import GUID
 
@@ -9,6 +9,8 @@ from app.models.base import Base
 
 from shared.db.audit_mixin import AuditMixin
 from typing import TYPE_CHECKING
+from app.schemas.budget_schema import BudgetStatus
+
 
 if TYPE_CHECKING:
     from app.models.mapping import DonorTemplateModel
@@ -27,6 +29,15 @@ class BudgetModel(Base, AuditMixin):
     funding_customer_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), nullable=True)
     external_funder_name: Mapped[str | None] = mapped_column(String, nullable=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
+
+    duration_months: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)
+    local_currency: Mapped[str | None] = mapped_column(String(3), nullable=False, default="GBP")
+    status: Mapped[BudgetStatus] = mapped_column(
+        SQLEnum(BudgetStatus),
+        nullable=False,
+        default=BudgetStatus.draft,
+        server_default=text(f"'{BudgetStatus.draft.value}'"),
+    )
     donor_template_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("donor_templates.id"), nullable=True
     )

@@ -65,7 +65,7 @@ async def get_budget_endpoint(
 @router.patch("/{budget_id}", response_model=BudgetUpdate)
 async def update_budget_endpoint(
     budget_id: UUID,
-    budget: BudgetCreate,
+    budget: BudgetUpdate,
     db: Session = Depends(get_db),
     valid_user=Depends(get_validated_user),
 ):

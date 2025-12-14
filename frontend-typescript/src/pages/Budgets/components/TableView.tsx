@@ -15,25 +15,24 @@ export function TableView({
   onDelete: (budget_id: string) => void;
 }) {
   const columns = [
+    columnHelper.accessor("status", { header: "Status" }),
     columnHelper.accessor("name", { header: "Name" }),
+
     columnHelper.accessor("funder", {
       header: "Funder",
       cell: (info) => info.getValue()?.name || "N/A",
     }),
     columnHelper.accessor("amount", {
       header: "Amount",
-      cell: (info) => `$${info.getValue()?.toFixed(2) || "0.00"}`,
+      cell: (info) => `$${info.getValue()?.toFixed(2) || ""}`,
     }),
-    columnHelper.accessor("trace", {
-      header: "Created At",
-      cell: (info) => utcToLocal(info.getValue()?.created.event_date),
+    columnHelper.accessor("duration_months", {
+      header: "Duration (months)",
+      cell: (info) => info.getValue()?.toString() || "N/A",
     }),
-    columnHelper.accessor("trace", {
-      header: "Created By",
-      cell: (info) =>
-        `${info.getValue()?.created.user?.first_name || ""} ${
-          info.getValue()?.created.user?.last_name || ""
-        }`,
+    columnHelper.accessor("local_currency", {
+      header: "Currency",
+      cell: (info) => info.getValue() || "N/A",
     }),
     columnHelper.accessor("trace", {
       header: "Updated At",
@@ -49,7 +48,7 @@ export function TableView({
     columnHelper.display({
       id: "actions",
       cell: (info) => (
-        <div className="flex space-x-2">
+        <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
           <Button onClick={() => onEdit(info.row.original)}>Edit</Button>
 
           <ConfirmDeleteButton
@@ -60,5 +59,16 @@ export function TableView({
     }),
   ];
 
-  return <TableCommon data={data} columns={columns} />;
+  const redirectToBudget = (budgetId: string) => {
+    // Placeholder for redirect logic
+    window.location.href = `/budgets/${budgetId}`;
+  };
+
+  return (
+    <TableCommon
+      data={data}
+      columns={columns}
+      onRowClick={(row) => redirectToBudget(row.id)}
+    />
+  );
 }
