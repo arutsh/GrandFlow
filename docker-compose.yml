@@ -52,6 +52,7 @@ services:
     volumes:
       - ./shared:/app/shared:ro
       - ./services/budget:/app
+      - ./uploads/budget:/app/uploads   # new volume for budget uploads
     env_file:
       - ./services/budget/.env.budget.dev
     environment:

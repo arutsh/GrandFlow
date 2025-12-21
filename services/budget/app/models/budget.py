@@ -33,7 +33,7 @@ class BudgetModel(Base, AuditMixin):
     duration_months: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)
     local_currency: Mapped[str | None] = mapped_column(String(3), nullable=False, default="GBP")
     status: Mapped[BudgetStatus] = mapped_column(
-        SQLEnum(BudgetStatus),
+        SQLEnum(BudgetStatus, name="budget_status"),
         nullable=False,
         default=BudgetStatus.draft,
         server_default=text(f"'{BudgetStatus.draft.value}'"),

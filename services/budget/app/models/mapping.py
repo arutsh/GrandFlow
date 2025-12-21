@@ -24,6 +24,8 @@ class DonorTemplateModel(Base):
     )
 
 
+
+
 class DonorFieldModel(Base):
     __tablename__ = "donor_fields"
 
