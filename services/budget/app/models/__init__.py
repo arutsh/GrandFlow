@@ -1,5 +1,10 @@
 from app.models.budget import BudgetModel, BudgetLineModel
-from app.models.mapping import NgoMappingModel, DonorTemplateModel, DonorFieldModel
+from app.models.mapping import (
+    NgoMappingModel,
+    DonorTemplateModel,
+    DonorFieldModel,
+    SemanticFieldMappingModel,
+)
 from app.models.budget_templates import UploadedTemplateModel, TemplateToBudgetMappingModel
 
 __all__ = [
@@ -10,4 +15,5 @@ __all__ = [
     "DonorFieldModel",
     "UploadedTemplateModel",
     "TemplateToBudgetMappingModel",
+    "SemanticFieldMappingModel",
 ]

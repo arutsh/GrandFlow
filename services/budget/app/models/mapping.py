@@ -1,12 +1,90 @@
 from __future__ import annotations
-
+import uuid
+from enum import Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Integer, String, Float, ForeignKey
+from sqlalchemy import String, Integer, Float, Boolean, Enum as SQLEnum, ForeignKey, text
+from sqlalchemy.dialects.postgresql import JSONB
 from app.models.base import Base
 from typing import TYPE_CHECKING
+from shared.db.audit_mixin import AuditMixin
+from app.utils.db import GUID
 
 if TYPE_CHECKING:
     from app.models.budget import BudgetCategoryModel
+
+
+class MappingSource(str, Enum):
+    AI = "ai"
+    HUMAN = "human"
+    IMPORTED = "imported"
+
+
+class SemanticFieldMappingModel(Base, AuditMixin):
+    __tablename__ = "semantic_field_mappings"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        GUID(),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+
+    # what appeared in Excel
+    raw_value: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        index=True,
+        comment="Original cell text e.g. 'Office costs'",
+    )
+
+    normalized_value: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        index=True,
+        comment="Normalized form for lookup (lowercase, trimmed)",
+    )
+
+    # what it maps to in your system
+    mapped_to: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        comment="budget_category | budget_field | extra_field",
+    )
+
+    mapped_key: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        comment="e.g. 'office_costs'",
+    )
+
+    confidence: Mapped[float] = mapped_column(
+        Float,
+        nullable=False,
+        default=1.0,
+    )
+
+    source: Mapped[MappingSource] = mapped_column(
+        SQLEnum(MappingSource),
+        nullable=False,
+    )
+
+    times_used: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=1,
+    )
+
+    approved: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        comment="Human-confirmed mapping",
+    )
+
+    meta_data: Mapped[dict | None] = mapped_column(
+        JSONB,
+        nullable=True,
+        comment="AI reasoning, alternatives, examples",
+    )
 
 
 class DonorTemplateModel(Base):
@@ -22,8 +100,6 @@ class DonorTemplateModel(Base):
     categories: Mapped[list["BudgetCategoryModel"]] = relationship(
         back_populates="donor_template", cascade="all, delete-orphan"
     )
-
-
 
 
 class DonorFieldModel(Base):

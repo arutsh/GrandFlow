@@ -60,6 +60,20 @@ def get_validated_user(user=Depends(get_current_user)):
     except ValueError as e:
         raise DomainError(str(e))
 
+@router.post("/ping")
+def ping():
+    from app.services.template_detection.spreadsheet_reader import ExcelStructureDetector
+    file_path = "/app/uploads/Donor_budget_template.xlsx"
+    # detected_structure = detect_excel_structure(file_path)
+    # df = load_raw_sheet(file_path)
+    excel_reader = ExcelStructureDetector(file_path)
+    # Use the high-level pipeline to get a cleaned DataFrame
+    df = excel_reader.detect_structure()
+
+    # Serialize detections to JSON
+    json_output = excel_reader.filter_list_of_possible_fields(df)
+    return json_output
+    # return {"message": "pong"}
 
 # --- Templates ---
 @router.post("/templates", response_model=DonorTemplate)
