@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 class MappingSource(str, Enum):
     AI = "ai"
     HUMAN = "human"
+    RULE = "rule"
     IMPORTED = "imported"
 
 

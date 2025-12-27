@@ -54,7 +54,7 @@ services:
       - ./services/budget:/app
       - ./uploads/budget:/app/uploads   # new volume for budget uploads
     env_file:
-      - ./services/budget/.env.budget.dev
+      - ./services/budget/.env.budget.private.dev
     environment:
       - PYTHONPATH=/app
     depends_on:

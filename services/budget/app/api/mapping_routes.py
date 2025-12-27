@@ -38,6 +38,7 @@ from app.services.user_client import (
     get_valid_user,
 )
 from app.core.exceptions import DomainError
+from app.services.mapping_service import suggest_semantic_mapping
 
 router = APIRouter(prefix="/donor-mapping", tags=["Donor Mapping"])
 
@@ -60,9 +61,11 @@ def get_validated_user(user=Depends(get_current_user)):
     except ValueError as e:
         raise DomainError(str(e))
 
+
 @router.post("/ping")
-def ping():
+def ping(db: Session = Depends(get_db)):
     from app.services.template_detection.spreadsheet_reader import ExcelStructureDetector
+
     file_path = "/app/uploads/Donor_budget_template.xlsx"
     # detected_structure = detect_excel_structure(file_path)
     # df = load_raw_sheet(file_path)
@@ -71,9 +74,11 @@ def ping():
     df = excel_reader.detect_structure()
 
     # Serialize detections to JSON
-    json_output = excel_reader.filter_list_of_possible_fields(df)
-    return json_output
+    extracted_keywords = excel_reader.filter_list_of_possible_fields(df)
+    suggested_mappings = suggest_semantic_mapping(extracted_keywords, db)
+    return suggested_mappings
     # return {"message": "pong"}
+
 
 # --- Templates ---
 @router.post("/templates", response_model=DonorTemplate)
