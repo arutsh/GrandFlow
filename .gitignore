@@ -206,3 +206,4 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 frontend-typescript/package-lock.json
+services/budget/.env.budget.private.dev

@@ -34,8 +34,8 @@ async def lifespan(app: FastAPI):
     # await close_budget_lines_url()
     print("🛑 Gateway connections closed")
 
-
-Base.metadata.create_all(bind=engine)
+#Donot create dbs on startup, it has to go through migrations. 
+# Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Budget Service", lifespan=lifespan)
 
 app.add_middleware(
