@@ -7,6 +7,7 @@ from app.core.config import settings
 import numpy as np
 from sqlalchemy.orm import Session
 from app.models.mapping import SemanticFieldMappingModel
+from app.crud.mapping_crud import bulk_create_semantic_field_mappings
 
 # Optional Redis cache
 redis_client = None
@@ -193,7 +194,7 @@ def rule_based_suggestion(value: str):
     return None
 
 
-def suggest_semantic_mapping(values: List[str], db: Session) -> Dict:
+def suggest_semantic_mapping(values: List[str], db: Session, valid_user: Dict) -> Dict:
     """
     Suggest semantic mappings using rule-based heuristics.
     Returns [{ngo_field, mapped_to, mapped_key, confidence}]
@@ -233,6 +234,7 @@ def suggest_semantic_mapping(values: List[str], db: Session) -> Dict:
                         "mapped_key": existing.mapped_key,
                         "confidence": existing.confidence,
                         "source": existing.source.value,
+                        "times_used": existing.times_used,
                     }
                 )
             else:
@@ -244,12 +246,12 @@ def suggest_semantic_mapping(values: List[str], db: Session) -> Dict:
                             "mapped_to": value["mapped_to"],
                             "mapped_key": value["mapped_key"],
                             "confidence": value["confidence"],
-                            "source": "cache",
+                            "source": value.get("source", "ai"),
                         }
                     )
                 else:
                     unknown.append({"raw_value": raw, "normalized_value": normalized})
-
+    db.commit()  # commit any times_used updates
     BATCH_SIZE = 25
     if unknown and use_openai:
         for i in range(0, len(unknown), BATCH_SIZE):
@@ -261,6 +263,7 @@ def suggest_semantic_mapping(values: List[str], db: Session) -> Dict:
                         "mapped_to": oa["mapped_to"],
                         "mapped_key": oa.get("suggested_key"),
                         "confidence": oa["confidence"],
+                        "source": "openai",
                     }
                 )
                 # Cache result
@@ -270,10 +273,12 @@ def suggest_semantic_mapping(values: List[str], db: Session) -> Dict:
                         "mapped_to": item["mapped_to"],
                         "mapped_key": item["mapped_key"],
                         "confidence": item["confidence"],
+                        "source": "openai",
                     },
                     ttl=7 * 86400,
                 )
             suggestions.extend(unknown)
+            bulk_create_semantic_field_mappings(db, valid_user["id"], unknown)
             unknown = []
     return {"suggestions": suggestions, "unknown": unknown}
 

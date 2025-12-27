@@ -32,7 +32,7 @@ def create_semantic_field_mapping(
         mapped_to=mapped_to,
         mapped_key=mapped_to,
         source=source,
-        confidence_score=confindence,
+        confidence=confindence,
         meta_data=meta_data,
         created_by=user_id,
         updated_by=user_id,
@@ -41,6 +41,41 @@ def create_semantic_field_mapping(
     session.commit()
     session.refresh(mapping)
     return mapping
+
+
+def bulk_create_semantic_field_mappings(
+    session: Session,
+    user_id: UUID,
+    mappings: list[dict],
+) -> list[SemanticFieldMappingModel]:
+    """
+    Bulk create semantic field mappings.
+    """
+
+    mapping_models = [
+        SemanticFieldMappingModel(
+            raw_value=mapping["raw_value"],
+            normalized_value=mapping["normalized_value"],
+            mapped_to=mapping["mapped_to"],
+            mapped_key=mapping["mapped_key"] or "",
+            source=mapping["source"],
+            confidence=mapping.get("confidence"),
+            meta_data=mapping.get("meta_data"),
+            created_by=user_id,
+            updated_by=user_id,
+        )
+        for mapping in mappings
+    ]
+    # Use add_all so SQLAlchemy tracks the instances in the session
+    # (bulk_save_objects bypasses the unit-of-work and leaves instances
+    # in a non-persistent state, which makes session.refresh() fail).
+    session.add_all(mapping_models)
+    session.commit()
+
+    # Now refresh to populate defaults (like server-generated PKs)
+    for mapping in mapping_models:
+        session.refresh(mapping)
+    return mapping_models
 
 
 def update_semantic_field_mapping(

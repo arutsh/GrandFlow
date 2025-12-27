@@ -63,7 +63,7 @@ def get_validated_user(user=Depends(get_current_user)):
 
 
 @router.post("/ping")
-def ping(db: Session = Depends(get_db)):
+def ping(db: Session = Depends(get_db), valid_user=Depends(get_validated_user)):
     from app.services.template_detection.spreadsheet_reader import ExcelStructureDetector
 
     file_path = "/app/uploads/Donor_budget_template.xlsx"
@@ -75,7 +75,7 @@ def ping(db: Session = Depends(get_db)):
 
     # Serialize detections to JSON
     extracted_keywords = excel_reader.filter_list_of_possible_fields(df)
-    suggested_mappings = suggest_semantic_mapping(extracted_keywords, db)
+    suggested_mappings = suggest_semantic_mapping(extracted_keywords, db, valid_user)
     return suggested_mappings
     # return {"message": "pong"}
 

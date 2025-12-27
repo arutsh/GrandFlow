@@ -157,7 +157,6 @@ class ExcelStructureDetector:
         df_cleaned = pd.concat([header, body_cleaned]).reset_index(drop=True)
         return df_cleaned
 
-
     def filter_list_of_possible_fields(self, df: pd.DataFrame) -> list[str]:
         """Extract a list of possible field names from the cleaned DataFrame."""
         possible_fields = set()
