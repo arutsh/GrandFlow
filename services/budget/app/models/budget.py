@@ -11,7 +11,6 @@ from shared.db.audit_mixin import AuditMixin
 from typing import TYPE_CHECKING
 from app.schemas.budget_schema import BudgetStatus
 
-
 if TYPE_CHECKING:
     from app.models.mapping import DonorTemplateModel
 

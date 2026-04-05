@@ -19,7 +19,6 @@ from app.services.budget_line_services import (
 )
 from app.core.exceptions import DomainError
 
-
 router = APIRouter(prefix="/budget-lines", tags=["Budget Lines"])
 
 

@@ -24,7 +24,6 @@ import json
 import pandas as pd
 import numpy as np
 
-
 # numeric_pattern = re.compile(r"^\s*[-+]?\d*\.?\d+\s*$")
 numeric_pattern = re.compile(
     r"""

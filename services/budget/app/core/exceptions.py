@@ -1,6 +1,5 @@
 from shared.exceptions.exceptions import DomainError, PermissionDenied  # noqa F401
 
-
 # class DomainError(Exception):
 #     def __init__(self, message: str, status_code: int = status.HTTP_400_BAD_REQUEST):
 #         self.message = message
