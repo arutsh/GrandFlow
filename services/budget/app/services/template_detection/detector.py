@@ -1,3 +1,5 @@
+from typing import Any
+
 from openpyxl import load_workbook
 
 # from ..normalizer import normalize_label
@@ -105,7 +107,7 @@ def detect_sections(columns: list[dict]) -> dict | None:
 def detect_excel_structure(file_path: str) -> dict:
     wb = load_workbook(file_path, data_only=False)
 
-    structure = {"version": 1, "sheets": []}
+    structure: dict[str, Any] = {"version": 1, "sheets": []}
 
     for sheet_name in wb.sheetnames:
         ws = wb[sheet_name]
@@ -187,9 +189,10 @@ def detect_row_semantic_structure(file_path: str) -> dict:
 
         if row_type == "category":
             match = re.match(r"^(\d+)\.\s+(.*)", text)
-            entry["category_index"] = match.group(1)
-            entry["label"] = match.group(2)
-            current_category = entry["label"]
+            if match:
+                entry["category_index"] = match.group(1)
+                entry["label"] = match.group(2)
+                current_category = entry["label"]
 
         elif row_type == "example_item":
             entry["belongs_to_category"] = current_category

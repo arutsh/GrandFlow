@@ -15,6 +15,8 @@ rows that are formulas or mostly numeric are removed, ready for
 downstream template detection logic.
 """
 
+from typing import Any
+
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
@@ -58,8 +60,8 @@ class ExcelStructureDetector:
     def __init__(self, file_path: str):
 
         self.file_path = file_path
-        self.data = []
-        self.formula_flags = []
+        self.data: list[list[Any]] = []
+        self.formula_flags: list[list[Any]] = []
         self.wb = load_workbook(file_path, data_only=False)
         self.ws = self.wb.active
 
@@ -75,11 +77,11 @@ class ExcelStructureDetector:
             keep_default_na=False,
         )
 
-    def read_sheet_with_openpyxl(self) -> tuple[pd.DataFrame, list[list[bool]]]:
+    def read_sheet_with_openpyxl(self) -> tuple[pd.DataFrame, list[list[Any]]]:
         """Read the sheet using openpyxl and also return formula flags.
 
         Returns a tuple (DataFrame, formula_flags) where formula_flags is
-        a list of rows containing booleans for whether each cell had a formula.
+        a list of rows containing booleans and integers for formula tracking.
         """
         first_row = [""] + [get_column_letter(i + 1) for i in range(len(self.ws[1]))]
         self.data = [first_row]
