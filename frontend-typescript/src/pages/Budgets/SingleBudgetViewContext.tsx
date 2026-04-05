@@ -18,7 +18,7 @@ import { BudgetViewLinesTable } from "./components/BudgetViewLinesTable";
 import { BudgetViewTraces } from "./components/BudgetViewTraces";
 import { BudgetViewSummary } from "./components/BudgetViewSummary";
 import { AddBudgetModal } from "./components/AddBudget";
-import { Budget, BudgetCategory } from "./types/budget";
+import { Budget, BudgetCategory, BudgetLine } from "./types/budget";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface SingleBudgetViewContextType {
@@ -37,7 +37,7 @@ const SingleBudgetViewContext = createContext<
 >(undefined);
 
 export const SingleBudgetViewContextProvider: React.FC<{
-  id: string; // ✅ pass budget ID as prop
+  id: string | undefined;
   children: React.ReactNode;
 }> = ({ id, children }) => {
   // const [budget, setBudget] = useState<Budget | null>(null);
@@ -51,26 +51,33 @@ export const SingleBudgetViewContextProvider: React.FC<{
     refetch,
   } = useQuery({
     queryKey: ["budgetDetails", id],
-    queryFn: () => fetchBudgetById(id),
+    queryFn: () => (id ? fetchBudgetById(id) : Promise.resolve(null)),
+    enabled: !!id,
   });
 
   const totalAmount = useMemo(() => {
     if (!budget?.lines) return 0;
-    return budget.lines.reduce((sum, line) => sum + (line.amount || 0), 0);
+    return budget.lines.reduce(
+      (sum: number, line: BudgetLine) => sum + (line.amount || 0),
+      0,
+    );
   }, [budget]);
 
   // ✅ Derive unique categories from budget lines
-  const budgetCategories = useMemo(() => {
+  const budgetCategories = useMemo((): BudgetCategory[] => {
     if (!budget?.lines) return [];
 
     const unique = Object.values(
-      budget.lines.reduce((acc, { category }) => {
-        if (category && !acc[category.id]) acc[category.id] = category;
-        return acc;
-      }, {} as Record<string, BudgetCategory>)
+      budget.lines.reduce(
+        (acc: Record<string, BudgetCategory>, { category }: BudgetLine) => {
+          if (category && !acc[category.id]) acc[category.id] = category;
+          return acc;
+        },
+        {} as Record<string, BudgetCategory>,
+      ),
     );
 
-    return unique;
+    return unique as BudgetCategory[];
   }, [budget]);
 
   const existingExtraKeys = useMemo(() => {
@@ -86,7 +93,10 @@ export const SingleBudgetViewContextProvider: React.FC<{
 
   // ✅ Extract category names from categories
   const budgetCategoryNames = useMemo(() => {
-    return budgetCategories.map((c) => c?.name).filter(Boolean) as string[];
+    return budgetCategories
+      .filter((c): c is BudgetCategory => c !== null && c !== undefined)
+      .map((c) => c.name)
+      .filter(Boolean) as string[];
   }, [budgetCategories]);
 
   // ✅ Wrapper setter (updates both state + query cache)
@@ -114,7 +124,7 @@ export const useDetailedBudget = (): SingleBudgetViewContextType => {
   const ctx = useContext(SingleBudgetViewContext);
   if (!ctx)
     throw new Error(
-      "useDetailedBudget must be used within a SingleBudgetViewContextProvider"
+      "useDetailedBudget must be used within a SingleBudgetViewContextProvider",
     );
   return ctx;
 };

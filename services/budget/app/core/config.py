@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     REDIS_URL: str
     OPENAI_API_KEY: str | None = None
     RULE_BASED_MAPPING_ENABLED: bool = False
+    USE_SEMANTIC_EMBEDDINGS: bool = True  # Use Sentence Transformers for embeddings
     # Databases
     budget_database_url: str
 
@@ -30,5 +31,5 @@ print(f"settings.debug: {settings.debug}")
 print(f"settings.budget_database_url: {settings.budget_database_url}")
 print(f"settings.customer_service_url: {settings.customer_service_url}")
 print(f"settings.REDIS_URL: {settings.REDIS_URL}")
-print(f"settings.OPENAI_API_KEY: {'set' if settings.OPENAI_API_KEY else 'not set'}")
 print(f"settings.RULE_BASED_MAPPING_ENABLED: {settings.RULE_BASED_MAPPING_ENABLED}")
+print(f"settings.USE_SEMANTIC_EMBEDDINGS: {settings.USE_SEMANTIC_EMBEDDINGS}")

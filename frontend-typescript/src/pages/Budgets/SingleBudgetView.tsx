@@ -34,9 +34,11 @@ export function SingleBudgetViewContainer() {
   );
 }
 
-function SingleBudgetView({ id }: { id: string }) {
+function SingleBudgetView({ id }: { id: string | undefined }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState<BudgetLine | boolean>(false);
+  const [isEditOpen, setIsEditOpen] = useState<BudgetLine | undefined>(
+    undefined,
+  );
   // const
   const { budget } = useDetailedBudget();
 
@@ -48,15 +50,16 @@ function SingleBudgetView({ id }: { id: string }) {
           onClose={() => {
             setIsAddOpen(!isAddOpen);
           }}
+          budgetLine={undefined}
           onSave={() => {}}
         />
       )}
       {isEditOpen && (
         <AddBudgetLineModal
           budgetLine={isEditOpen}
-          isOpen={isEditOpen}
+          isOpen={!!isEditOpen}
           onClose={() => {
-            setIsEditOpen(false);
+            setIsEditOpen(undefined);
           }}
           onSave={() => {}}
         />
@@ -74,7 +77,7 @@ function SingleBudgetView({ id }: { id: string }) {
             // onDelete={() => {}}
             onNew={() => setIsAddOpen(!isAddOpen)}
             onClose={() => {
-              setIsAddOpen(false), setIsEditOpen(false);
+              (setIsAddOpen(false), setIsEditOpen(undefined));
             }}
           />
           <BudgetViewTraces budget={budget} />

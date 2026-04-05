@@ -1,17 +1,17 @@
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { registerUser } from "@/api/usersApi";
 import { useAuth } from "@/context/AuthContext";
+import { UserPlus } from "lucide-react";
 
 export default function Register() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
-
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { login } = useAuth();
 
@@ -19,49 +19,129 @@ export default function Register() {
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       registerUser(email, password),
     onSuccess: (data) => {
-      login(data.access_token, email, false, data.status);
-      console.log("Registration successful");
+      login(
+        data.access_token,
+        email,
+        false,
+        data.status,
+        data.refresh_token || "",
+      );
       navigate("/onboarding");
     },
     onError: (error: any) => {
+      setError("Registration failed. Please try again.");
       console.error("Registration failed", error);
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
     mutation.mutate({ email, password });
   };
-  if (mutation.isPending) {
-    return <div>Loading...</div>;
-  }
+
   return (
-    <div className="flex items-center justify-center h-screen bg-slate-100">
-      {error && <p className="text-red-500">{error}</p>}
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-primary/10 via-neutral to-secondary/10">
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded-lg p-8 w-full max-w-sm space-y-4"
+        className="bg-white p-8 rounded-2xl card-shadow-lg w-full max-w-md"
       >
-        <h1 className="text-2xl font-bold text-center text-slate-800">
+        {/* Header */}
+        <div className="flex items-center justify-center mb-8">
+          <div className="p-3 bg-green-50 rounded-lg">
+            <UserPlus size={32} className="text-green-600" />
+          </div>
+        </div>
+
+        <h1 className="text-3xl font-bold text-center text-slate-900 mb-2">
           Create Account
         </h1>
-        <Input
-          label="Email"
-          type="email"
-          name="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <Input
-          label="Password"
-          type="password"
-          name="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <Button type="submit">Continue</Button>
+        <p className="text-center text-gray-500 mb-8">Join GrandFlow today</p>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* Email Input */}
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-slate-900 mb-2">
+            Email Address
+          </label>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus bg-white"
+            required
+          />
+        </div>
+
+        {/* Password Input */}
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-slate-900 mb-2">
+            Password
+          </label>
+          <input
+            type="password"
+            placeholder="Create a password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus bg-white"
+            required
+          />
+          <p className="text-xs text-gray-500 mt-1">At least 6 characters</p>
+        </div>
+
+        {/* Confirm Password Input */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-slate-900 mb-2">
+            Confirm Password
+          </label>
+          <input
+            type="password"
+            placeholder="Confirm your password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus bg-white"
+            required
+          />
+        </div>
+
+        {/* Sign Up Button */}
+        <Button
+          type="submit"
+          variant="primary"
+          className="w-full disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          disabled={mutation.isPending}
+        >
+          {mutation.isPending ? "Creating account..." : "Create Account"}
+        </Button>
+
+        {/* Login Link */}
+        <p className="text-center text-gray-600 mt-6">
+          Already have an account?{" "}
+          <a
+            href="/login"
+            className="text-slate-700 font-semibold hover:text-slate-900 hover:underline"
+          >
+            Login
+          </a>
+        </p>
       </form>
     </div>
   );

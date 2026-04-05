@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Menu, X, Home, FileText, BarChart3 } from "lucide-react"; // icons
+import Button from "../../components/ui/Button";
 
 export default function DashboardLayout({
   children,
@@ -9,12 +10,12 @@ export default function DashboardLayout({
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <div className="flex w-full h-screen bg-slate-500">
+    <div className="flex w-full h-screen bg-gray-50">
       {/* Sidebar */}
       <aside
         className={`
           fixed md:static top-0 left-0 h-full z-20
-          bg-brand-navy text-white transition-all duration-300
+          bg-slate-900 text-white transition-all duration-300
           ${isOpen ? "w-64" : "w-16"}
         `}
       >
@@ -23,12 +24,13 @@ export default function DashboardLayout({
             GF
           </span>
           {/* toggle button for mobile/desktop */}
-          <button
+          <Button
+            variant="icon"
             onClick={() => setIsOpen(!isOpen)}
             className="text-white md:hidden"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          </Button>
         </div>
 
         <nav className="flex-1">
@@ -36,7 +38,7 @@ export default function DashboardLayout({
             <li>
               <a
                 href="/dashboard"
-                className="flex items-center gap-3 px-4 py-2 hover:bg-brand-blue/60 rounded"
+                className="flex items-center gap-3 px-4 py-2 hover:bg-blue-600/60 rounded transition-colors"
               >
                 <Home size={20} />
                 {isOpen && <span>Home</span>}
@@ -45,7 +47,7 @@ export default function DashboardLayout({
             <li>
               <a
                 href="/budgets"
-                className="flex items-center gap-3 px-4 py-2 hover:bg-brand-blue/60 rounded"
+                className="flex items-center gap-3 px-4 py-2 hover:bg-blue-600/60 rounded transition-colors"
               >
                 <FileText size={20} />
                 {isOpen && <span>Budgets</span>}
@@ -54,7 +56,7 @@ export default function DashboardLayout({
             <li>
               <a
                 href="/reports"
-                className="flex items-center gap-3 px-4 py-2 hover:bg-brand-blue/60 rounded"
+                className="flex items-center gap-3 px-4 py-2 hover:bg-blue-600/60 rounded transition-colors"
               >
                 <BarChart3 size={20} />
                 {isOpen && <span>Reports</span>}
@@ -73,7 +75,7 @@ export default function DashboardLayout({
       )}
 
       {/* Main Content */}
-      <main className="flex-1 p-6 overflow-auto md:ml-0 ml-16">{children}</main>
+      <main className="flex-1 p-8 overflow-auto bg-gray-50">{children}</main>
     </div>
   );
 }

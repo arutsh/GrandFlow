@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 from app.models.mapping import SemanticFieldMappingModel
 from app.crud.mapping_crud import bulk_create_semantic_field_mappings
 
+from sentence_transformers import SentenceTransformer
+
 # Optional Redis cache
 redis_client = None
 REDIS_URL = settings.REDIS_URL
@@ -20,18 +22,17 @@ if REDIS_URL:
     except Exception:
         redis_client = None
 
-# Optional OpenAI (embeddings)
-OPENAI_API_KEY = settings.OPENAI_API_KEY
+# Sentence Transformers (free, open-source embeddings)
 RULE_BASED_MAPPING_ENABLED = settings.RULE_BASED_MAPPING_ENABLED
-use_openai = False
-if OPENAI_API_KEY:
-    try:
-        from openai import OpenAI
+USE_SEMANTIC_EMBEDDINGS = getattr(settings, "USE_SEMANTIC_EMBEDDINGS", True)
+embedding_model = True
+try:
+    from sentence_transformers import SentenceTransformer
 
-        openai_client = OpenAI(api_key=OPENAI_API_KEY)
-        use_openai = True
-    except Exception:
-        use_openai = False
+    # Lightweight model: 22MB, very fast, works on CPU
+    embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+except Exception:
+    embedding_model = None
 
 
 def _cache_get(key: str) -> List | Dict | None:
@@ -56,20 +57,22 @@ def _cache_set(key: str, value: List[float] | Dict, ttl: int = 86400) -> None:
 
 
 def _embedding(text: str) -> List[float]:
+    """Get embedding for text using Sentence Transformers.
+
+    Falls back to difflib-based matching if model unavailable.
+    Caches results in Redis if available.
+    """
     key = f"emb:{text.lower()}"
     cached = _cache_get(key)
+
     if cached:
         return cached
 
-    if use_openai:
-        # text-embedding-3-small is cost-effective for this use
-        emb = (
-            openai_client.embeddings.create(model="text-embedding-3-small", input=text)
-            .data[0]
-            .embedding
-        )
+    if embedding_model and USE_SEMANTIC_EMBEDDINGS:
+        # Using Sentence Transformers (free, CPU-friendly)
+        emb = embedding_model.encode(text).tolist()
     else:
-        # Fallback: character frequency vector (very rough) just to keep code runnable
+        # Fallback: character frequency vector (very rough)
         vec = np.zeros(128, dtype=float)
         for ch in text.lower():
             if 0 <= ord(ch) < 128:
@@ -82,6 +85,7 @@ def _embedding(text: str) -> List[float]:
 
 
 def _cosine(a: List[float], b: List[float]) -> float:
+    """Cosine similarity between two vectors."""
     va, vb = np.array(a), np.array(b)
     denom = (np.linalg.norm(va) * np.linalg.norm(vb)) or 1.0
     return float(np.dot(va, vb) / denom)
@@ -89,14 +93,17 @@ def _cosine(a: List[float], b: List[float]) -> float:
 
 def suggest_mapping(ngo_fields: List[str], donor_fields: List[str]) -> List[Dict]:
     """
-    Returns [{ngo_field, donor_field, confidence}] using embeddings if available,
-    else difflib fallback.
+    Returns [{ngo_field, donor_field, confidence}] using Sentence Transformers
+    embeddings, with fallback to difflib.
+
+    Uses cosine similarity for matching with semantic embeddings.
     """
+    embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
     if not donor_fields:
         return []
 
-    # If OpenAI is off, difflib is often better than fake embeddings
-    if not use_openai:
+    # If embeddings unavailable, use difflib
+    if not embedding_model or not USE_SEMANTIC_EMBEDDINGS:
         suggestions: List[Dict] = []
         for nf in ngo_fields:
             match = difflib.get_close_matches(nf, donor_fields, n=1, cutoff=0.0)
@@ -105,7 +112,7 @@ def suggest_mapping(ngo_fields: List[str], donor_fields: List[str]) -> List[Dict
             suggestions.append({"ngo_field": nf, "donor_field": best, "confidence": round(conf, 3)})
         return suggestions
 
-    # With embeddings
+    # With Sentence Transformers embeddings
     donor_vecs = {df: _embedding(df) for df in donor_fields}
     out: List[Dict] = []
     for nf in ngo_fields:
@@ -115,7 +122,9 @@ def suggest_mapping(ngo_fields: List[str], donor_fields: List[str]) -> List[Dict
             score = _cosine(nf_vec, dv)
             if score > best_score:
                 best_field, best_score = df, score
-        out.append({"ngo_field": nf, "donor_field": best_field, "confidence": round(best_score, 3)})
+        # Normalize score to 0-1 range (cosine can be negative)
+        confidence = max(0.0, min(1.0, (best_score + 1.0) / 2.0))
+        out.append({"ngo_field": nf, "donor_field": best_field, "confidence": round(confidence, 3)})
     return out
 
 
@@ -252,34 +261,26 @@ def suggest_semantic_mapping(values: List[str], db: Session, valid_user: Dict) -
                 else:
                     unknown.append({"raw_value": raw, "normalized_value": normalized})
     db.commit()  # commit any times_used updates
-    BATCH_SIZE = 25
-    if unknown and use_openai:
-        for i in range(0, len(unknown), BATCH_SIZE):
-            batch = unknown[i : i + BATCH_SIZE]
-            openai_suggestions = call_openai_bulk([item["raw_value"] for item in batch])
-            for item, oa in zip(batch, openai_suggestions):
-                item.update(
-                    {
-                        "mapped_to": oa["mapped_to"],
-                        "mapped_key": oa.get("suggested_key"),
-                        "confidence": oa["confidence"],
-                        "source": "openai",
-                    }
-                )
-                # Cache result
-                _cache_set(
-                    f"template_mapping:{item['normalized_value']}",
-                    {
-                        "mapped_to": item["mapped_to"],
-                        "mapped_key": item["mapped_key"],
-                        "confidence": item["confidence"],
-                        "source": "openai",
-                    },
-                    ttl=7 * 86400,
-                )
-            suggestions.extend(unknown)
-            bulk_create_semantic_field_mappings(db, valid_user["id"], unknown)
-            unknown = []
+
+    # Use embedding-based semantic matching for unknown fields
+    if unknown and embedding_model and USE_SEMANTIC_EMBEDDINGS:
+        unknown_suggestions = _match_unknown_fields(unknown, db)
+        for item in unknown_suggestions:
+            suggestions.append(item)
+            # Cache result
+            _cache_set(
+                f"template_mapping:{item['normalized_value']}",
+                {
+                    "mapped_to": item["mapped_to"],
+                    "mapped_key": item.get("mapped_key"),
+                    "confidence": item["confidence"],
+                    "source": "semantic",
+                },
+                ttl=7 * 86400,
+            )
+        bulk_create_semantic_field_mappings(db, valid_user["id"], unknown_suggestions)
+        unknown = []
+
     return {"suggestions": suggestions, "unknown": unknown}
 
 
@@ -300,72 +301,97 @@ ALLOWED_MAPPED_TO = [
 ]
 
 
-SYSTEM_PROMPT = """
-You classify spreadsheet labels used in NGO budget templates.
+def _match_unknown_fields(unknown_items: List[Dict], db: Session) -> List[Dict]:
+    """
+    Match unknown fields using semantic embeddings against known canonical fields.
 
-Rules:
-- Output MUST be valid JSON
-- Return an array with the same order as input
-- Use ONLY allowed values
-- Do NOT add explanations
-"""
-
-USER_PROMPT_TEMPLATE = """
-Classify the following labels:
-
-{values}
-
-Allowed mapped_to values:
-{allowed}
-
-Return JSON array:
-[
-  {{
-    "raw_value": "...",
-    "mapped_to": "...",
-    "suggested_key": "... or null",
-    "confidence": 0-1
-  }}
-]
-"""
-
-
-def call_openai_bulk(values: list[str]) -> list[dict]:
-    prompt = USER_PROMPT_TEMPLATE.format(
-        values="\n".join(f"- {v}" for v in values),
-        allowed=", ".join(ALLOWED_MAPPED_TO),
-    )
-
-    response = openai_client.chat.completions.create(
-        model="gpt-4o-mini",
-        temperature=0,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
-    )
-
-    content = response.choices[0].message.content.strip()
-
-    try:
-        parsed = json.loads(content)
-    except json.JSONDecodeError:
-        # fallback: mark all as ignored
-        return [
-            {
-                "raw_value": v,
-                "mapped_to": "ignored",
-                "suggested_key": None,
-                "confidence": 0.0,
-            }
-            for v in values
-        ]
+    Strategy:
+    1. Try to match against existing FIELD_PATTERNS using embeddings
+    2. Use similarity threshold to classify fields
+    3. Return structured mappings
+    """
+    if not embedding_model:
+        return []
 
     results = []
-    for item in parsed:
-        if item["mapped_to"] not in ALLOWED_MAPPED_TO:
-            item["mapped_to"] = "ignored"
-            item["confidence"] = 0.0
-        results.append(item)
+
+    # Build canonical field vectors
+    canonical_fields = {}
+    for pattern, canonical in FIELD_PATTERNS.items():
+        vec = _embedding(pattern)
+        canonical_fields[canonical] = vec
+
+    # Category keywords
+    category_vectors = {}
+    for pattern, canonical in CATEGORY_KEYWORDS.items():
+        vec = _embedding(pattern)
+        category_vectors[canonical] = vec
+
+    # Match unknown items
+    for item in unknown_items:
+        raw_value = item["raw_value"]
+        normalized = item["normalized_value"]
+
+        item_vec = _embedding(raw_value)
+
+        # Try to match against budget fields
+        best_field = None
+        best_score_field = -1.0
+        for field_name, field_vec in canonical_fields.items():
+            score = _cosine(item_vec, field_vec)
+            if score > best_score_field:
+                best_score_field = score
+                best_field = field_name
+
+        # Try to match against budget categories
+        best_category = None
+        best_score_category = -1.0
+        for cat_name, cat_vec in category_vectors.items():
+            score = _cosine(item_vec, cat_vec)
+            if score > best_score_category:
+                best_score_category = score
+                best_category = cat_name
+
+        # Decide best match with confidence threshold
+        SIMILARITY_THRESHOLD = 0.5
+
+        if best_score_field > best_score_category and best_score_field > SIMILARITY_THRESHOLD:
+            # Field match
+            confidence = max(0.0, min(1.0, (best_score_field + 1.0) / 2.0))
+            results.append(
+                {
+                    "raw_value": raw_value,
+                    "normalized_value": normalized,
+                    "mapped_to": "budget_field",
+                    "mapped_key": best_field,
+                    "confidence": round(confidence, 3),
+                    "source": "semantic",
+                }
+            )
+        elif best_score_category > SIMILARITY_THRESHOLD:
+            # Category match
+            confidence = max(0.0, min(1.0, (best_score_category + 1.0) / 2.0))
+            results.append(
+                {
+                    "raw_value": raw_value,
+                    "normalized_value": normalized,
+                    "mapped_to": "budget_category",
+                    "mapped_key": best_category,
+                    "confidence": round(confidence, 3),
+                    "source": "semantic",
+                }
+            )
+        else:
+            # Low confidence - mark as ignored
+            results.append(
+                {
+                    "raw_value": raw_value,
+                    "normalized_value": normalized,
+                    "mapped_to": "ignored",
+                    "mapped_key": None,
+                    "confidence": 0.0,
+                    "source": "semantic",
+                }
+            )
 
     return results

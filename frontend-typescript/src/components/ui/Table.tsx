@@ -10,6 +10,7 @@ import {
   getExpandedRowModel,
 } from "@tanstack/react-table";
 import { useState } from "react";
+import Button from "./Button";
 
 export function Table({ children }: { children: any }) {
   return (
@@ -96,7 +97,7 @@ export function TableCommon({
                     ? null
                     : flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                   {canSort && (
                     <>
@@ -138,17 +139,17 @@ export function TableCommon({
                     key={cell.id}
                     className="px-4 py-2 text-left text-sm font-normal text-gray-700"
                   >
-                    <button
+                    <Button
+                      variant="expander"
                       onClick={row.getToggleExpandedHandler()}
-                      aria-label="Toggle group"
                       className="mr-2"
                     >
                       {row.getIsExpanded() ? "▼" : "▶"}
-                    </button>
+                    </Button>
                     <strong className="mr-2">
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </strong>
                     <span className="text-gray-400">
@@ -168,7 +169,7 @@ export function TableCommon({
                     {flexRender(
                       cell.column.columnDef.aggregatedCell ??
                         cell.column.columnDef.cell,
-                      cell.getContext()
+                      cell.getContext(),
                     )}
                   </td>
                 );

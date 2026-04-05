@@ -2,6 +2,7 @@ import Button, { ConfirmDeleteButton } from "@/components/ui/Button";
 import { TableCommon } from "@/components/ui/Table";
 import { utcToLocal } from "@/utils/datetime";
 import { createColumnHelper } from "@tanstack/react-table";
+import { Edit2, Trash2 } from "lucide-react";
 
 const columnHelper = createColumnHelper<any>();
 
@@ -14,8 +15,30 @@ export function TableView({
   onEdit: (budget: any) => void;
   onDelete: (budget_id: string) => void;
 }) {
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "approved":
+        return "bg-green-100 text-green-800";
+      case "draft":
+        return "bg-yellow-100 text-yellow-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-slate-100 text-slate-800";
+    }
+  };
+
   const columns = [
-    columnHelper.accessor("status", { header: "Status" }),
+    columnHelper.accessor("status", {
+      header: "Status",
+      cell: (info) => (
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(info.getValue())}`}
+        >
+          {info.getValue()}
+        </span>
+      ),
+    }),
     columnHelper.accessor("name", { header: "Name" }),
 
     columnHelper.accessor("funder", {
@@ -48,12 +71,25 @@ export function TableView({
     columnHelper.display({
       id: "actions",
       cell: (info) => (
-        <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
-          <Button onClick={() => onEdit(info.row.original)}>Edit</Button>
+        <div
+          className="flex space-x-1 gap-1"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Button
+            onClick={() => onEdit(info.row.original)}
+            variant="icon"
+            title="Edit budget"
+          >
+            <Edit2 size={18} />
+          </Button>
 
-          <ConfirmDeleteButton
-            onConfirm={() => onDelete(info.row.original.id)}
-          />
+          <Button
+            variant="icon-danger"
+            onClick={() => onDelete(info.row.original.id)}
+            title="Delete budget"
+          >
+            <Trash2 size={18} />
+          </Button>
         </div>
       ),
     }),
