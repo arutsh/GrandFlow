@@ -70,7 +70,7 @@ def _embedding(text: str) -> list[float]:
 
     if embedding_model and USE_SEMANTIC_EMBEDDINGS:
         # Using Sentence Transformers (free, CPU-friendly)
-        emb = embedding_model.encode(text).tolist()
+        emb = list(embedding_model.encode(text).tolist())  # type: ignore[attr-defined]
     else:
         # Fallback: character frequency vector (very rough)
         vec = np.zeros(128, dtype=float)
