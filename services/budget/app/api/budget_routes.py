@@ -16,7 +16,6 @@ from app.services.budget_services import (
     delete_budget_service,
 )
 
-
 router = APIRouter(prefix="/budgets", tags=["Public Budgets"])
 private_router = APIRouter(prefix="/budgets", tags=["Private Budgets"])
 

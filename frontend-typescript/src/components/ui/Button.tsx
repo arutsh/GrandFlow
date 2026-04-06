@@ -4,8 +4,24 @@ type ButtonProps = {
   children: React.ReactNode;
   onClick?: () => void;
   type?: "button" | "submit" | "reset";
-  variant?: "primary" | "secondary" | "danger" | "simpleX" | "text";
+  variant?:
+    | "primary"
+    | "secondary"
+    | "danger"
+    | "success"
+    | "outline"
+    | "ghost"
+    | "icon"
+    | "icon-danger"
+    | "toggle"
+    | "close"
+    | "expander"
+    | "simpleX"
+    | "text";
   className?: string;
+  active?: boolean;
+  title?: string;
+  disabled?: boolean;
 };
 
 export default function Button({
@@ -14,23 +30,45 @@ export default function Button({
   type = "button",
   variant = "primary",
   className = "",
+  active = false,
+  title,
+  disabled = false,
 }: ButtonProps) {
   const baseStyles =
-    "rounded-md py-2 px-4 font-semibold focus:outline-none transition";
+    "rounded-lg transition-all font-medium focus:outline-none focus:ring-2";
 
   const variants: Record<string, string> = {
-    primary: "bg-slate-600 text-white rounded hover:bg-slate-700",
+    primary:
+      "bg-slate-700 text-white hover:bg-slate-800 focus:ring-slate-400 py-2 px-4",
     secondary:
-      "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
-    danger: "bg-red-600 text-white rounded hover:bg-red-700",
-    simpleX: "text-red-500 font-bold",
-    text: "text-slate-600 underline",
+      "bg-white border-2 border-slate-700 text-slate-700 hover:bg-slate-50 focus:ring-slate-400 py-2 px-4",
+    outline:
+      "border border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-slate-300 py-2 px-4",
+    ghost: "text-slate-700 hover:bg-slate-100 focus:ring-slate-300 py-2 px-3",
+    icon: "p-2 text-slate-700 hover:bg-slate-100 focus:ring-slate-300 rounded-lg",
+    "icon-danger":
+      "p-2 text-red-600 hover:bg-red-50 focus:ring-red-300 rounded-lg",
+    toggle: active
+      ? "p-2 rounded-lg bg-slate-700 text-white hover:bg-slate-800 focus:ring-slate-400"
+      : "p-2 rounded-lg bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus:ring-slate-300",
+    close:
+      "p-1 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded focus:ring-gray-300",
+    expander:
+      "p-1 text-slate-700 hover:text-slate-900 hover:bg-slate-100 focus:ring-slate-300",
+    danger:
+      "bg-red-600 text-white hover:bg-red-700 focus:ring-red-300 py-2 px-4",
+    success:
+      "bg-green-600 text-white hover:bg-green-700 focus:ring-green-300 py-2 px-4",
+    simpleX: "text-red-500 font-bold hover:text-red-700",
+    text: "text-slate-700 hover:text-slate-900 font-medium",
   };
 
   return (
     <button
       type={type}
       onClick={onClick}
+      title={title}
+      disabled={disabled}
       className={`${baseStyles} ${variants[variant]} ${className}`}
     >
       {children}
@@ -41,6 +79,7 @@ export default function Button({
 interface ConfirmDeleteButtonProps {
   onConfirm: () => void;
   className?: string;
+  children?: React.ReactNode;
 }
 export function ConfirmDeleteButton({
   onConfirm,

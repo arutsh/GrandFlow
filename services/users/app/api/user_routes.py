@@ -10,7 +10,6 @@ from app.crud.user_crud import get_users_query, is_superuser, update_user, get_u
 from app.crud.customer_crud import create_customer, get_customer
 from app.utils.dict_tools import filter_dict_keys
 
-
 router = APIRouter()
 
 

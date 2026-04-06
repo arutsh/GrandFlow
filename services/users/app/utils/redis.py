@@ -3,7 +3,6 @@ import json
 from app.core.config import settings
 from typing import Any, Optional
 
-
 redis_client = None
 REDIS_URL = settings.REDIS_URL
 if REDIS_URL:

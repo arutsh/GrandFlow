@@ -5,14 +5,24 @@ import { MemoryRouter } from "react-router-dom";
 import App from "@/App";
 
 function TestComponent() {
-  const { isAuthenticated, login, logout, username, password } = useAuth();
+  const { isAuthenticated, login, logout, username } = useAuth();
   return (
     <div>
       <div>Auth: {isAuthenticated ? "Yes" : "No"}</div>
-      <button onClick={() => login("fake-token", "john", true)}>
+      <button
+        onClick={() =>
+          login("fake-token", "john", true, "active", "refresh-token")
+        }
+      >
         LoginRemember
       </button>
-      <button onClick={() => login("fake-token", "john", false)}>Login</button>
+      <button
+        onClick={() =>
+          login("fake-token", "john", false, "active", "refresh-token")
+        }
+      >
+        Login
+      </button>
       <button onClick={logout}>Logout</button>
     </div>
   );
@@ -28,7 +38,7 @@ describe("AuthProvider", () => {
     render(
       <AuthProvider>
         <TestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     expect(screen.getByText("Auth: No")).toBeInTheDocument();
   });
@@ -37,7 +47,7 @@ describe("AuthProvider", () => {
     render(
       <AuthProvider>
         <TestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
 
     userEvent.click(screen.getByText("LoginRemember"));
@@ -53,7 +63,7 @@ describe("AuthProvider", () => {
     render(
       <AuthProvider>
         <TestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
 
     userEvent.click(screen.getByText("Login"));
@@ -69,7 +79,7 @@ describe("AuthProvider", () => {
     render(
       <AuthProvider>
         <TestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
 
     userEvent.click(screen.getByText("Login"));
@@ -84,5 +94,3 @@ describe("AuthProvider", () => {
     expect(localStorage.getItem("token")).toBeNull();
   });
 });
-
-

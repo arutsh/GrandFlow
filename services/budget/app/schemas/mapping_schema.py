@@ -4,6 +4,18 @@ from pydantic import BaseModel, Field
 from app.schemas.budget_line_schema import BudgetCategory
 
 
+class SemanticFieldMappingBase(BaseModel):
+    raw_value: str
+    mapped_to: str
+    mapped_key: str
+    confidence: float
+    times_used: int
+
+
+class SemanticFieldMappingCreate(SemanticFieldMappingBase):
+    pass
+
+
 # Donor Template Schemas
 class DonorTemplateBase(BaseModel):
     name: str = Field(min_length=2)

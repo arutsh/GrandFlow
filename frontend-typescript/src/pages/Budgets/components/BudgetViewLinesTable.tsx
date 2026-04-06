@@ -28,8 +28,9 @@ export function BudgetViewLinesTable({
     existingExtraKeys,
     budgetCategoryNames,
   } = useDetailedBudget();
-  const extraFieldKeys = useMemo(() => {
+  const extraFieldKeys = useMemo((): string[] => {
     const keys = new Set<string>();
+    if (!lines) return [];
     lines.forEach((line) => {
       if (line.extra_fields) {
         Object.keys(line.extra_fields).forEach((key) => keys.add(key));
@@ -47,7 +48,7 @@ export function BudgetViewLinesTable({
       // On success, you might want to refetch the budget lines or update the state
       if (!budget) return;
       console.log(
-        `Budget line with id ${budget_line_id} deleted successfully.`
+        `Budget line with id ${budget_line_id} deleted successfully.`,
       );
       const updatedBudget = {
         ...budget,
@@ -98,9 +99,9 @@ export function BudgetViewLinesTable({
         },
       },
       // Dynamically add columns for extra_fields
-      ...extraFieldKeys.map((key) => ({
+      ...extraFieldKeys.map((key: string) => ({
         header: key,
-        accessorFn: (row) => row.extra_fields?.[key] ?? "—",
+        accessorFn: (row: BudgetLine) => row.extra_fields?.[key] ?? "—",
         id: key, // important for unique identification
       })),
       columnHelper.display({
@@ -117,7 +118,7 @@ export function BudgetViewLinesTable({
         ),
       }),
     ],
-    [extraFieldKeys]
+    [extraFieldKeys],
   );
 
   return (
@@ -128,7 +129,7 @@ export function BudgetViewLinesTable({
       <div className="flex justify-end mb-4 w-full">
         <Button onClick={onNew}>New Budget Line</Button>
       </div>
-      <TableCommon data={lines} columns={columns} />
+      <TableCommon data={lines || []} columns={columns} />
     </>
   );
 }

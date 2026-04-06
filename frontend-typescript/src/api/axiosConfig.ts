@@ -1,14 +1,12 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
 
-
-
 export const getAuthToken = (): string | null => {
- 
   return localStorage.getItem("token") || sessionStorage.getItem("token");
 };
 
 export const getRefreshToken = () =>
-  localStorage.getItem("refreshToken") || sessionStorage.getItem("refreshToken");
+  localStorage.getItem("refreshToken") ||
+  sessionStorage.getItem("refreshToken");
 
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
@@ -21,7 +19,6 @@ const onTokenRefreshed = (newToken: string) => {
   refreshSubscribers.forEach((cb) => cb(newToken));
   refreshSubscribers = [];
 };
-
 
 // Shared interceptor logic
 function createAxiosInstance(baseURL: string): AxiosInstance {
@@ -41,10 +38,10 @@ function createAxiosInstance(baseURL: string): AxiosInstance {
   });
 
   // Response interceptor
-    instance.interceptors.response.use(
+  instance.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
-      const originalRequest = error.config;
+      const originalRequest = error.config as any;
 
       if (error.response?.status === 401 && !originalRequest?._retry) {
         originalRequest._retry = true;
@@ -64,7 +61,9 @@ function createAxiosInstance(baseURL: string): AxiosInstance {
 
         try {
           const refreshToken = getRefreshToken();
-          const response = await axios.post(`${baseURL}/auth/refresh?refresh_token=${refreshToken}`);
+          const response = await axios.post(
+            `${baseURL}/auth/refresh?refresh_token=${refreshToken}`,
+          );
 
           const newAccess = response.data.access_token;
           const newRefresh = response.data.refresh_token;
@@ -72,7 +71,8 @@ function createAxiosInstance(baseURL: string): AxiosInstance {
           localStorage.setItem("token", newAccess);
           localStorage.setItem("refresh_token", newRefresh);
 
-          instance.defaults.headers.common["Authorization"] = `Bearer ${newAccess}`;
+          instance.defaults.headers.common["Authorization"] =
+            `Bearer ${newAccess}`;
           onTokenRefreshed(newAccess);
           isRefreshing = false;
 
@@ -89,7 +89,7 @@ function createAxiosInstance(baseURL: string): AxiosInstance {
       }
 
       return Promise.reject(error);
-    }
+    },
   );
 
   return instance;

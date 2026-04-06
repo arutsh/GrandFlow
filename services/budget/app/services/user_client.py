@@ -6,7 +6,6 @@ import httpx
 from typing import List, Dict
 from shared.utils.gateway_wrapper import service_call_exception_handler
 
-
 USER_SERVICE_URL = settings.user_all_services_url
 _client: httpx.AsyncClient = httpx.AsyncClient(base_url=USER_SERVICE_URL)
 

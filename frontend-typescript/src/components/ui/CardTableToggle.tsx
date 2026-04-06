@@ -1,4 +1,5 @@
 import { HiViewGrid, HiViewList } from "react-icons/hi";
+import Button from "./Button";
 
 export function CardTableToggle({
   view,
@@ -9,22 +10,20 @@ export function CardTableToggle({
 }) {
   return (
     <div className="flex justify-end mb-4 space-x-2">
-      <button
+      <Button
+        variant="toggle"
+        active={view === "cards"}
         onClick={() => onViewChange("cards")}
-        className={`p-2 rounded ${
-          view === "cards" ? "bg-slate-600 text-white" : "bg-gray-200"
-        }`}
       >
         <HiViewGrid size={20} />
-      </button>
-      <button
+      </Button>
+      <Button
+        variant="toggle"
+        active={view === "table"}
         onClick={() => onViewChange("table")}
-        className={`p-2 rounded ${
-          view === "table" ? "bg-slate-600 text-white" : "bg-gray-200"
-        }`}
       >
         <HiViewList size={20} />
-      </button>
+      </Button>
     </div>
   );
 }
