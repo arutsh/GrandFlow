@@ -9,7 +9,6 @@ class SemanticFieldMappingBase(BaseModel):
     mapped_to: str
     mapped_key: str
     confidence: float
-    mapped_key: str
     times_used: int
 
 

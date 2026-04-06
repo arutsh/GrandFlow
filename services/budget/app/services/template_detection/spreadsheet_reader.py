@@ -22,9 +22,7 @@ from openpyxl.utils import get_column_letter
 
 # from ..normalizer import normalize_label
 import re
-import json
 import pandas as pd
-import numpy as np
 
 # numeric_pattern = re.compile(r"^\s*[-+]?\d*\.?\d+\s*$")
 numeric_pattern = re.compile(
@@ -209,8 +207,7 @@ class ExcelStructureDetector:
 
 
 if __name__ == "__main__":
-
-    import json
+    # Removed: import json (already imported at top)
 
     # if len(sys.argv) != 2:
     #     print("Usage: python detector.py <excel_file_path>")

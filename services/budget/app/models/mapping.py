@@ -1,11 +1,11 @@
 from __future__ import annotations
 import uuid
 from enum import Enum
+from typing import TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, Float, Boolean, Enum as SQLEnum, ForeignKey, text
+from sqlalchemy import String, Integer, Float, Boolean, Enum as SQLEnum, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
 from app.models.base import Base
-from typing import TYPE_CHECKING
 from shared.db.audit_mixin import AuditMixin
 from app.utils.db import GUID
 

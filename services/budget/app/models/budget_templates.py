@@ -1,7 +1,7 @@
 from __future__ import annotations
 import uuid
 import enum
-from sqlalchemy import Boolean, String, ForeignKey, Float, JSON, Integer, Enum as SQLEnum, text
+from sqlalchemy import Boolean, String, ForeignKey, Enum as SQLEnum, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.utils.db import GUID
@@ -9,8 +9,6 @@ from app.utils.db import GUID
 from app.models.base import Base
 
 from shared.db.audit_mixin import AuditMixin
-from typing import TYPE_CHECKING
-from app.schemas.budget_schema import BudgetStatus
 
 
 class UploadedTemplateStatus(str, enum.Enum):

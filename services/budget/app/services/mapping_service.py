@@ -2,14 +2,12 @@ from __future__ import annotations
 import json
 import re
 import difflib
-from typing import List, Dict, Optional
-from app.core.config import settings
 import numpy as np
+from typing import List, Dict
+from app.core.config import settings
 from sqlalchemy.orm import Session
 from app.models.mapping import SemanticFieldMappingModel
 from app.crud.mapping_crud import bulk_create_semantic_field_mappings
-
-from sentence_transformers import SentenceTransformer
 
 # Optional Redis cache
 redis_client = None
@@ -25,7 +23,7 @@ if REDIS_URL:
 # Sentence Transformers (free, open-source embeddings)
 RULE_BASED_MAPPING_ENABLED = settings.RULE_BASED_MAPPING_ENABLED
 USE_SEMANTIC_EMBEDDINGS = getattr(settings, "USE_SEMANTIC_EMBEDDINGS", True)
-embedding_model = True
+embedding_model = None
 try:
     from sentence_transformers import SentenceTransformer
 
@@ -35,7 +33,8 @@ except Exception:
     embedding_model = None
 
 
-def _cache_get(key: str) -> List | Dict | None:
+def _cache_get(key: str) -> dict | list | None:
+    """Get value from cache, returning dict, list, or None."""
     if not redis_client:
         return None
     raw = redis_client.get(key)
@@ -47,7 +46,8 @@ def _cache_get(key: str) -> List | Dict | None:
         return None
 
 
-def _cache_set(key: str, value: List[float] | Dict, ttl: int = 86400) -> None:
+def _cache_set(key: str, value: list[float] | dict, ttl: int = 86400) -> None:
+    """Set value in cache with TTL."""
     if not redis_client:
         return
     try:
@@ -56,7 +56,7 @@ def _cache_set(key: str, value: List[float] | Dict, ttl: int = 86400) -> None:
         pass
 
 
-def _embedding(text: str) -> List[float]:
+def _embedding(text: str) -> list[float]:
     """Get embedding for text using Sentence Transformers.
 
     Falls back to difflib-based matching if model unavailable.
@@ -66,7 +66,7 @@ def _embedding(text: str) -> List[float]:
     cached = _cache_get(key)
 
     if cached:
-        return cached
+        return cached  # type: ignore[return-value]
 
     if embedding_model and USE_SEMANTIC_EMBEDDINGS:
         # Using Sentence Transformers (free, CPU-friendly)
@@ -84,7 +84,7 @@ def _embedding(text: str) -> List[float]:
     return emb
 
 
-def _cosine(a: List[float], b: List[float]) -> float:
+def _cosine(a: list[float], b: list[float]) -> float:
     """Cosine similarity between two vectors."""
     va, vb = np.array(a), np.array(b)
     denom = (np.linalg.norm(va) * np.linalg.norm(vb)) or 1.0
@@ -248,16 +248,17 @@ def suggest_semantic_mapping(values: List[str], db: Session, valid_user: Dict) -
                 )
             else:
                 if value := _cache_get(f"template_mapping:{normalized}"):
-                    suggestions.append(
-                        {
-                            "raw_value": raw,
-                            "normalized_value": normalized,
-                            "mapped_to": value["mapped_to"],
-                            "mapped_key": value["mapped_key"],
-                            "confidence": value["confidence"],
-                            "source": value.get("source", "ai"),
-                        }
-                    )
+                    if isinstance(value, dict):
+                        suggestions.append(
+                            {
+                                "raw_value": raw,
+                                "normalized_value": normalized,
+                                "mapped_to": value["mapped_to"],
+                                "mapped_key": value["mapped_key"],
+                                "confidence": value["confidence"],
+                                "source": value.get("source", "ai"),
+                            }
+                        )
                 else:
                     unknown.append({"raw_value": raw, "normalized_value": normalized})
     db.commit()  # commit any times_used updates
