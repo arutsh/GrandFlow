@@ -1,0 +1,144 @@
+version: "3.9"
+
+# ============================================================
+# LOCAL MODE: Full stack in Docker for non-technical users
+# All services run inside Docker (infrastructure + backend + frontend)
+# Run with: ./local.sh up
+# ============================================================
+
+services:
+  grandflow-db:
+    image: postgres:15
+    container_name: grandflow-db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - grandflow_local_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: grandflow-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend: Users Service
+  users:
+    build:
+      context: .
+      dockerfile: services/users/Dockerfile
+    container_name: users-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./shared:/app/shared:ro
+      - ./services/users:/app
+    env_file:
+      - ./services/users/.env.users.local
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      grandflow-db:
+        condition: service_healthy
+    networks:
+      - grandflow
+
+  # Backend: Budget Service
+  budget:
+    build:
+      context: .
+      dockerfile: services/budget/Dockerfile
+    container_name: budget-service
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./shared:/app/shared:ro
+      - ./services/budget:/app
+      - ./uploads/budget:/app/uploads
+    env_file:
+      - ./services/budget/.env.budget.private.local
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      grandflow-db:
+        condition: service_healthy
+    networks:
+      - grandflow
+
+  # API Gateway
+  gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./shared:/app/shared:ro
+      - ./api-gateway:/app
+    env_file:
+      - ./api-gateway/.env.gateway.dev
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      users:
+        condition: service_started
+      budget:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - grandflow
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend-typescript
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_BASE=http://localhost:8082/api
+    depends_on:
+      - gateway
+    networks:
+      - grandflow
+
+  # Nginx Proxy (unified entry point)
+  nginx:
+    image: nginx:latest
+    container_name: api-proxy
+    ports:
+      - "8082:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - gateway
+      - users
+      - budget
+      - frontend
+    networks:
+      - grandflow
+
+networks:
+  grandflow:
+    driver: bridge
+
+volumes:
+  grandflow_local_data:
