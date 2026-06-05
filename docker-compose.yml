@@ -1,27 +1,19 @@
 version: "3.9"
 
 services:
-  users-db:
+  grandflow-db:
     image: postgres:15
-    container_name: users-db
+    container_name: grandflow-db
     restart: always
-    env_file:
-      - ./services/users/.env.users.dev
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
     ports:
-      - "5433:5432"   # host:container
+      - "5432:5432"
     volumes:
-      - users_data:/var/lib/postgresql/data
-
-  budget-db:
-    image: postgres:15
-    container_name: budget-db
-    restart: always
-    env_file:
-      - ./services/budget/.env.budget.dev
-    ports:
-      - "5434:5432"
-    volumes:
-      - budget_data:/var/lib/postgresql/data
+      - grandflow_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
 
   users:
     build:
@@ -38,8 +30,9 @@ services:
       - ./services/users/.env.users.dev
     environment:
       - PYTHONPATH=/app
+      - USERS_DATABASE_URL=postgresql://postgres:postgres@grandflow-db:5432/grandflow_users
     depends_on:
-      - users-db
+      - grandflow-db
 
   budget:
     build:
@@ -57,40 +50,10 @@ services:
       - ./services/budget/.env.budget.dev
     environment:
       - PYTHONPATH=/app
+      - BUDGET_DATABASE_URL=postgresql://postgres:postgres@grandflow-db:5432/grandflow_budget
     depends_on:
-      - budget-db
+      - grandflow-db
 
-  users-migrations:
-    build:
-      context: .
-      dockerfile: services/users/Dockerfile
-    container_name: users-migrations
-    command: alembic upgrade head
-    depends_on:
-      - users-db
-    volumes:
-      - ./shared:/app/shared:ro
-      - ./services/users:/app
-    env_file:
-      - ./services/users/.env.users.dev
-    environment:
-      - PYTHONPATH=/app
-  budget-migrations:
-    build:
-      context: .
-      dockerfile: services/budget/Dockerfile
-    container_name: budget-migrations
-    command: alembic upgrade head
-    depends_on:
-      - budget-db
-    volumes:
-      - ./shared:/app/shared:ro
-      - ./services/budget:/app
-    env_file:
-      - ./services/budget/.env.budget.dev
-    environment:
-      - PYTHONPATH=/app
-  
   gateway:
     build:
       context: ./api-gateway
@@ -110,22 +73,15 @@ services:
     environment:
       - PYTHONPATH=/app
 
-  
-  
   frontend:
       build:
         context: ./frontend-typescript
         dockerfile: Dockerfile
       container_name: frontend
       ports:
-        - "3000:3000"
+      - "3000:80"
       environment:
         - VITE_API_BASE=http://localhost:8001/api
-      volumes:
-        - ./frontend-typescript:/app
-        - /app/node_modules
-      command: npm run dev
-  
   nginx:
     image: nginx:latest
     container_name: api-proxy
@@ -144,6 +100,7 @@ services:
     container_name: grandflow-redis
     ports:
       - "6379:6379"
+
 volumes:
-  users_data:
-  budget_data:
+  grandflow_data:
+

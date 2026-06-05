@@ -2,7 +2,14 @@ FROM python:3.13
 
 WORKDIR /app
 
-COPY services/budget/requirements.txt .
-RUN pip install -r requirements.txt
+# Install PostgreSQL client
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+COPY services/budget/requirements.txt .
+RUN --mount=type=cache,target=/root/.cache pip install -r requirements.txt
+
+COPY services/budget/entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+CMD ["./entrypoint.sh"]
+
