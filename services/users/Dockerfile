@@ -8,8 +8,10 @@ RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/ap
 COPY services/users/requirements.txt .
 RUN --mount=type=cache,target=/root/.cache pip install -r requirements.txt
 
+COPY shared ./shared
 COPY services/users/entrypoint.sh .
 RUN chmod +x entrypoint.sh
+RUN chmod +x shared/healthcheck.sh
 
 CMD ["./entrypoint.sh"]
 

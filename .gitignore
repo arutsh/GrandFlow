@@ -212,3 +212,5 @@ CODE_QUALITY_REPORT.md
 services/budget/.env.budget.private.local
 migration-plan.md
 ai-context.md
+package-lock.json
+package.json

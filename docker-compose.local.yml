@@ -26,6 +26,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - grandflow
 
   redis:
     image: redis:7-alpine
@@ -37,6 +39,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - grandflow
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -52,6 +56,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - grandflow
 
   # Backend: Users Service
   users:

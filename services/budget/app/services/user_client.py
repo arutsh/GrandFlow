@@ -5,6 +5,7 @@ import uuid
 import httpx
 from typing import List, Dict
 from shared.utils.gateway_wrapper import service_call_exception_handler
+from shared.security.jwt_utils import decode_access_token
 
 USER_SERVICE_URL = settings.user_all_services_url
 _client: httpx.AsyncClient = httpx.AsyncClient(base_url=USER_SERVICE_URL)
@@ -52,7 +53,7 @@ def get_user_cached(user_id: str | uuid.UUID, token: str) -> dict:
 
 def get_valid_user(user_id: str | uuid.UUID, token: str) -> dict:
 
-    user = get_user_cached(user_id, token)
+    user = decode_access_token(token)
     if not user:
         raise ValueError(f"User {user_id} not found")
     user["token"] = token
@@ -60,12 +61,14 @@ def get_valid_user(user_id: str | uuid.UUID, token: str) -> dict:
 
 
 def is_superuser(user_id: str | uuid.UUID, token: str) -> bool:
-    user = get_user_cached(user_id, token)
+    user = decode_access_token(token)
+    if not user:
+        return False
     return user.get("role") == "superuser"
 
 
 def get_user_customer_id(user_id: str | uuid.UUID, token: str) -> uuid.UUID | None:
-    user = get_user_cached(user_id, token)
+    user = decode_access_token(token)
     return user.get("customer_id") if user else None
 
 

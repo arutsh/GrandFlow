@@ -1,8 +1,16 @@
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # services/users/app/core
-ENV_FILE = BASE_DIR.parent / ".env.users.dev"
+
+# Environment-aware env file selection
+ENV = os.getenv("ENV", "development")
+if ENV == "local":
+    ENV_FILE = BASE_DIR.parent / ".env.users.local"
+else:
+    ENV_FILE = BASE_DIR.parent / ".env.users.dev"
+
 print(f"Base dir-envfile: {BASE_DIR}, {ENV_FILE}")
 
 
