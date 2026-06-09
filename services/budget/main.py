@@ -34,13 +34,22 @@ async def lifespan(app: FastAPI):
     # await close_budget_lines_url()
     print("🛑 Gateway connections closed")
 
-#Donot create dbs on startup, it has to go through migrations. 
+
+# Donot create dbs on startup, it has to go through migrations.
 # Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Budget Service", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+        "http://localhost:4000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

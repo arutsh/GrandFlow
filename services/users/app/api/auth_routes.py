@@ -50,7 +50,14 @@ def register_endpoint(req: RegisterRequest, db: Session = Depends(get_db)):
         refresh_token_hash=refresh_token,
     )
 
-    token = create_access_token({"user_id": user.id, "session_id": session.id})
+    token = create_access_token(
+        {
+            "user_id": user.id,
+            "session_id": session.id,
+            "role": user.role,
+            "customer_id": user.customer_id,
+        }
+    )
 
     return TokenResponse(access_token=token, refresh_token=refresh_token, status=user.status)
 
@@ -69,7 +76,14 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
         refresh_token_hash=refresh_token,
     )
 
-    token = create_access_token({"user_id": user.id, "session_id": session.id})
+    token = create_access_token(
+        {
+            "user_id": user.id,
+            "session_id": session.id,
+            "role": user.role,
+            "customer_id": user.customer_id,
+        }
+    )
 
     return TokenResponse(access_token=token, refresh_token=refresh_token, status=user.status)
 
@@ -96,7 +110,14 @@ def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
         s.refresh_token_hash = hash_token(new_refresh)
         db.commit()
 
-        access_token = create_access_token({"user_id": s.user_id, "session_id": s.id})
+        access_token = create_access_token(
+            {
+                "user_id": s.user_id,
+                "session_id": s.id,
+                "role": s.user.role,
+                "customer_id": s.user.customer_id,
+            }
+        )
 
         return TokenResponse(
             access_token=access_token, refresh_token=new_refresh, status=s.user.status
