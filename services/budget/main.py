@@ -9,10 +9,16 @@ import debugpy
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.exceptions import DomainError, PermissionDenied
 from app.core.error_handlers import domain_error_handler
+from app.core.config import settings
+from app.core.logging import setup_logging, get_logger
 from app.services.user_client import (
     init_urls as user_client_init_urls,
     close_urls as close_user_client_urls,
 )
+from app.services.event_consumer import init_consumer, close_consumer, start_consumer
+
+setup_logging(settings.LOG_LEVEL)
+logger = get_logger(__name__)
 
 debugpy.listen(("0.0.0.0", 5680))
 print("✅ VS Code debugger is listening on port 5680")
@@ -20,19 +26,18 @@ print("✅ VS Code debugger is listening on port 5680")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    logger.info("app_startup", service="budget")
     await user_client_init_urls()
-    # await init_users_url(settings.model_dump())
-    # await init_budget_lines_url(settings.model_dump())
-    print("✅ Gateway initialized external service URLs")
+    await init_consumer()
+    await start_consumer()
+    logger.info("event_consumer_started")
 
-    yield  # Application runs here
+    yield
 
-    # Shutdown
+    logger.info("app_shutdown", service="budget")
     await close_user_client_urls()
-    # await close_users_url()
-    # await close_budget_lines_url()
-    print("🛑 Gateway connections closed")
+    await close_consumer()
+    logger.info("event_consumer_stopped")
 
 
 # Donot create dbs on startup, it has to go through migrations.
@@ -86,4 +91,4 @@ def custom_openapi():
     return app.openapi_schema
 
 
-app.openapi = custom_openapi
+app.openapi = custom_openapi  # type: ignore

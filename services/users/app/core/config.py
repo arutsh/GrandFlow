@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     debug: bool = True
     users_database_url: str
     REDIS_URL: str
+    RABBITMQ_URL: str
+    RABBITMQ_EXCHANGE: str
+    LOG_LEVEL: str
     model_config = SettingsConfigDict(env_file=ENV_FILE, case_sensitive=False, extra="ignore")
 
 

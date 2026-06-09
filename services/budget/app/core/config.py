@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     USE_SEMANTIC_EMBEDDINGS: bool = True  # Use Sentence Transformers for embeddings
     # Databases
     budget_database_url: str
+    # RabbitMQ
+    RABBITMQ_URL: str
+    RABBITMQ_EXCHANGE: str
+    RABBITMQ_QUEUE: str
+    LOG_LEVEL: str
 
     model_config = SettingsConfigDict(env_file=ENV_FILE, case_sensitive=False, extra="ignore")
 

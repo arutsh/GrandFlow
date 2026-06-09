@@ -91,3 +91,5 @@ watchfiles==1.1.0
 wcwidth==0.2.13
 websockets==15.0.1
 wheel==0.45.1
+pika==1.3.2
+structlog==24.1.0

@@ -9,6 +9,10 @@ from app.utils.security import get_current_user
 from app.crud.user_crud import get_users_query, is_superuser, update_user, get_user
 from app.crud.customer_crud import create_customer, get_customer
 from app.utils.dict_tools import filter_dict_keys
+from app.services.event_publisher import get_publisher
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -22,8 +26,7 @@ def get_db():
 
 
 @router.post("/users/", response_model=User)
-def create_user_endpoint(user: UserCreate, db: Session = Depends(get_db)):
-    # Ensure customer exists
+async def create_user_endpoint(user: UserCreate, db: Session = Depends(get_db)):
     if user.customer_id:
         customer = db.query(CustomerModel).filter(CustomerModel.id == user.customer_id).first()
         if not customer:
@@ -33,6 +36,24 @@ def create_user_endpoint(user: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
+    try:
+        publisher = get_publisher()
+        await publisher.publish(
+            "user.created",
+            {
+                "user_id": str(db_user.id),
+                "email": db_user.email,
+                "first_name": db_user.first_name,
+                "last_name": db_user.last_name,
+                "status": db_user.status,
+                "customer_id": str(db_user.customer_id) if db_user.customer_id else None,
+                "role": db_user.role,
+            },
+        )
+    except Exception as e:
+        logger.error("user_created_event_failed", user_id=str(db_user.id), error=str(e))
+
     return db_user
 
 
@@ -69,7 +90,7 @@ def get_users_by_ids_endpoint(
 
 
 @router.patch("/users/{user_id}/", response_model=User)
-def update_user_endpoint(
+async def update_user_endpoint(
     user_id: UUID,
     user_update: UserUpdate,
     db: Session = Depends(get_db),
@@ -77,8 +98,6 @@ def update_user_endpoint(
 ):
     is_current_user_superuser = is_superuser(db, current_user["user_id"])
 
-    # Only superuser or self can update
-    # TODO add user Customer role, so the user can update users within the same customer
     if current_user["user_id"] != user_id and not is_current_user_superuser:
         raise HTTPException(status_code=403, detail="Not authorized to update this user")
 
@@ -87,27 +106,22 @@ def update_user_endpoint(
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Field-level restrictions
     allowed_fields = set()
     if is_current_user_superuser:
         allowed_fields = {"first_name", "last_name", "email", "status", "customer_id", "role"}
     else:
-        # Normal user: only allow basic profile fields
         allowed_fields = {"first_name", "last_name", "password", "status"}
 
     update_data = user_update.model_dump(exclude_unset=True)
     customer = None
-    # if new customer name is provided, create new customer and user is not superuser
-    # super user cannot have customers
     if (
         not is_current_user_superuser
         and user_update.new_customer_name
         and db_user.status == "pending"
     ):
         customer = create_customer(db, user_update.new_customer_name)
-        update_data["status"] = "active"  # activate user when creating customer
+        update_data["status"] = "active"
 
-    # Ensure customer exists
     elif user_update.customer_id:
         customer = get_customer(session=db, customer_id=user_update.customer_id)
         if not customer:
@@ -116,5 +130,22 @@ def update_user_endpoint(
     filtered_update_data = filter_dict_keys(update_data, allowed_fields)
     filtered_update_data["customer_id"] = customer.id if customer else None
     update_user(db, db_user, filtered_update_data)
+
+    try:
+        publisher = get_publisher()
+        await publisher.publish(
+            "user.updated",
+            {
+                "user_id": str(db_user.id),
+                "email": db_user.email,
+                "first_name": db_user.first_name,
+                "last_name": db_user.last_name,
+                "status": db_user.status,
+                "customer_id": str(db_user.customer_id) if db_user.customer_id else None,
+                "role": db_user.role,
+            },
+        )
+    except Exception as e:
+        logger.error("user_updated_event_failed", user_id=str(db_user.id), error=str(e))
 
     return db_user

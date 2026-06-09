@@ -1,17 +1,34 @@
 import debugpy
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from app.api import user_routes, customer_routes, auth_routes
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.init_db import init_db
 from fastapi.openapi.utils import get_openapi
+from app.core.config import settings
+from app.core.logging import setup_logging, get_logger
+from app.services.event_publisher import init_publisher, close_publisher
+
+setup_logging(settings.LOG_LEVEL)
+logger = get_logger(__name__)
 
 debugpy.listen(("0.0.0.0", 5678))
 print("✅ VS Code debugger is listening on port 5678")
 
-
 init_db()
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("app_startup", service="users")
+    await init_publisher()
+    yield
+    logger.info("app_shutdown", service="users")
+    await close_publisher()
+
+
+app = FastAPI(lifespan=lifespan)
 
 allowed_origins = [
     "http://localhost:3000",
@@ -54,4 +71,4 @@ def custom_openapi():
     return app.openapi_schema
 
 
-app.openapi = custom_openapi
+app.openapi = custom_openapi  # type: ignore

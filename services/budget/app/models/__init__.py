@@ -6,6 +6,7 @@ from app.models.mapping import (
     SemanticFieldMappingModel,
 )
 from app.models.budget_templates import UploadedTemplateModel, TemplateToBudgetMappingModel
+from app.models.user_cache import UserProfileModel
 
 __all__ = [
     "BudgetModel",
@@ -16,4 +17,5 @@ __all__ = [
     "UploadedTemplateModel",
     "TemplateToBudgetMappingModel",
     "SemanticFieldMappingModel",
+    "UserProfileModel",
 ]
