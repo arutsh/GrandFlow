@@ -1,16 +1,16 @@
 # /services/budget/app/main.py
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.api import budget_routes, budget_line_routes, mapping_routes
 from app.models.budget import Base
 from app.db.session import engine
 from fastapi.openapi.utils import get_openapi
-import debugpy
-from fastapi.middleware.cors import CORSMiddleware
 from app.core.exceptions import DomainError, PermissionDenied
 from app.core.error_handlers import domain_error_handler
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger
+from app.core.observability import init_observability, metrics_endpoint
 from app.services.user_client import (
     init_urls as user_client_init_urls,
     close_urls as close_user_client_urls,
@@ -20,17 +20,33 @@ from app.services.event_consumer import init_consumer, close_consumer, start_con
 setup_logging(settings.LOG_LEVEL)
 logger = get_logger(__name__)
 
-debugpy.listen(("0.0.0.0", 5680))
-print("✅ VS Code debugger is listening on port 5680")
+init_observability("budget-service", jaeger_host="localhost", jaeger_port=6831)
+
+# Only enable debugpy when running in VSCode
+if os.getenv("VSCODE_DEBUGGER") == "1":
+    try:
+        import debugpy
+        debugpy.listen(("0.0.0.0", 5680))
+        print("✅ VS Code debugger is listening on port 5680")
+    except Exception:
+        pass
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    import asyncio
     logger.info("app_startup", service="budget")
-    await user_client_init_urls()
-    await init_consumer()
-    await start_consumer()
-    logger.info("event_consumer_started")
+    try:
+        async with asyncio.timeout(30):
+            await user_client_init_urls()
+            logger.info("user_client_initialized")
+            await init_consumer()
+            logger.info("event_consumer_initialized")
+            await start_consumer()
+            logger.info("event_consumer_started")
+    except asyncio.TimeoutError:
+        logger.error("startup_timeout", timeout_seconds=30, service="budget")
+        raise
 
     yield
 
@@ -44,26 +60,12 @@ async def lifespan(app: FastAPI):
 # Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Budget Service", lifespan=lifespan)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
-        "http://localhost:4000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 app.include_router(budget_routes.router, prefix="/api/v1")
 app.include_router(budget_routes.private_router, prefix="/api/private/v1")
 app.include_router(budget_line_routes.router, prefix="/api/v1")
 app.include_router(mapping_routes.router, prefix="/api/v1")
+
+app.add_route("/metrics", metrics_endpoint, methods=["GET"])
 
 # Register global exception handler
 app.add_exception_handler(DomainError, domain_error_handler)

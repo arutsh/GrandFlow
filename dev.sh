@@ -56,10 +56,18 @@ case "$MODE" in
         echo -e "${YELLOW}Available endpoints:${NC}"
         echo "  Database:           localhost:5432"
         echo "  Redis:              localhost:6379"
+        echo "  RabbitMQ:           localhost:5672 (AMQP), localhost:15672 (UI)"
         echo "  Nginx Proxy:        localhost:8082"
-        echo "  Users Service:      localhost:8000 (run locally)"
-        echo "  Budget Service:     localhost:8001 (run locally)"
+        echo "  Users Service:      localhost:8000 (run locally) - http://localhost:8000/docs"
+        echo "  Budget Service:     localhost:8001 (run locally) - http://localhost:8001/docs"
         echo "  Frontend:           localhost:3000 (run locally)"
+        echo ""
+        echo -e "${YELLOW}Monitoring & Observability:${NC}"
+        echo "  Jaeger Tracing:     http://localhost:16686"
+        echo "  Prometheus Metrics: http://localhost:9090"
+        echo "  Grafana Dashboards: http://localhost:3002 (admin:admin)"
+        echo "  Users Metrics:      http://localhost:8003/metrics"
+        echo "  Budget Metrics:     http://localhost:8002/metrics"
         ;;
 
     down)
@@ -108,6 +116,11 @@ case "$MODE" in
         echo "  Users API:      http://localhost:8000/docs"
         echo "  Budget API:     http://localhost:8001/docs"
         echo "  Nginx Proxy:    http://localhost:8082"
+        echo ""
+        echo -e "${YELLOW}Monitoring (already running in Docker):${NC}"
+        echo "  Jaeger:         http://localhost:16686 (traces)"
+        echo "  Prometheus:     http://localhost:9090 (metrics)"
+        echo "  Grafana:        http://localhost:3001 (dashboards, admin:admin)"
         echo ""
         echo -e "${YELLOW}Note: .env.*.dev files already have localhost configured${NC}"
         ;;

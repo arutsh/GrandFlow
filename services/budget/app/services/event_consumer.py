@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import Callable, Dict, Any
+from concurrent.futures import ThreadPoolExecutor
 
 import pika
 import pika.exceptions
@@ -26,9 +26,7 @@ class EventConsumer:
 
     async def init(self) -> None:
         try:
-            self.connection = pika.BlockingConnection(
-                pika.URLParameters(settings.RABBITMQ_URL)
-            )
+            self.connection = pika.BlockingConnection(pika.URLParameters(settings.RABBITMQ_URL))
             self.channel = self.connection.channel()
 
             self.channel.exchange_declare(
@@ -38,7 +36,7 @@ class EventConsumer:
                 auto_delete=False,
             )
 
-            result = self.channel.queue_declare(
+            self.channel.queue_declare(
                 queue=self.queue,
                 durable=True,
                 auto_delete=False,
@@ -81,7 +79,7 @@ class EventConsumer:
 
         loop = asyncio.get_event_loop()
 
-        def callback(ch, method, properties, body):
+        def callback(ch, method, _properties, body):
             try:
                 message = json.loads(body)
                 event_id = message.get("event_id")
@@ -127,14 +125,18 @@ class EventConsumer:
 
         logger.info("event_consumer_started", queue=self.queue)
 
-        try:
-            self.channel.start_consuming()
-        except KeyboardInterrupt:
-            logger.info("event_consumer_keyboard_interrupt")
-            self.channel.stop_consuming()
-        except Exception as e:
-            logger.error("event_consumer_error", error=str(e))
-            raise
+        def blocking_consume():
+            try:
+                self.channel.start_consuming()
+            except KeyboardInterrupt:
+                logger.info("event_consumer_keyboard_interrupt")
+                self.channel.stop_consuming()
+            except Exception as e:
+                logger.error("event_consumer_error", error=str(e))
+                raise
+
+        executor = ThreadPoolExecutor(max_workers=1)
+        await loop.run_in_executor(executor, blocking_consume)
 
 
 async def init_consumer() -> EventConsumer:

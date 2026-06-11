@@ -68,13 +68,82 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  # ============================================================
+  # MONITORING & OBSERVABILITY (Dev only)
+  # ============================================================
+
+  # Jaeger - APM for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger-dev
+    ports:
+      - "6831:6831/udp"   # Jaeger agent (for OTel)
+      - "16686:16686"     # Jaeger UI: http://localhost:16686
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_GRPC_PORT=4317
+    networks:
+      - grandflow
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:16686"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-dev
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_dev_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    networks:
+      - grandflow
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Grafana - Dashboard & visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-dev
+    ports:
+      - "3002:3000"  # http://localhost:3002 (admin:admin)
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_dev_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    networks:
+      - grandflow
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
 networks:
   grandflow:
     driver: bridge
 
 volumes:
   grandflow_dev_data:
+  prometheus_dev_data:
+  grafana_dev_data:
 
 # Note: In dev mode, services (users, budget) run locally on the host.
 # Nginx routes to them via host.docker.internal.
 # Only infrastructure (DB, Redis) runs in Docker.
+# Monitoring: Jaeger (tracing), Prometheus (metrics), Grafana (dashboards)

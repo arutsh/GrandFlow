@@ -29,3 +29,4 @@ settings = Settings()  # type: ignore[call-arg]
 print(f"Base dir: {BASE_DIR}")
 print(f"settings.users_database_url: {settings.users_database_url}")
 print(f"settings.debug: {settings.debug}")
+# print(f"allowed origins: {settings.ALLOWED_ORIGINS}")
