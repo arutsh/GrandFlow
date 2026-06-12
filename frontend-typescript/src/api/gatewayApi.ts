@@ -3,7 +3,7 @@ import { createAxiosInstance } from "./axiosConfig";
 import { BudgetLine, NewBudgetLine } from "@/pages/Budgets/types/budget";
 
 const gatewayApi = createAxiosInstance(
-  import.meta.env.API_GATEWAY || "http://localhost:8082/api/v1"
+  import.meta.env.VITE_API_GATEWAY || "http://localhost:8082/api/v1"
 );
 
 // Example API calls

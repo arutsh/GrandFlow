@@ -13,9 +13,9 @@ services:
     container_name: grandflow-db-local
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5433:5432"
     volumes:
@@ -49,8 +49,8 @@ services:
       - "5673:5672"
       - "15673:15672"
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
@@ -112,7 +112,7 @@ services:
     ports:
       - "4000:80"
     environment:
-      - VITE_API_BASE=http://localhost:9082/api
+      - VITE_API_BASE=${FRONTEND_API_BASE}
     depends_on:
       - users
       - budget

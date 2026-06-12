@@ -3,14 +3,11 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.api import budget_routes, budget_line_routes, mapping_routes
-from app.models.budget import Base
-from app.db.session import engine
 from fastapi.openapi.utils import get_openapi
 from app.core.exceptions import DomainError, PermissionDenied
 from app.core.error_handlers import domain_error_handler
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger
-from shared.observability import init_observability, instrument_fastapi
 from app.services.user_client import (
     init_urls as user_client_init_urls,
     close_urls as close_user_client_urls,
@@ -42,7 +39,6 @@ if os.getenv("VSCODE_DEBUGGER") == "1":
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     import asyncio
-    from opentelemetry import trace
 
     logger.info("app_startup", service="budget")
     try:

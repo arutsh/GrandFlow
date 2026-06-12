@@ -18,7 +18,10 @@ class EventPublisher:
         self.connection: aio_pika.abc.AbstractConnection | None = None
         self.channel: aio_pika.abc.AbstractChannel | None = None
         self.exchange: aio_pika.abc.AbstractExchange | None = None
-        self._is_connected = False
+
+    @property
+    def is_connected(self) -> bool:
+        return self.connection is not None and not self.connection.is_closed
 
     async def init(self) -> None:
         try:
@@ -32,7 +35,6 @@ class EventPublisher:
                 auto_delete=False,
             )
 
-            self._is_connected = True
             logger.info("event_publisher_initialized", exchange=settings.RABBITMQ_EXCHANGE)
         except Exception as e:
             logger.error(
@@ -40,19 +42,17 @@ class EventPublisher:
                 error=str(e),
                 rabbitmq_url=settings.RABBITMQ_URL,
             )
-            self._is_connected = False
             raise
 
     async def close(self) -> None:
         if self.connection:
             await self.connection.close()
-            self._is_connected = False
+            self.channel = None
+            self.exchange = None
             logger.info("event_publisher_closed")
 
-    async def publish(
-        self, event_type: str, payload: Dict[str, Any]
-    ) -> None:
-        if not self._is_connected or not self.channel or not self.exchange:
+    async def publish(self, event_type: str, payload: Dict[str, Any]) -> None:
+        if not self.is_connected or not self.channel or not self.exchange:
             logger.warning(
                 "publish_attempted_without_connection",
                 event_type=event_type,
@@ -109,7 +109,6 @@ async def close_publisher() -> None:
 
 
 def get_publisher() -> EventPublisher:
-    global _publisher_instance
     if _publisher_instance is None:
         raise RuntimeError("Publisher not initialized. Call init_publisher() first.")
     return _publisher_instance

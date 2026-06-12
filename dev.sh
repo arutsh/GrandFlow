@@ -10,6 +10,8 @@ set -e
 
 MODE="$1"
 COMPOSE_FILE="docker-compose.dev.yml"
+ENV_FILE=".env.dev"
+COMPOSE="docker compose -f $COMPOSE_FILE --env-file $ENV_FILE"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -36,7 +38,7 @@ case "$MODE" in
         print_header "Starting DEV MODE"
         print_info "Starting infrastructure (DB, Redis, Nginx)..."
         systemctl stop postgresql redis 2>/dev/null || true
-        DOCKER_BUILDKIT=1 docker compose -f "$COMPOSE_FILE" up -d --build
+        DOCKER_BUILDKIT=1 $COMPOSE up -d --build
         print_success "Infrastructure started!"
         echo ""
         echo -e "${GREEN}DEV MODE is ready!${NC}"
@@ -72,22 +74,22 @@ case "$MODE" in
 
     down)
         print_header "Stopping DEV MODE"
-        docker compose -f "$COMPOSE_FILE" down
+        $COMPOSE down
         print_success "DEV MODE stopped"
         ;;
 
     logs)
-        docker compose -f "$COMPOSE_FILE" logs -f
+        $COMPOSE logs -f
         ;;
 
     status)
         print_header "DEV MODE Status"
-        docker compose -f "$COMPOSE_FILE" ps
+        $COMPOSE ps
         ;;
 
     rebuild)
         print_header "Rebuilding DEV MODE containers"
-        DOCKER_BUILDKIT=1 docker compose -f "$COMPOSE_FILE" build --no-cache
+        DOCKER_BUILDKIT=1 $COMPOSE build --no-cache
         print_success "Containers rebuilt"
         ;;
 
@@ -127,7 +129,7 @@ case "$MODE" in
 
     clean)
         print_header "Cleaning up DEV MODE"
-        docker compose -f "$COMPOSE_FILE" down -v
+        $COMPOSE down -v
         print_success "DEV MODE cleaned (volumes removed)"
         ;;
 

@@ -1,6 +1,5 @@
 import logging
 import sys
-from typing import Any
 
 import structlog
 from pydantic_settings import BaseSettings
