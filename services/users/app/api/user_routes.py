@@ -6,10 +6,15 @@ from app.models.user import UserModel
 from app.models.customer import CustomerModel
 from app.db.session import SessionLocal
 from app.utils.security import get_current_user
-from app.crud.user_crud import get_users_query, is_superuser, update_user, get_user
+from app.crud.user_crud import (
+    get_users_query,
+    is_superuser,
+    update_user,
+    get_user,
+    _publish_user_event,
+)
 from app.crud.customer_crud import create_customer, get_customer
 from app.utils.dict_tools import filter_dict_keys
-from app.services.event_publisher import get_publisher
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -37,22 +42,7 @@ async def create_user_endpoint(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_user)
 
-    try:
-        publisher = get_publisher()
-        await publisher.publish(
-            "user.created",
-            {
-                "user_id": str(db_user.id),
-                "email": db_user.email,
-                "first_name": db_user.first_name,
-                "last_name": db_user.last_name,
-                "status": db_user.status,
-                "customer_id": str(db_user.customer_id) if db_user.customer_id else None,
-                "role": db_user.role,
-            },
-        )
-    except Exception as e:
-        logger.error("user_created_event_failed", user_id=str(db_user.id), error=str(e))
+    await _publish_user_event("user.created", db_user)
 
     return db_user
 
@@ -129,23 +119,6 @@ async def update_user_endpoint(
 
     filtered_update_data = filter_dict_keys(update_data, allowed_fields)
     filtered_update_data["customer_id"] = customer.id if customer else None
-    update_user(db, db_user, filtered_update_data)
-
-    try:
-        publisher = get_publisher()
-        await publisher.publish(
-            "user.updated",
-            {
-                "user_id": str(db_user.id),
-                "email": db_user.email,
-                "first_name": db_user.first_name,
-                "last_name": db_user.last_name,
-                "status": db_user.status,
-                "customer_id": str(db_user.customer_id) if db_user.customer_id else None,
-                "role": db_user.role,
-            },
-        )
-    except Exception as e:
-        logger.error("user_updated_event_failed", user_id=str(db_user.id), error=str(e))
+    await update_user(db, db_user, filtered_update_data)
 
     return db_user

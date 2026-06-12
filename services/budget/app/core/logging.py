@@ -1,8 +1,8 @@
 import logging
 import sys
-from typing import Any
 
 import structlog
+from structlog.types import Processor
 from pydantic_settings import BaseSettings
 
 
@@ -17,7 +17,7 @@ class LogConfig(BaseSettings):
 def setup_logging(log_level: str = "INFO") -> None:
     timestamper = structlog.processors.TimeStamper(fmt="iso")
 
-    shared_processors = [
+    shared_processors: list[Processor] = [
         structlog.stdlib.add_log_level,
         structlog.stdlib.add_logger_name,
         timestamper,

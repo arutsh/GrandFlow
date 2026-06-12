@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, cast
 from uuid import UUID
 
 import structlog
@@ -13,9 +13,9 @@ logger = structlog.get_logger(__name__)
 def get_user_from_cache(user_id: UUID) -> Optional[Dict[str, Any]]:
     session = SessionLocal()
     try:
-        profile = session.query(UserProfileModel).filter(
-            UserProfileModel.user_id == user_id
-        ).first()
+        profile = (
+            session.query(UserProfileModel).filter(UserProfileModel.user_id == user_id).first()
+        )
 
         if not profile:
             logger.debug("cache_miss", user_id=str(user_id))
@@ -35,9 +35,7 @@ def get_user_from_cache(user_id: UUID) -> Optional[Dict[str, Any]]:
         session.close()
 
 
-def get_user_from_cache_or_fallback(
-    user_id: UUID, token: str
-) -> Optional[Dict[str, Any]]:
+def get_user_from_cache_or_fallback(user_id: UUID, token: str) -> Optional[Dict[str, Any]]:
     cached = get_user_from_cache(user_id)
     if cached:
         return cached
@@ -49,21 +47,19 @@ def get_user_from_cache_or_fallback(
 
         session = SessionLocal()
         try:
-            profile = session.query(UserProfileModel).filter(
-                UserProfileModel.user_id == user_id
-            ).first()
+            profile = (
+                session.query(UserProfileModel).filter(UserProfileModel.user_id == user_id).first()
+            )
 
             if profile:
-                profile.email = user.get("email")
+                profile.email = cast(str, user.get("email"))
                 profile.first_name = user.get("first_name")
                 profile.last_name = user.get("last_name")
-                profile.status = user.get("status")
+                profile.status = cast(str, user.get("status"))
                 profile.customer_id = (
-                    UUID(user.get("customer_id"))
-                    if user.get("customer_id")
-                    else None
+                    UUID(user.get("customer_id")) if user.get("customer_id") else None
                 )
-                profile.role = user.get("role")
+                profile.role = cast(str, user.get("role"))
             else:
                 profile = UserProfileModel(
                     user_id=user_id,
@@ -72,9 +68,7 @@ def get_user_from_cache_or_fallback(
                     last_name=user.get("last_name"),
                     status=user.get("status"),
                     customer_id=(
-                        UUID(user.get("customer_id"))
-                        if user.get("customer_id")
-                        else None
+                        UUID(user.get("customer_id")) if user.get("customer_id") else None
                     ),
                     role=user.get("role"),
                 )
@@ -103,19 +97,22 @@ async def get_users_by_ids_cached(ids: List[str], token: str) -> Dict[str, Dict[
     session = SessionLocal()
     try:
         user_uuids = [UUID(uid) for uid in ids]
-        profiles = session.query(UserProfileModel).filter(
-            UserProfileModel.user_id.in_(user_uuids)
-        ).all()
+        profiles = (
+            session.query(UserProfileModel).filter(UserProfileModel.user_id.in_(user_uuids)).all()
+        )
 
-        cached_map = {str(p.user_id): {
-            "id": str(p.user_id),
-            "email": p.email,
-            "first_name": p.first_name,
-            "last_name": p.last_name,
-            "status": p.status,
-            "customer_id": str(p.customer_id) if p.customer_id else None,
-            "role": p.role,
-        } for p in profiles}
+        cached_map = {
+            str(p.user_id): {
+                "id": str(p.user_id),
+                "email": p.email,
+                "first_name": p.first_name,
+                "last_name": p.last_name,
+                "status": p.status,
+                "customer_id": str(p.customer_id) if p.customer_id else None,
+                "role": p.role,
+            }
+            for p in profiles
+        }
 
         cached_ids = {p.user_id for p in profiles}
         missing_ids = [uid for uid in user_uuids if uid not in cached_ids]
@@ -131,21 +128,19 @@ async def get_users_by_ids_cached(ids: List[str], token: str) -> Dict[str, Dict[
 
             for user_id, user_data in http_users.items():
                 uid = UUID(user_id)
-                existing = session.query(UserProfileModel).filter(
-                    UserProfileModel.user_id == uid
-                ).first()
+                existing = (
+                    session.query(UserProfileModel).filter(UserProfileModel.user_id == uid).first()
+                )
 
                 if existing:
-                    existing.email = user_data.get("email")
+                    existing.email = cast(str, user_data.get("email"))
                     existing.first_name = user_data.get("first_name")
                     existing.last_name = user_data.get("last_name")
-                    existing.status = user_data.get("status")
+                    existing.status = cast(str, user_data.get("status"))
                     existing.customer_id = (
-                        UUID(user_data.get("customer_id"))
-                        if user_data.get("customer_id")
-                        else None
+                        UUID(user_data.get("customer_id")) if user_data.get("customer_id") else None
                     )
-                    existing.role = user_data.get("role")
+                    existing.role = cast(str, user_data.get("role"))
                 else:
                     profile = UserProfileModel(
                         user_id=uid,

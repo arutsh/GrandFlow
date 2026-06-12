@@ -3,12 +3,34 @@ from sqlalchemy.orm import Session
 
 from app.models.user import UserModel
 from app.utils.security import hash_password
-from services.users.app.services.event_publisher import get_publisher
+from app.services.event_publisher import get_publisher
 
 
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def _user_event_payload(user: UserModel) -> dict:
+    return {
+        "user_id": str(user.id),
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "status": user.status,
+        "customer_id": str(user.customer_id) if user.customer_id else None,
+        "role": user.role,
+    }
+
+
+async def _publish_user_event(event_type: str, user: UserModel) -> None:
+    try:
+        publisher = get_publisher()
+        await publisher.publish(event_type, _user_event_payload(user))
+    except Exception as e:
+        logger.error(
+            "user_event_publish_failed", event_type=event_type, user_id=str(user.id), error=str(e)
+        )
 
 
 def get_user(session: Session, user_id: UUID):
@@ -73,27 +95,11 @@ async def create_user(
         customer_id=str(customer_id) if customer_id else None,
     )
 
-    try:
-        publisher = get_publisher()
-        await publisher.publish(
-            "user.created",
-            {
-                "user_id": str(user.id),
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "status": user.status,
-                "customer_id": str(user.customer_id) if user.customer_id else None,
-                "role": user.role,
-            },
-        )
-    except Exception as e:
-        logger.error("user_created_event_publish_failed", user_id=str(user.id), error=str(e))
-
+    await _publish_user_event("user.created", user)
     return user
 
 
-def update_user(session: Session, user: UserModel, updates: dict):
+async def update_user(session: Session, user: UserModel, updates: dict) -> UserModel:
     for key, value in updates.items():
         if key == "password":
             value = hash_password(value)
@@ -101,6 +107,8 @@ def update_user(session: Session, user: UserModel, updates: dict):
 
     session.commit()
     session.refresh(user)
+
+    await _publish_user_event("user.updated", user)
     return user
 
 

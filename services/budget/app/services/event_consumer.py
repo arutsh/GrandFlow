@@ -4,7 +4,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pika
 import pika.exceptions
+import pika.adapters.blocking_connection
 import structlog
+from typing import Optional
 
 from app.core.config import settings
 from app.services.event_handlers import handle_user_event
@@ -17,8 +19,8 @@ _consumer_task = None
 
 class EventConsumer:
     def __init__(self):
-        self.connection = None
-        self.channel = None
+        self.connection: Optional[pika.BlockingConnection] = None
+        self.channel: Optional[pika.adapters.blocking_connection.BlockingChannel] = None
         self.exchange = settings.RABBITMQ_EXCHANGE
         self.queue = settings.RABBITMQ_QUEUE
         self._is_connected = False
@@ -93,7 +95,10 @@ class EventConsumer:
                 )
 
                 try:
-                    loop.run_until_complete(handle_user_event(event_type, payload))
+                    future = asyncio.run_coroutine_threadsafe(
+                        handle_user_event(event_type, payload), loop
+                    )
+                    future.result()
                     ch.basic_ack(delivery_tag=method.delivery_tag)
                     logger.info(
                         "event_processed",
@@ -126,11 +131,14 @@ class EventConsumer:
         logger.info("event_consumer_started", queue=self.queue)
 
         def blocking_consume():
+            channel = self.channel
+            if channel is None:
+                return
             try:
-                self.channel.start_consuming()
+                channel.start_consuming()
             except KeyboardInterrupt:
                 logger.info("event_consumer_keyboard_interrupt")
-                self.channel.stop_consuming()
+                channel.stop_consuming()
             except Exception as e:
                 logger.error("event_consumer_error", error=str(e))
                 raise
@@ -169,7 +177,7 @@ async def start_consumer() -> asyncio.Task:
 
 
 def get_consumer() -> EventConsumer:
-    global _consumer_instance
+    global _consumer_instance  # noqa F824
     if _consumer_instance is None:
         raise RuntimeError("Consumer not initialized. Call init_consumer() first.")
     return _consumer_instance
