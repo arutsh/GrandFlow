@@ -7,19 +7,23 @@ from app.db.init_db import init_db
 from fastapi.openapi.utils import get_openapi
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger
-from app.core.observability import metrics_endpoint
 from app.services.event_publisher import init_publisher, close_publisher
+from shared.observability import (
+    init_observability,
+    instrument_fastapi,
+    metrics_endpoint,
+)
 
 setup_logging(settings.LOG_LEVEL)
 logger = get_logger(__name__)
 
-from app.core.observability import init_tracer_provider, instrument_fastapi
-init_tracer_provider("users-service", jaeger_host="localhost", jaeger_port=6831)
+init_observability("users-service")
 
 # Only enable debugpy when running in VSCode
 if os.getenv("VSCODE_DEBUGGER") == "1":
     try:
         import debugpy
+
         debugpy.listen(("0.0.0.0", 5678))
         print("✅ VS Code debugger is listening on port 5678")
     except Exception:
@@ -32,6 +36,7 @@ init_db()
 async def lifespan(app: FastAPI):
     import asyncio
     from opentelemetry import trace
+
     logger.info("app_startup", service="users")
     try:
         async with asyncio.timeout(30):
@@ -43,6 +48,7 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("app_shutdown", service="users")
     await close_publisher()
+    logger.info("event_publisher_stopped")
     trace.get_tracer_provider().force_flush(timeout_millis=5000)
 
 
@@ -54,7 +60,6 @@ instrument_fastapi(app)
 app.include_router(user_routes.router, prefix="/api")
 app.include_router(customer_routes.router, prefix="/api")
 app.include_router(auth_routes.router, prefix="/api")
-
 app.add_route("/metrics", metrics_endpoint, methods=["GET"])
 
 

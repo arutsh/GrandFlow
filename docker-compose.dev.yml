@@ -43,9 +43,11 @@ services:
     ports:
       - "5672:5672"   # AMQP protocol
       - "15672:15672" # Management UI
+      - "15692:15692" # Prometheus metrics
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+    command: sh -c "rabbitmq-plugins enable rabbitmq_prometheus && rabbitmq-server"
     networks:
       - grandflow
     healthcheck:

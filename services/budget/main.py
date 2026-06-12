@@ -10,22 +10,29 @@ from app.core.exceptions import DomainError, PermissionDenied
 from app.core.error_handlers import domain_error_handler
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger
-from app.core.observability import init_observability, metrics_endpoint
+from shared.observability import init_observability, instrument_fastapi
 from app.services.user_client import (
     init_urls as user_client_init_urls,
     close_urls as close_user_client_urls,
 )
 from app.services.event_consumer import init_consumer, close_consumer, start_consumer
 
+from shared.observability import (
+    init_observability,
+    instrument_fastapi,
+    metrics_endpoint,
+)
+
 setup_logging(settings.LOG_LEVEL)
 logger = get_logger(__name__)
 
-init_observability("budget-service", jaeger_host="localhost", jaeger_port=6831)
+init_observability("budget-service")
 
 # Only enable debugpy when running in VSCode
 if os.getenv("VSCODE_DEBUGGER") == "1":
     try:
         import debugpy
+
         debugpy.listen(("0.0.0.0", 5680))
         print("✅ VS Code debugger is listening on port 5680")
     except Exception:
@@ -35,6 +42,8 @@ if os.getenv("VSCODE_DEBUGGER") == "1":
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     import asyncio
+    from opentelemetry import trace
+
     logger.info("app_startup", service="budget")
     try:
         async with asyncio.timeout(30):
@@ -59,6 +68,9 @@ async def lifespan(app: FastAPI):
 # Donot create dbs on startup, it has to go through migrations.
 # Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Budget Service", lifespan=lifespan)
+
+# Instrument FastAPI AFTER app creation
+instrument_fastapi(app)
 
 app.include_router(budget_routes.router, prefix="/api/v1")
 app.include_router(budget_routes.private_router, prefix="/api/private/v1")

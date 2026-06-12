@@ -35,11 +35,7 @@ scrape_configs:
   #   static_configs:
   #     - targets: ['redis-exporter:9121']
 
-  # RabbitMQ Management API
+  # RabbitMQ Prometheus Plugin
   - job_name: 'rabbitmq'
     static_configs:
-      - targets: ['rabbitmq:15672']
-    metrics_path: '/api/metrics'
-    basic_auth:
-      username: 'guest'
-      password: 'guest'
+      - targets: ['rabbitmq:15692']
