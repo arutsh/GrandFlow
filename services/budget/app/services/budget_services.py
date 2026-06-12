@@ -134,10 +134,10 @@ async def populate_budget_with_user_details(budgets: List[BudgetModel], valid_us
     customer_ids = customer_ids if customer_ids else set()
     # Fetch users/customers concurrently (users from cache with fallback, customers from HTTP)
     users_task = asyncio.create_task(
-        get_users_by_ids_cached(list(user_ids), valid_user.get("token"))
+        get_users_by_ids_cached(list(user_ids), valid_user.get("token", ""))
     )
     customers_task = asyncio.create_task(
-        get_customers_by_ids(list(customer_ids), valid_user.get("token"))
+        get_customers_by_ids(list(customer_ids), valid_user.get("token", ""))
     )
     users_map, customers_map = await asyncio.gather(users_task, customers_task)
 
