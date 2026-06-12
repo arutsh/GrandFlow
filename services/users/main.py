@@ -1,36 +1,69 @@
-import debugpy
+import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from app.api import user_routes, customer_routes, auth_routes
-from fastapi.middleware.cors import CORSMiddleware
 from app.db.init_db import init_db
 from fastapi.openapi.utils import get_openapi
+from app.core.config import settings
+from app.core.logging import setup_logging, get_logger
+from app.services.event_publisher import init_publisher, close_publisher
+from opentelemetry.sdk.trace import TracerProvider as SDKTracerProvider
+from shared.observability import (
+    init_observability,
+    instrument_fastapi,
+    metrics_endpoint,
+)
 
-debugpy.listen(("0.0.0.0", 5678))
-print("✅ VS Code debugger is listening on port 5678")
+setup_logging(settings.LOG_LEVEL)
+logger = get_logger(__name__)
 
+init_observability("users-service")
+
+# Only enable debugpy when running in VSCode
+if os.getenv("VSCODE_DEBUGGER") == "1":
+    try:
+        import debugpy
+
+        debugpy.listen(("0.0.0.0", 5678))
+        print("✅ VS Code debugger is listening on port 5678")
+    except Exception:
+        pass
 
 init_db()
 
-app = FastAPI()
 
-allowed_origins = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-    "http://localhost:5173",
-]
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    import asyncio
+    from opentelemetry import trace
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    logger.info("app_startup", service="users")
+    try:
+        async with asyncio.timeout(30):
+            await init_publisher()
+            logger.info("event_publisher_initialized")
+    except asyncio.TimeoutError:
+        logger.error("startup_timeout", timeout_seconds=30, service="users")
+        raise
+    yield
+    logger.info("app_shutdown", service="users")
+    await close_publisher()
+    logger.info("event_publisher_stopped")
+    provider = trace.get_tracer_provider()
+    if isinstance(provider, SDKTracerProvider):
+        provider.force_flush(timeout_millis=5000)
+
+
+app = FastAPI(lifespan=lifespan)
+
+# Instrument FastAPI AFTER app creation
+instrument_fastapi(app)
+
 app.include_router(user_routes.router, prefix="/api")
 app.include_router(customer_routes.router, prefix="/api")
 app.include_router(auth_routes.router, prefix="/api")
+app.add_route("/metrics", metrics_endpoint, methods=["GET"])
 
 
 def custom_openapi():
@@ -54,4 +87,4 @@ def custom_openapi():
     return app.openapi_schema
 
 
-app.openapi = custom_openapi
+app.openapi = custom_openapi  # type: ignore

@@ -135,6 +135,10 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+# .env.dev and .env.local are COMMITTED — they contain only safe dev placeholder values
+#   and are needed for `docker compose --env-file` to substitute vars in compose files.
+# .env (bare) is ignored — never create this at the repo root.
+# *.private.* files are ignored below (they contain real API keys etc.)
 .env
 .envrc
 .venv
@@ -212,3 +216,7 @@ CODE_QUALITY_REPORT.md
 services/budget/.env.budget.private.local
 migration-plan.md
 ai-context.md
+package-lock.json
+package.json
+.vscode/launch.json
+plans/

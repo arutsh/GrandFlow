@@ -12,9 +12,9 @@ services:
     container_name: grandflow-db
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
@@ -37,6 +37,37 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: grandflow-rabbitmq
+    ports:
+      - "5672:5672"   # AMQP protocol
+      - "15672:15672" # Management UI
+      - "15692:15692" # Prometheus metrics
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+    command: sh -c "rabbitmq-plugins enable rabbitmq_prometheus && rabbitmq-server"
+    networks:
+      - grandflow
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  flower:
+    image: mher/flower:latest
+    container_name: grandflow-flower
+    environment:
+      - CELERY_BROKER_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672//
+    ports:
+      - "5555:5555"   # Flower Web UI port
+    networks:
+      - grandflow
+    depends_on:
+      - rabbitmq
+
   # Nginx Proxy (routes to local services at host.docker.internal)
   nginx:
     image: nginx:latest
@@ -53,13 +84,103 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  # ============================================================
+  # MONITORING & OBSERVABILITY (Dev only)
+  # ============================================================
+
+  # Jaeger - APM for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger-dev
+    ports:
+      - "16686:16686"     # Jaeger UI: http://localhost:16686
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - grandflow
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:16686"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # OpenTelemetry Collector - OTLP receiver and processor
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector-dev
+    command: ["--config=/etc/otel-collector-config.yml"]
+    ports:
+      - "4317:4317"   # OTLP GRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "9411:9411"   # Zipkin receiver
+      - "8889:8889"   # Prometheus metrics exporter
+    volumes:
+      - ./monitoring/otel-collector-config.yml:/etc/otel-collector-config.yml:ro
+    depends_on:
+      - jaeger
+      - prometheus
+    networks:
+      - grandflow
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:13133/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-dev
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_dev_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    networks:
+      - grandflow
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Grafana - Dashboard & visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-dev
+    ports:
+      - "3002:3000"  # http://localhost:3002 (admin:admin)
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD}
+      - GF_INSTALL_PLUGINS=${GF_INSTALL_PLUGINS}
+    volumes:
+      - grafana_dev_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    networks:
+      - grandflow
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
 networks:
   grandflow:
     driver: bridge
 
 volumes:
   grandflow_dev_data:
+  prometheus_dev_data:
+  grafana_dev_data:
 
 # Note: In dev mode, services (users, budget) run locally on the host.
 # Nginx routes to them via host.docker.internal.
 # Only infrastructure (DB, Redis) runs in Docker.
+# Monitoring: OpenTelemetry Collector (OTLP), Jaeger (tracing), Prometheus (metrics), Grafana (dashboards)

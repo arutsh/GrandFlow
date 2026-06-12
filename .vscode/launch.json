@@ -11,11 +11,34 @@
       "module": "uvicorn",
       "args": [
         "main:app",
-        "--reload"
+        "--host",
+        "0.0.0.0",
+        "--reload",
+        "--port",
+        "8000"
       ],
       "cwd": "${workspaceFolder}/services/users",
       "env": {
         "PYTHONPATH": "${workspaceFolder}/services/users"
+      },
+      "jinja": true
+    },
+    {
+      "name": "Debug Budget Service (FastAPI + Uvicorn)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "main:app",
+        "--host",
+        "0.0.0.0",
+        "--reload",
+        "--port",
+        "8001"
+      ],
+      "cwd": "${workspaceFolder}/services/budget",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/services/budget"
       },
       "jinja": true
     },

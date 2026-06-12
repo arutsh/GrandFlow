@@ -10,6 +10,8 @@ set -e
 
 MODE="$1"
 COMPOSE_FILE="docker-compose.local.yml"
+ENV_FILE=".env.local"
+COMPOSE="docker compose -f $COMPOSE_FILE --env-file $ENV_FILE"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -35,17 +37,16 @@ case "$MODE" in
     up)
         print_header "Starting LOCAL MODE"
         print_info "Building and starting all services (this may take a few minutes)..."
-        DOCKER_BUILDKIT=1 docker compose -f "$COMPOSE_FILE" up -d --build
+        DOCKER_BUILDKIT=1 $COMPOSE up -d --build
         print_success "All services started!"
         echo ""
         echo -e "${GREEN}LOCAL MODE is ready!${NC}"
         echo ""
         echo -e "${YELLOW}Available endpoints:${NC}"
-        echo "  Frontend:       http://localhost:3000"
-        echo "  Nginx Proxy:    http://localhost:8082"
-        echo "  API Gateway:    http://localhost:8080"
-        echo "  Users Service:  http://localhost:8000"
-        echo "  Budget Service: http://localhost:8001"
+        echo "  Frontend:       http://localhost:4000"
+        echo "  Nginx Proxy:    http://localhost:9082"
+        echo "  Users Service:  http://localhost:9000"
+        echo "  Budget Service: http://localhost:9001"
         echo ""
         echo -e "${YELLOW}Database:${NC}"
         echo "  Host:     localhost:5432"
@@ -56,40 +57,40 @@ case "$MODE" in
 
     down)
         print_header "Stopping LOCAL MODE"
-        docker compose -f "$COMPOSE_FILE" down
+        $COMPOSE down
         print_success "LOCAL MODE stopped"
         ;;
 
     logs)
         SERVICE="$2"
         if [ -z "$SERVICE" ]; then
-            docker compose -f "$COMPOSE_FILE" logs -f
+            $COMPOSE logs -f
         else
-            docker compose -f "$COMPOSE_FILE" logs -f "$SERVICE"
+            $COMPOSE logs -f "$SERVICE"
         fi
         ;;
 
     status)
         print_header "LOCAL MODE Status"
-        docker compose -f "$COMPOSE_FILE" ps
+        $COMPOSE ps
         ;;
 
     rebuild)
         print_header "Rebuilding LOCAL MODE containers"
-        DOCKER_BUILDKIT=1 docker compose -f "$COMPOSE_FILE" build --no-cache
+        DOCKER_BUILDKIT=1 $COMPOSE build --no-cache
         print_success "Containers rebuilt"
         ;;
 
     clean)
         print_header "Cleaning up LOCAL MODE"
-        docker compose -f "$COMPOSE_FILE" down -v
+        $COMPOSE down -v
         print_success "LOCAL MODE cleaned (volumes removed)"
         ;;
 
     shell)
         SERVICE="${2:-users}"
         print_info "Opening shell in $SERVICE container..."
-        docker compose -f "$COMPOSE_FILE" exec "$SERVICE" /bin/bash
+        $COMPOSE exec "$SERVICE" /bin/bash
         ;;
 
     *)

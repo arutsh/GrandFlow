@@ -1,33 +1,17 @@
 import { getUserIdFromToken } from "@/utils/token";
-import { createAxiosInstance } from "./axiosConfig";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
+import gatewayApi from "./gatewayApi";
 
-const usersApi = createAxiosInstance(
-  import.meta.env.API_USER_SERVICE || "http://localhost:8000/api"
-);
-
-const gatewayApi = createAxiosInstance(
-  import.meta.env.API_GATEWAY || "http://localhost:8082/api/v1"
-);
-
-// Example API calls
 export const loginUser = async (email: string, password: string) => {
   const { data } = await gatewayApi.post("/auth/login", { email, password });
   return data;
 };
 
-export const registerUser = async (
-  email: string,
-  password: string) => {
-  const { data } = await gatewayApi.post("/register", {
-    email,
-    password,
-  });
+export const registerUser = async (email: string, password: string) => {
+  const { data } = await gatewayApi.post("/register", { email, password });
   return data;
-}
-export default usersApi;
-
+};
 
 export const userOnboarding = async (
   first_name: string,

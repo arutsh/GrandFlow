@@ -1,4 +1,4 @@
-#!/bin/bash
+dev#!/bin/bash
 
 # ============================================================
 # GrandFlow - DEV MODE
@@ -10,6 +10,8 @@ set -e
 
 MODE="$1"
 COMPOSE_FILE="docker-compose.dev.yml"
+ENV_FILE=".env.dev"
+COMPOSE="docker compose -f $COMPOSE_FILE --env-file $ENV_FILE"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -36,7 +38,7 @@ case "$MODE" in
         print_header "Starting DEV MODE"
         print_info "Starting infrastructure (DB, Redis, Nginx)..."
         systemctl stop postgresql redis 2>/dev/null || true
-        DOCKER_BUILDKIT=1 docker compose -f "$COMPOSE_FILE" up -d --build
+        DOCKER_BUILDKIT=1 $COMPOSE up -d --build
         print_success "Infrastructure started!"
         echo ""
         echo -e "${GREEN}DEV MODE is ready!${NC}"
@@ -56,30 +58,38 @@ case "$MODE" in
         echo -e "${YELLOW}Available endpoints:${NC}"
         echo "  Database:           localhost:5432"
         echo "  Redis:              localhost:6379"
+        echo "  RabbitMQ:           localhost:5672 (AMQP), localhost:15672 (UI)"
         echo "  Nginx Proxy:        localhost:8082"
-        echo "  Users Service:      localhost:8000 (run locally)"
-        echo "  Budget Service:     localhost:8001 (run locally)"
+        echo "  Users Service:      localhost:8000 (run locally) - http://localhost:8000/docs"
+        echo "  Budget Service:     localhost:8001 (run locally) - http://localhost:8001/docs"
         echo "  Frontend:           localhost:3000 (run locally)"
+        echo ""
+        echo -e "${YELLOW}Monitoring & Observability:${NC}"
+        echo "  Jaeger Tracing:     http://localhost:16686"
+        echo "  Prometheus Metrics: http://localhost:9090"
+        echo "  Grafana Dashboards: http://localhost:3002 (admin:admin)"
+        echo "  Users Metrics:      http://localhost:8003/metrics"
+        echo "  Budget Metrics:     http://localhost:8002/metrics"
         ;;
 
     down)
         print_header "Stopping DEV MODE"
-        docker compose -f "$COMPOSE_FILE" down
+        $COMPOSE down
         print_success "DEV MODE stopped"
         ;;
 
     logs)
-        docker compose -f "$COMPOSE_FILE" logs -f
+        $COMPOSE logs -f
         ;;
 
     status)
         print_header "DEV MODE Status"
-        docker compose -f "$COMPOSE_FILE" ps
+        $COMPOSE ps
         ;;
 
     rebuild)
         print_header "Rebuilding DEV MODE containers"
-        DOCKER_BUILDKIT=1 docker compose -f "$COMPOSE_FILE" build --no-cache
+        DOCKER_BUILDKIT=1 $COMPOSE build --no-cache
         print_success "Containers rebuilt"
         ;;
 
@@ -109,12 +119,17 @@ case "$MODE" in
         echo "  Budget API:     http://localhost:8001/docs"
         echo "  Nginx Proxy:    http://localhost:8082"
         echo ""
+        echo -e "${YELLOW}Monitoring (already running in Docker):${NC}"
+        echo "  Jaeger:         http://localhost:16686 (traces)"
+        echo "  Prometheus:     http://localhost:9090 (metrics)"
+        echo "  Grafana:        http://localhost:3001 (dashboards, admin:admin)"
+        echo ""
         echo -e "${YELLOW}Note: .env.*.dev files already have localhost configured${NC}"
         ;;
 
     clean)
         print_header "Cleaning up DEV MODE"
-        docker compose -f "$COMPOSE_FILE" down -v
+        $COMPOSE down -v
         print_success "DEV MODE cleaned (volumes removed)"
         ;;
 

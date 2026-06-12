@@ -16,7 +16,8 @@ from uuid import UUID
 from typing import List
 from app.models import BudgetModel
 
-from app.services.user_client import get_customers_by_ids, get_users_by_ids
+from app.services.user_client import get_customers_by_ids
+from app.services.user_cache import get_users_by_ids_cached
 
 
 async def create_budget_service(
@@ -131,10 +132,12 @@ async def populate_budget_with_user_details(budgets: List[BudgetModel], valid_us
     customer_ids |= {b.owner_id for b in budgets if b.owner_id}
     user_ids = user_ids if user_ids else set()
     customer_ids = customer_ids if customer_ids else set()
-    # Fetch users/customers concurrently
-    users_task = asyncio.create_task(get_users_by_ids(list(user_ids), valid_user.get("token")))
+    # Fetch users/customers concurrently (users from cache with fallback, customers from HTTP)
+    users_task = asyncio.create_task(
+        get_users_by_ids_cached(list(user_ids), valid_user.get("token", ""))
+    )
     customers_task = asyncio.create_task(
-        get_customers_by_ids(list(customer_ids), valid_user.get("token"))
+        get_customers_by_ids(list(customer_ids), valid_user.get("token", ""))
     )
     users_map, customers_map = await asyncio.gather(users_task, customers_task)
 
