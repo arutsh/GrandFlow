@@ -3,6 +3,12 @@ from sqlalchemy.orm import Session
 
 from app.models.user import UserModel
 from app.utils.security import hash_password
+from services.users.app.services.event_publisher import get_publisher
+
+
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def get_user(session: Session, user_id: UUID):
@@ -33,7 +39,7 @@ def get_users(session: Session, limit: int = 100):
     return get_users_query(session).limit(limit).all()
 
 
-def create_user(
+async def create_user(
     session: Session,
     email: str,
     password: str,
@@ -44,7 +50,9 @@ def create_user(
 ) -> UserModel:
     existing = session.query(UserModel).filter(UserModel.email == email).first()
     if existing:
+        logger.warning("user_creation_rejected", email=email, reason="email_already_exists")
         raise ValueError("Email already registered")
+
     user = UserModel(
         email=email,
         hashed_password=hash_password(password),
@@ -56,6 +64,32 @@ def create_user(
     session.add(user)
     session.commit()
     session.refresh(user)
+
+    logger.info(
+        "user_created",
+        user_id=str(user.id),
+        email=user.email,
+        role=role,
+        customer_id=str(customer_id) if customer_id else None,
+    )
+
+    try:
+        publisher = get_publisher()
+        await publisher.publish(
+            "user.created",
+            {
+                "user_id": str(user.id),
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "status": user.status,
+                "customer_id": str(user.customer_id) if user.customer_id else None,
+                "role": user.role,
+            },
+        )
+    except Exception as e:
+        logger.error("user_created_event_publish_failed", user_id=str(user.id), error=str(e))
+
     return user
 
 

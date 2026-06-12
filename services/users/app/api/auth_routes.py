@@ -29,10 +29,10 @@ def get_db():
 
 
 @router.post("/register", response_model=TokenResponse)
-def register_endpoint(req: RegisterRequest, db: Session = Depends(get_db)):
+async def register_endpoint(req: RegisterRequest, db: Session = Depends(get_db)):
 
     try:
-        user = create_user(
+        user = await create_user(
             session=db,
             email=req.email,
             password=req.password,

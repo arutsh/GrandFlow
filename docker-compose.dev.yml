@@ -52,6 +52,17 @@ services:
       timeout: 5s
       retries: 5
 
+  flower:
+    image: mher/flower:latest
+    container_name: grandflow-flower
+    environment:
+      # We use the service name 'rabbitmq' as the hostname
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+    ports:
+      - "5555:5555"   # Flower Web UI port
+    depends_on:
+      - rabbitmq
+
   # Nginx Proxy (routes to local services at host.docker.internal)
   nginx:
     image: nginx:latest

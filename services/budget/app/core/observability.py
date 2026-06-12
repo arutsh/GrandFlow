@@ -10,6 +10,8 @@ from fastapi import Response
 from functools import wraps
 
 
+
+
 def init_observability(service_name: str, jaeger_host: str = "localhost", jaeger_port: int = 6831):
     """Initialize Jaeger tracing and Prometheus metrics.
 

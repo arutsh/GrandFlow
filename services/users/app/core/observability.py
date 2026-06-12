@@ -4,13 +4,15 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.sdk.resources import Resource
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from fastapi import Response
 from functools import wraps
 
 
-def init_observability(service_name: str, jaeger_host: str = "localhost", jaeger_port: int = 6831):
-    """Initialize Jaeger tracing and Prometheus metrics.
+def init_tracer_provider(service_name: str, jaeger_host: str = "localhost", jaeger_port: int = 6831):
+    """Initialize Jaeger tracing provider only.
 
     Args:
         service_name: Name of the service for tracing
@@ -31,6 +33,14 @@ def init_observability(service_name: str, jaeger_host: str = "localhost", jaeger
     trace_provider.add_span_processor(BatchSpanProcessor(jaeger_exporter))
     trace.set_tracer_provider(trace_provider)
 
+    # Auto-instrument SQLAlchemy globally
+    SQLAlchemyInstrumentor().instrument()
+
+
+def instrument_fastapi(app):
+    """Instrument FastAPI app with tracing. Call this AFTER app is created."""
+    FastAPIInstrumentor().instrument_app(app)
+
 
 def metrics_endpoint(request) -> Response:
     """FastAPI route handler for Prometheus metrics endpoint."""
@@ -40,7 +50,7 @@ def metrics_endpoint(request) -> Response:
     )
 
 
-def traced(span_name: str = None):
+def traced(span_name: str | None = None):
     """Decorator to create a span for a function."""
     def decorator(func):
         @wraps(func)
