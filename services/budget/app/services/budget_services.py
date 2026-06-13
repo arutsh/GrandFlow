@@ -1,5 +1,5 @@
 import asyncio
-from fastapi import status
+from fastapi import status, HTTPException
 from app.crud.budget_crud import (
     create_budget,
     get_budget,
@@ -7,10 +7,12 @@ from app.crud.budget_crud import (
     list_budgets,
     delete_budget,
 )
+from app.crud.budget_line_crud import delete_budget_line
 from app.core.exceptions import DomainError, PermissionDenied
 
 from app.services.customer_client import validate_customer_type
 from app.schemas.budget_schema import BudgetCreate
+from app.schemas.with_lines_schema import CreateBudgetWithLinesRequest
 from uuid import UUID
 
 from typing import List
@@ -122,6 +124,59 @@ async def delete_budget_service(budget_id: UUID, valid_user: dict, db):
     if valid_budget:
         return delete_budget(session=db, budget=valid_budget)
     return False
+
+
+async def create_budget_with_lines_service(
+    request: CreateBudgetWithLinesRequest,
+    valid_user: dict,
+    db,
+):
+    # Deferred import to avoid circular dependency
+    from app.services.budget_line_services import create_budget_line_service
+    from app.schemas import BudgetLineCreate
+
+    new_budget = None
+    created_lines = []
+    try:
+        new_budget = create_budget(
+            session=db,
+            user_id=valid_user["id"],
+            name=request.budget_name,
+            external_funder_name=request.external_funder_name,
+            owner_id=valid_user["customer_id"],
+        )
+        if request.duration_months is not None:
+            new_budget.duration_months = request.duration_months
+            db.commit()
+
+        for line_input in request.lines:
+            line = create_budget_line_service(
+                db,
+                valid_user,
+                BudgetLineCreate(
+                    budget_id=new_budget.id,
+                    description=line_input.description,
+                    amount=line_input.amount,
+                    category_name=line_input.category_name,
+                    extra_fields=line_input.extra_fields,
+                ),
+            )
+            created_lines.append(line)
+
+        budget = await get_budget_service(new_budget.id, valid_user, db, include_user_details=True)
+        budget["lines"] = created_lines
+        return budget
+
+    except Exception as e:
+        # Compensating transaction: undo already-committed writes in reverse order
+        for line in reversed(created_lines):
+            delete_budget_line(db, line)
+        if new_budget:
+            delete_budget(db, new_budget)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create budget with lines. Changes have been rolled back.",
+        ) from e
 
 
 async def populate_budget_with_user_details(budgets: List[BudgetModel], valid_user: dict):
