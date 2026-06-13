@@ -1,4 +1,5 @@
 import pytest
+from typing import Any
 from unittest.mock import patch, MagicMock, AsyncMock
 from fastapi.testclient import TestClient
 from uuid import uuid4
@@ -15,7 +16,7 @@ LINE_ID_1 = str(uuid4())
 LINE_ID_2 = str(uuid4())
 CATEGORY_ID = str(uuid4())
 
-VALID_PAYLOAD = {
+VALID_PAYLOAD: dict[str, Any] = {
     "budget_name": "Youth Program 2025",
     "external_funder_name": "Smith Foundation",
     "duration_months": 12,
@@ -26,8 +27,7 @@ VALID_PAYLOAD = {
 }
 
 _CATEGORY_LOOKUP = (
-    "app.services.budget_category_services"
-    ".get_budget_category_by_name_and_template_id"
+    "app.services.budget_category_services" ".get_budget_category_by_name_and_template_id"
 )
 
 
@@ -65,9 +65,7 @@ def _mock_line(line_id, category_name="Personnel"):
     m.description = "test"
     m.amount = 1000.0
     m.extra_fields = None
-    m.category = MagicMock(
-        id=CATEGORY_ID, name=category_name, code=category_name.upper()
-    )
+    m.category = MagicMock(id=CATEGORY_ID, name=category_name, code=category_name.upper())
     return m
 
 
@@ -127,7 +125,6 @@ class TestCreateBudgetWithLinesEndpoint:
         mock_budget = _mock_budget()
         mock_line = _mock_line(LINE_ID_1)
         payload = {**VALID_PAYLOAD, "lines": [VALID_PAYLOAD["lines"][0]]}
-
         with (
             patch("app.services.budget_services.create_budget", return_value=mock_budget),
             patch("app.services.budget_line_services.get_budget", return_value=mock_budget),
@@ -170,7 +167,9 @@ class TestCreateBudgetWithLinesEndpoint:
             patch("app.services.budget_services.create_budget", return_value=mock_budget),
             patch("app.services.budget_line_services.get_budget", return_value=mock_budget),
             patch(_CATEGORY_LOOKUP, return_value=_mock_category()),
-            patch("app.services.budget_line_services.create_budget_line", side_effect=line_side_effect),
+            patch(
+                "app.services.budget_line_services.create_budget_line", side_effect=line_side_effect
+            ),
             patch("app.services.budget_services.delete_budget_line") as mock_delete_line,
             patch("app.services.budget_services.delete_budget") as mock_delete_budget,
         ):

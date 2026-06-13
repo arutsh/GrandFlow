@@ -35,7 +35,7 @@ jobs:
         run: |
           # Add your test command here, e.g. pytest
           echo "Add tests here"
-
+          python -m pytest tests/test_budget_with_lines.py -v
       - name: Lint ${{ matrix.service }}
         working-directory: ./services/${{ matrix.service }}
         run: |
