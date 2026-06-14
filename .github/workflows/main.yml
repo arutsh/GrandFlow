@@ -16,6 +16,7 @@ jobs:
     env:
       USERS_DATABASE_URL: ${{ secrets.USERS_DATABASE_URL }}
       CUSTOMER_SERVICE_URL: ${{ secrets.CUSTOMER_SERVICE_URL }}
+      PYTHONPATH: ${{ github.workspace }}/services/users:${{ github.workspace }}/shared
     steps:
       - uses: actions/checkout@v4
 
@@ -49,7 +50,6 @@ jobs:
         working-directory: ./services/users
         run: |
           pip install black mypy flake8
-          export PYTHONPATH=$(pwd):$(pwd)/../../shared
           black --check ./app
           mypy ./app
           flake8 ./app
@@ -59,6 +59,7 @@ jobs:
     env:
       BUDGET_DATABASE_URL: ${{ secrets.BUDGET_DATABASE_URL }}
       CUSTOMER_SERVICE_URL: ${{ secrets.CUSTOMER_SERVICE_URL }}
+      PYTHONPATH: ${{ github.workspace }}/services/budget:${{ github.workspace }}/shared
     steps:
       - uses: actions/checkout@v4
 
@@ -92,7 +93,6 @@ jobs:
         working-directory: ./services/budget
         run: |
           pip install black mypy flake8
-          export PYTHONPATH=$(pwd):$(pwd)/../../shared
           black --check ./app
           mypy ./app
           flake8 ./app
