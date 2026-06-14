@@ -60,6 +60,13 @@ jobs:
       BUDGET_DATABASE_URL: ${{ secrets.BUDGET_DATABASE_URL }}
       CUSTOMER_SERVICE_URL: ${{ secrets.CUSTOMER_SERVICE_URL }}
       PYTHONPATH: ${{ github.workspace }}/services/budget:${{ github.workspace }}
+      USER_SERVICE_URL: http://localhost:8000
+      USER_ALL_SERVICES_URL: http://localhost:8000
+      REDIS_URL: redis://localhost:6379
+      RABBITMQ_URL: amqp://guest:guest@localhost:5672/
+      RABBITMQ_EXCHANGE: grandflow.events
+      RABBITMQ_QUEUE: budget.queue
+      LOG_LEVEL: INFO
     steps:
       - uses: actions/checkout@v4
 
