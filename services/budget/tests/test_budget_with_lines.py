@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from main import app
 from app.api.budget_routes import get_validated_user
+from tests.factories.user import make_valid_user
 
 client = TestClient(app)
 
@@ -32,12 +33,7 @@ _CATEGORY_LOOKUP = (
 
 
 def _mock_valid_user():
-    return {
-        "id": USER_ID,
-        "customer_id": CUSTOMER_ID,
-        "role": "user",
-        "token": "testtoken",
-    }
+    return make_valid_user(user_id=USER_ID, customer_id=CUSTOMER_ID)
 
 
 def _mock_budget(budget_id=None):

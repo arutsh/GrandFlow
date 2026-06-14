@@ -43,7 +43,7 @@ async def create_budget_service(
         owner_id = budget.owner_id
     new_budget = create_budget(
         session=db,
-        user_id=valid_user["id"],
+        user_id=valid_user["user_id"],
         name=budget.name,
         funding_customer_id=budget.funding_customer_id,
         external_funder_name=budget.external_funder_name,
@@ -140,7 +140,7 @@ async def create_budget_with_lines_service(
     try:
         new_budget = create_budget(
             session=db,
-            user_id=valid_user["id"],
+            user_id=valid_user["user_id"],
             name=request.budget_name,
             external_funder_name=request.external_funder_name,
             owner_id=valid_user["customer_id"],

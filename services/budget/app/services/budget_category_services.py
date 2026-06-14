@@ -39,4 +39,4 @@ def get_or_create_category_service(
     if category:
         return category
 
-    return create_budget_category(db, valid_user["id"], name, code, donor_template_id)
+    return create_budget_category(db, valid_user["user_id"], name, code, donor_template_id)

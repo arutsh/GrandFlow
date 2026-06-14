@@ -127,7 +127,7 @@ def create_budget_category_endpoint(
 ):
     return create_budget_category(
         db,
-        user_id=valid_user["id"],
+        user_id=valid_user["user_id"],
         name=payload.name,
         code=payload.code,
         donor_template_id=payload.donor_template_id,
