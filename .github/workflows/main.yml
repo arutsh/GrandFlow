@@ -16,7 +16,7 @@ jobs:
     env:
       USERS_DATABASE_URL: ${{ secrets.USERS_DATABASE_URL }}
       CUSTOMER_SERVICE_URL: ${{ secrets.CUSTOMER_SERVICE_URL }}
-      PYTHONPATH: ${{ github.workspace }}/services/users:${{ github.workspace }}/shared
+      PYTHONPATH: ${{ github.workspace }}/services/users:${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
 
@@ -59,7 +59,7 @@ jobs:
     env:
       BUDGET_DATABASE_URL: ${{ secrets.BUDGET_DATABASE_URL }}
       CUSTOMER_SERVICE_URL: ${{ secrets.CUSTOMER_SERVICE_URL }}
-      PYTHONPATH: ${{ github.workspace }}/services/budget:${{ github.workspace }}/shared
+      PYTHONPATH: ${{ github.workspace }}/services/budget:${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
 
