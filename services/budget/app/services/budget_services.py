@@ -37,8 +37,8 @@ async def create_budget_service(
                 "Superuser must specify owner_id (not associated with a customer).",
                 status.HTTP_422_UNPROCESSABLE_ENTITY,
             )
-
-        validate_customer_type(budget.owner_id, "ngo", raise_domain_error=True)
+        # TODO revisit this, do we really need to validate if user is ngo or donor?
+        # validate_customer_type(budget.owner_id, "ngo", raise_domain_error=True)
 
         owner_id = budget.owner_id
     new_budget = create_budget(
@@ -138,16 +138,16 @@ async def create_budget_with_lines_service(
     new_budget = None
     created_lines = []
     try:
-        new_budget = create_budget(
-            session=db,
-            user_id=valid_user["user_id"],
-            name=request.budget_name,
-            external_funder_name=request.external_funder_name,
-            owner_id=valid_user["customer_id"],
+        new_budget = await create_budget_service(
+            BudgetCreate(
+                name=request.budget_name,
+                external_funder_name=request.external_funder_name,
+                owner_id=request.owner_id,
+                duration_months=request.duration_months,
+            ),
+            valid_user,
+            db,
         )
-        if request.duration_months is not None:
-            new_budget.duration_months = request.duration_months
-            db.commit()
 
         for line_input in request.lines:
             line = create_budget_line_service(
@@ -167,8 +167,15 @@ async def create_budget_with_lines_service(
         budget["lines"] = created_lines
         return budget
 
+    except (HTTPException, DomainError):
+        # Validation/permission errors — roll back any lines created before re-raising
+        for line in reversed(created_lines):
+            delete_budget_line(db, line)
+        if new_budget:
+            delete_budget(db, new_budget)
+        raise
     except Exception as e:
-        # Compensating transaction: undo already-committed writes in reverse order
+        # Unexpected DB/infra error — compensating transaction then 500
         for line in reversed(created_lines):
             delete_budget_line(db, line)
         if new_budget:
