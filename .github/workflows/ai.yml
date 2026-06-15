@@ -1,0 +1,45 @@
+name: AI Service CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'services/ai/**'
+      - 'shared/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'services/ai/**'
+      - 'shared/**'
+
+jobs:
+  ai-test:
+    runs-on: ubuntu-latest
+    env:
+      AI_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/grandflow_ai
+      LOG_LEVEL: INFO
+      PYTHONPATH: ${{ github.workspace }}/services/ai:${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r services/ai/requirements.txt
+
+      - name: Run tests
+        working-directory: ./services/ai
+        run: python -m pytest tests/ -v
+
+      - name: Lint
+        working-directory: ./services/ai
+        run: |
+          pip install black mypy flake8
+          black --check ./app
+          mypy ./app
+          flake8 ./app
