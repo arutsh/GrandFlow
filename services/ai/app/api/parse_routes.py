@@ -19,8 +19,8 @@ async def stream_parse_budget(
     text: str,
     valid_user=Depends(get_validated_user),
 ):
-    customer_id = str(valid_user["customer_id"])
     user_id = str(valid_user["user_id"])
+    customer_id = str(valid_user["customer_id"]) if valid_user.get("customer_id") else user_id
 
     allowed, retry_after = await check_and_increment(customer_id)
     if not allowed:
