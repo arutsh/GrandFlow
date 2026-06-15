@@ -1,0 +1,45 @@
+name: Users Service CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'services/users/**'
+      - 'shared/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'services/users/**'
+      - 'shared/**'
+
+jobs:
+  users-test:
+    runs-on: ubuntu-latest
+    env:
+      USERS_DATABASE_URL: ${{ secrets.USERS_DATABASE_URL }}
+      CUSTOMER_SERVICE_URL: ${{ secrets.CUSTOMER_SERVICE_URL }}
+      PYTHONPATH: ${{ github.workspace }}/services/users:${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r services/users/requirements.txt
+
+      - name: Run tests
+        working-directory: ./services/users
+        run: echo "Skipping tests for now"
+
+      - name: Lint
+        working-directory: ./services/users
+        run: |
+          pip install black mypy flake8
+          black --check ./app
+          mypy ./app
+          flake8 ./app

@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from app.api import parse_routes
@@ -6,6 +7,15 @@ from app.core.logging import setup_logging, get_logger
 
 setup_logging(settings.LOG_LEVEL)
 logger = get_logger(__name__)
+
+if os.getenv("VSCODE_DEBUGGER") == "1":
+    try:
+        import debugpy
+
+        debugpy.listen(("0.0.0.0", 5682))
+        print("✅ VS Code debugger is listening on port 5682")
+    except Exception:
+        pass
 
 
 app = FastAPI(title="AI Service")
