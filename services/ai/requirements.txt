@@ -3,6 +3,7 @@ anyio==4.9.0
 bcrypt==4.3.0
 debugpy==1.8.15
 fastapi==0.116.1
+httpx==0.28.1
 opentelemetry-api==1.27.0
 passlib==1.7.4
 psycopg2-binary==2.9.10
