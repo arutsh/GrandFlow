@@ -1,12 +1,26 @@
 import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
+from opentelemetry import trace
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+from opentelemetry.sdk.trace import TracerProvider as SDKTracerProvider
+
 from app.api import parse_routes
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger
+from app.db.session import engine
+from shared.observability import init_observability, instrument_fastapi, metrics_endpoint
 
 setup_logging(settings.LOG_LEVEL)
 logger = get_logger(__name__)
+
+init_observability("ai-service")
+
+# Async engines need explicit instrumentation — init_observability hooks into sync engine
+# creation events which don't fire for create_async_engine.
+SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
 
 if os.getenv("VSCODE_DEBUGGER") == "1":
     try:
@@ -18,9 +32,22 @@ if os.getenv("VSCODE_DEBUGGER") == "1":
         pass
 
 
-app = FastAPI(title="AI Service")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("app_startup", service="ai")
+    yield
+    logger.info("app_shutdown", service="ai")
+    provider = trace.get_tracer_provider()
+    if isinstance(provider, SDKTracerProvider):
+        provider.force_flush(timeout_millis=5000)
+
+
+app = FastAPI(title="AI Service", lifespan=lifespan)
+
+instrument_fastapi(app)
 
 app.include_router(parse_routes.router, prefix="/api/v1")
+app.add_route("/metrics", metrics_endpoint, methods=["GET"])
 
 
 def custom_openapi():
