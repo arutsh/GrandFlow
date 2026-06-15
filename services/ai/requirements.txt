@@ -1,0 +1,14 @@
+alembic==1.16.4
+fastapi==0.116.1
+pydantic==2.11.7
+pydantic-settings==2.10.1
+psycopg2-binary==2.9.10
+python-jose==3.5.0
+passlib==1.7.4
+bcrypt==4.3.0
+SQLAlchemy==2.0.41
+structlog==24.1.0
+uvicorn==0.35.0
+httpx==0.28.1
+pytest==8.4.2
+python-multipart==0.0.20

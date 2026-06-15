@@ -2,13 +2,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import uuid4, UUID  # noqa: F401
-from app.core.exceptions import DomainError
 from app.db.session import SessionLocal
 from app.schemas.budget_schema import BudgetCreate, BudgetUpdate, BudgetWithLines
 from app.schemas.with_lines_schema import CreateBudgetWithLinesRequest
-from app.utils.security import get_current_user
 from app.services.budget_line_services import get_budget_lines_service
-from app.services.user_client import get_valid_user
 from app.services.budget_services import (
     create_budget_service,
     create_budget_with_lines_service,
@@ -17,6 +14,7 @@ from app.services.budget_services import (
     list_budget_service,
     delete_budget_service,
 )
+from shared.security.dependencies import get_validated_user  # noqa: F401
 
 router = APIRouter(prefix="/budgets", tags=["Public Budgets"])
 private_router = APIRouter(prefix="/budgets", tags=["Private Budgets"])
@@ -28,17 +26,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-def get_validated_user(user=Depends(get_current_user)):
-    """
-    FastAPI dependency that validates the user and returns the user object.
-    Raises DomainError if validation fails.
-    """
-    try:
-        return get_valid_user(user["user_id"], user["token"])
-    except ValueError as e:
-        raise DomainError(str(e))
 
 
 @router.post("/")

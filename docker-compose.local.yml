@@ -103,6 +103,27 @@ services:
       - grandflow
 
 
+  # Backend: AI Service
+  ai:
+    build:
+      context: .
+      dockerfile: services/ai/Dockerfile
+    container_name: ai-service-local
+    ports:
+      - "9002:8000"
+    volumes:
+      - ./shared:/app/shared:ro
+      - ./services/ai:/app
+    env_file:
+      - ./services/ai/.env.ai.private.local
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      grandflow-db:
+        condition: service_healthy
+    networks:
+      - grandflow
+
   # Frontend
   frontend:
     build:
@@ -130,6 +151,7 @@ services:
     depends_on:
       - users
       - budget
+      - ai
       - frontend
     networks:
       - grandflow

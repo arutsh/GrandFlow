@@ -23,7 +23,6 @@ from app.models.mapping import (
 )
 from app.services.mapping_service import suggest_mapping
 from app.db.session import SessionLocal
-from app.utils.security import get_current_user
 from app.crud.budget_donor_template_crud import (
     bulk_create_donor_fields,
     create_donor_template,
@@ -34,11 +33,8 @@ from app.crud.budget_donor_template_crud import (
 )
 from app.schemas.budget_line_schema import BudgetCategoryCreate, BudgetCategory
 from app.crud.budget_category_crud import create_budget_category, list_budget_categories
-from app.services.user_client import (
-    get_valid_user,
-)
-from app.core.exceptions import DomainError
 from app.services.mapping_service import suggest_semantic_mapping
+from shared.security.dependencies import get_validated_user  # noqa: F401
 
 router = APIRouter(prefix="/donor-mapping", tags=["Donor Mapping"])
 
@@ -49,17 +45,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-def get_validated_user(user=Depends(get_current_user)):
-    """
-    FastAPI dependency that validates the user and returns the user object.
-    Raises DomainError if validation fails.
-    """
-    try:
-        return get_valid_user(user["user_id"], user["token"])
-    except ValueError as e:
-        raise DomainError(str(e))
 
 
 @router.post("/ping")

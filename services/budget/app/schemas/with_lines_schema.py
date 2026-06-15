@@ -1,18 +1,3 @@
-from pydantic import BaseModel
-from typing import Any
-from uuid import UUID
+from shared.schemas.budget_with_lines_schema import BudgetLineInput, CreateBudgetWithLinesRequest  # noqa: F401
 
-
-class BudgetLineInput(BaseModel):
-    category_name: str
-    description: str
-    amount: float
-    extra_fields: dict[str, Any] | None = None
-
-
-class CreateBudgetWithLinesRequest(BaseModel):
-    budget_name: str
-    external_funder_name: str
-    owner_id: UUID | None = None
-    duration_months: int | None = None
-    lines: list[BudgetLineInput]
+__all__ = ["BudgetLineInput", "CreateBudgetWithLinesRequest"]

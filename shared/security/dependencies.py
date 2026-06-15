@@ -41,3 +41,23 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
             detail=str(e),
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+def get_validated_user(user: dict = Depends(get_current_user)) -> dict:
+    """Decode the JWT payload and return it with the raw token attached.
+
+    Raises HTTP 401 on any failure — use this as a FastAPI dependency in
+    every service instead of defining per-route copies.
+    """
+    try:
+        payload = decode_access_token(user["token"])
+        if not payload:
+            raise ValueError("Empty token payload")
+        payload["token"] = user["token"]
+        return payload
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+            headers={"WWW-Authenticate": "Bearer"},
+        )
