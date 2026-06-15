@@ -220,3 +220,4 @@ package-lock.json
 package.json
 .vscode/launch.json
 plans/
+scripts/

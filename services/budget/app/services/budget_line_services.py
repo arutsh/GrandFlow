@@ -41,7 +41,7 @@ def create_budget_line_service(
 
     return create_budget_line(
         db,
-        user_id=valid_user["id"],
+        user_id=valid_user["user_id"],
         budget_id=budget_line.budget_id,
         category_id=category.id,
         description=budget_line.description,

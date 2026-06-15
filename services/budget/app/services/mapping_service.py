@@ -279,7 +279,7 @@ def suggest_semantic_mapping(values: List[str], db: Session, valid_user: Dict) -
                 },
                 ttl=7 * 86400,
             )
-        bulk_create_semantic_field_mappings(db, valid_user["id"], unknown_suggestions)
+        bulk_create_semantic_field_mappings(db, valid_user["user_id"], unknown_suggestions)
         unknown = []
 
     return {"suggestions": suggestions, "unknown": unknown}

@@ -5,11 +5,13 @@ from uuid import uuid4, UUID  # noqa: F401
 from app.core.exceptions import DomainError
 from app.db.session import SessionLocal
 from app.schemas.budget_schema import BudgetCreate, BudgetUpdate, BudgetWithLines
+from app.schemas.with_lines_schema import CreateBudgetWithLinesRequest
 from app.utils.security import get_current_user
 from app.services.budget_line_services import get_budget_lines_service
 from app.services.user_client import get_valid_user
 from app.services.budget_services import (
     create_budget_service,
+    create_budget_with_lines_service,
     get_budget_service,
     update_budget_service,
     list_budget_service,
@@ -82,6 +84,15 @@ async def get_all_budgets_endpoint(
 ):
 
     return await list_budget_service(db=db, valid_user=valid_user, include_user_details=True)
+
+
+@router.post("/with-lines")
+async def create_budget_with_lines_endpoint(
+    request: CreateBudgetWithLinesRequest,
+    db: Session = Depends(get_db),
+    valid_user=Depends(get_validated_user),
+):
+    return await create_budget_with_lines_service(request, valid_user, db)
 
 
 @router.delete("/{budget_id}")
