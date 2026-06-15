@@ -1,6 +1,8 @@
-import pytest
+import redis
+from uuid import uuid4
 from fastapi.testclient import TestClient
 
+from app.core.config import settings
 from main import app
 from app.api.parse_routes import get_validated_user
 from tests.factories.user import make_valid_user
@@ -8,18 +10,15 @@ from tests.factories.user import make_valid_user
 client = TestClient(app)
 
 
-def _mock_valid_user():
-    return make_valid_user()
-
-
-@pytest.fixture(autouse=True)
-def override_auth():
-    app.dependency_overrides[get_validated_user] = _mock_valid_user
-    yield
-    app.dependency_overrides = {}
-
-
 class TestParseBudgetSync:
+    @classmethod
+    def setup_class(cls):
+        app.dependency_overrides[get_validated_user] = make_valid_user
+
+    @classmethod
+    def teardown_class(cls):
+        app.dependency_overrides.pop(get_validated_user, None)
+
     def test_null_provider_returns_ai_available_false(self):
         response = client.post("/api/v1/ai/parse-budget")
         assert response.status_code == 200
@@ -29,10 +28,25 @@ class TestParseBudgetSync:
         app.dependency_overrides = {}
         response = client.post("/api/v1/ai/parse-budget")
         assert response.status_code == 401
-        app.dependency_overrides[get_validated_user] = _mock_valid_user
+        app.dependency_overrides[get_validated_user] = make_valid_user
 
 
 class TestParseBudgetStream:
+    @classmethod
+    def setup_class(cls):
+        cls.customer_id = str(uuid4())
+        app.dependency_overrides[get_validated_user] = lambda: make_valid_user(customer_id=cls.customer_id)
+
+    @classmethod
+    def teardown_class(cls):
+        app.dependency_overrides.pop(get_validated_user, None)
+        try:
+            r = redis.from_url(settings.REDIS_URL, decode_responses=True)
+            r.delete(f"rate_limit:ai:{cls.customer_id}")
+            r.close()
+        except Exception:
+            pass
+
     def test_null_provider_stream_returns_unavailable_event(self):
         response = client.get("/api/v1/ai/parse-budget/stream?text=test")
         assert response.status_code == 200
@@ -48,4 +62,4 @@ class TestParseBudgetStream:
         app.dependency_overrides = {}
         response = client.get("/api/v1/ai/parse-budget/stream?text=test")
         assert response.status_code == 401
-        app.dependency_overrides[get_validated_user] = _mock_valid_user
+        app.dependency_overrides[get_validated_user] = lambda: make_valid_user(customer_id=self.customer_id)
