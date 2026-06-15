@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     ai_database_url: str
+    REDIS_URL: str = "redis://localhost:6379"
     ANTHROPIC_API_KEY: str | None = None
     OLLAMA_URL: str | None = None
     OLLAMA_MODEL: str = "llama3.2"
