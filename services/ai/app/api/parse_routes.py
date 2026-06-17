@@ -37,9 +37,13 @@ async def stream_parse_budget(
     provider = resolve_provider(settings.env)
 
     if isinstance(provider, NullProvider):
+
         async def _unavailable():
             yield "event: unavailable\ndata: {}\n\n"
-        return StreamingResponse(_unavailable(), media_type="text/event-stream", headers=_SSE_HEADERS)
+
+        return StreamingResponse(
+            _unavailable(), media_type="text/event-stream", headers=_SSE_HEADERS
+        )
 
     return StreamingResponse(
         build_parse_stream(
