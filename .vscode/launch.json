@@ -3,6 +3,26 @@
   // Hover to view descriptions of existing attributes.
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "All Services (Dev)",
+      "configurations": [
+        "Debug Users Service (FastAPI + Uvicorn)",
+        "Debug Budget Service (FastAPI + Uvicorn)",
+        "Debug AI Service (FastAPI + Uvicorn)"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "Attach All Services (Docker)",
+      "configurations": [
+        "Attach to Users service (Docker)",
+        "Attach to Budget service (Docker)",
+        "Attach to AI service (Docker)"
+      ],
+      "stopAll": true
+    }
+  ],
   "configurations": [
     {
       "name": "Debug Users Service (FastAPI + Uvicorn)",

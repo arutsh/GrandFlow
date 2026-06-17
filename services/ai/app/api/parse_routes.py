@@ -1,17 +1,18 @@
-import time
-
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
-from app.services.audit import write_audit_log
-from app.services.provider import resolve_provider
+from app.services.parse_service import build_parse_stream
+from app.services.provider import NullProvider, resolve_provider
 from app.services.rate_limiter import check_and_increment
 from app.core.config import settings
-from app.core.logging import get_logger
 from app.utils.security import get_validated_user
 
 router = APIRouter(prefix="/ai", tags=["AI"])
-logger = get_logger(__name__)
+
+_SSE_HEADERS = {
+    "X-Accel-Buffering": "no",
+    "X-RateLimit-Limit": str(settings.AI_RATE_LIMIT_PER_HOUR),
+}
 
 
 @router.get("/parse-budget/stream")
@@ -29,56 +30,30 @@ async def stream_parse_budget(
             detail="Rate limit exceeded. Try again later.",
             headers={
                 "Retry-After": str(retry_after),
-                "X-RateLimit-Limit": str(settings.AI_RATE_LIMIT_PER_HOUR),
+                **_SSE_HEADERS,
             },
         )
 
     provider = resolve_provider(settings.env)
 
-    async def event_generator():
-        start = time.monotonic()
-        success = True
-        error_message = None
+    if isinstance(provider, NullProvider):
 
-        try:
-            async for chunk in await provider.stream(text):
-                yield chunk
-        except Exception as exc:
-            success = False
-            error_message = str(exc)
-            logger.error(
-                "ai_provider_error", error=error_message, customer_id=customer_id, user_id=user_id
-            )
-            yield f"event: error\ndata: unexpected error\n\n"  # noqa: F541
-        finally:
-            duration_ms = int((time.monotonic() - start) * 1000)
-            try:
-                await write_audit_log(
-                    customer_id=customer_id,
-                    user_id=user_id,
-                    prompt_version="none",
-                    input_text=text,
-                    provider="none",
-                    model="",
-                    success=success,
-                    error_message=error_message,
-                    duration_ms=duration_ms,
-                )
-            except Exception as exc:
-                logger.error(
-                    "audit_log_write_failed",
-                    error=str(exc),
-                    customer_id=customer_id,
-                    user_id=user_id,
-                )
+        async def _unavailable():
+            yield "event: unavailable\ndata: {}\n\n"
+
+        return StreamingResponse(
+            _unavailable(), media_type="text/event-stream", headers=_SSE_HEADERS
+        )
 
     return StreamingResponse(
-        event_generator(),
+        build_parse_stream(
+            text=text,
+            provider=provider,
+            customer_id=customer_id,
+            user_id=user_id,
+        ),
         media_type="text/event-stream",
-        headers={
-            "X-Accel-Buffering": "no",
-            "X-RateLimit-Limit": str(settings.AI_RATE_LIMIT_PER_HOUR),
-        },
+        headers=_SSE_HEADERS,
     )
 
 
