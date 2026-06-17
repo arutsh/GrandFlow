@@ -1,6 +1,6 @@
-# Monitoring & Observability - GrandFlow Dev Environment
+# Monitoring & Observability - GrantFlow Dev Environment
 
-This setup provides distributed tracing, metrics collection, and dashboard visualization for the GrandFlow microservices architecture.
+This setup provides distributed tracing, metrics collection, and dashboard visualization for the GrantFlow microservices architecture.
 
 ## Components
 
@@ -221,7 +221,7 @@ custom_requests_total{service="budget-service"}
 
 ### "Grafana can't connect to Prometheus"
 - Grafana uses DNS: verify `prometheus:9090` resolves
-- Check both are on same Docker network (`grandflow`)
+- Check both are on same Docker network (`grantflow`)
 - Restart Grafana: `docker restart grafana-dev`
 
 ---

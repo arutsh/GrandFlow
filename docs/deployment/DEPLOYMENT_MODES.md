@@ -1,6 +1,6 @@
-# GrandFlow Deployment Modes
+# GrantFlow Deployment Modes
 
-GrandFlow supports three deployment modes to suit different use cases and deployment targets:
+GrantFlow supports three deployment modes to suit different use cases and deployment targets:
 
 ## 1. 🚀 DEV MODE (Development)
 
@@ -119,8 +119,8 @@ Port: 5432
 User: postgres
 Password: postgres
 Databases: 
-  - grandflow_users
-  - grandflow_budget
+  - grantflow_users
+  - grantflow_budget
 ```
 
 ---
@@ -208,7 +208,7 @@ DOCKER_BUILDKIT=1 docker compose build
 ./dev.sh logs
 
 # Make sure DB is healthy
-docker compose -f docker-compose.dev.yml exec grandflow-db pg_isready
+docker compose -f docker-compose.dev.yml exec grantflow-db pg_isready
 ```
 
 ### Port already in use

@@ -1,4 +1,4 @@
-# Observability Setup - GrandFlow Dev Environment
+# Observability Setup - GrantFlow Dev Environment
 
 ## What Was Added
 

@@ -73,8 +73,8 @@ This open-source platform aims to:
 
 ```bash
 # Clone the repo
-git clone https://github.com/<your-org>/grandflow.git
-cd grandflow
+git clone https://github.com/<your-org>/grantflow.git
+cd grantflow
 
 # Build and run all services
 docker-compose up --build
@@ -118,7 +118,7 @@ Attach using the VSCode debugger and the correct path mapping:
 ## 📦 Project Structure
 
 ```
-grandflow/
+grantflow/
 ├── docker-compose.yml
 ├── shared/                  # Shared libraries (e.g. models, JWT utils)
 ├── services/
@@ -159,7 +159,7 @@ MIT License. See [LICENSE](./LICENSE) for details.
 
 ## 💬 Questions or Support?
 
-Open an [issue](https://github.com/arutsh/grandflow/issues) or start a [discussion](https://github.com/arutsh/grandflow/discussions).
+Open an [issue](https://github.com/arutsh/grantflow/issues) or start a [discussion](https://github.com/arutsh/grantflow/discussions).
 
 ---
 
