@@ -1,8 +1,10 @@
 import redis
 from uuid import uuid4
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
+from app.services.provider import NullProvider
 from main import app
 from app.api.parse_routes import get_validated_user
 from tests.factories.user import make_valid_user
@@ -32,10 +34,14 @@ class TestParseBudgetSync:
 
 
 class TestParseBudgetStream:
+    customer_id: str
+
     @classmethod
     def setup_class(cls):
         cls.customer_id = str(uuid4())
-        app.dependency_overrides[get_validated_user] = lambda: make_valid_user(customer_id=cls.customer_id)
+        app.dependency_overrides[get_validated_user] = lambda: make_valid_user(
+            customer_id=cls.customer_id
+        )
 
     @classmethod
     def teardown_class(cls):
@@ -48,7 +54,8 @@ class TestParseBudgetStream:
             pass
 
     def test_null_provider_stream_returns_unavailable_event(self):
-        response = client.get("/api/v1/ai/parse-budget/stream?text=test")
+        with patch("app.api.parse_routes.resolve_provider", return_value=NullProvider()):
+            response = client.get("/api/v1/ai/parse-budget/stream?text=test")
         assert response.status_code == 200
         assert "text/event-stream" in response.headers["content-type"]
         assert "event: unavailable" in response.text
@@ -62,4 +69,6 @@ class TestParseBudgetStream:
         app.dependency_overrides = {}
         response = client.get("/api/v1/ai/parse-budget/stream?text=test")
         assert response.status_code == 401
-        app.dependency_overrides[get_validated_user] = lambda: make_valid_user(customer_id=self.customer_id)
+        app.dependency_overrides[get_validated_user] = lambda: make_valid_user(
+            customer_id=self.customer_id
+        )

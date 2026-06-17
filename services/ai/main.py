@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from opentelemetry import trace
+from opentelemetry.instrumentation.redis import RedisInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.sdk.trace import TracerProvider as SDKTracerProvider
 
@@ -21,6 +22,7 @@ init_observability("ai-service")
 # Async engines need explicit instrumentation — init_observability hooks into sync engine
 # creation events which don't fire for create_async_engine.
 SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
+RedisInstrumentor().instrument()
 
 if os.getenv("VSCODE_DEBUGGER") == "1":
     try:
