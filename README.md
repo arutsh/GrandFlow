@@ -1,14 +1,14 @@
-# Grandflow
+# GrantFlow
 
-**Grandflow** is an open-source microservices-based platform designed to simplify budgeting and financial reporting for NGOs and donors. It helps standardize budget formats, integrates with modern tools, and makes collaboration between organizations easier and more transparent.
+**GrantFlow** is an open-source microservices-based platform designed to simplify budgeting and financial reporting for NGOs and donors. It helps standardize budget formats, integrates with modern tools, and makes collaboration between organizations easier and more transparent.
 
-## 🚀 Why Grandflow?
+## 🚀 Why GrantFlow?
 
 I’ve been a co-founder and part of the nonprofit world for nearly 20 years. Throughout this time, I’ve written and reviewed hundreds of budgets and financial reports, collaborating with dozens of donors and NGOs.
 
 Yet, 99% of these budgets were managed in scattered Excel files — each with different versions, formats, and errors. The process was repetitive, inefficient, and often frustrating.
 
-As a software engineer, I knew there had to be a better way. Grandflow is my attempt to bridge these two worlds: leveraging tech to simplify, unify, and modernize financial management for NGOs.
+As a software engineer, I knew there had to be a better way. GrantFlow is my attempt to bridge these two worlds: leveraging tech to simplify, unify, and modernize financial management for NGOs.
 
 This open-source platform aims to:
 - Provide standardized budget and report tools
@@ -16,7 +16,7 @@ This open-source platform aims to:
 - Empower NGOs to focus more on their fieldwork, not on spreadsheets
 - Leverage modern tools, including AI, for smarter budgeting
 
-🚧 **Project Status:** _Grandflow is currently in early development._  
+🚧 **Project Status:** _GrantFlow is currently in early development._  
 💡 **Contribute:** We welcome contributions from developers, designers, and domain experts.  
 💰 **Support:** If you'd like to support this project financially, donations are greatly appreciated.
 
