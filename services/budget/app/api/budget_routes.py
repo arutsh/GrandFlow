@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from uuid import uuid4, UUID  # noqa: F401
 from app.db.session import SessionLocal
 from app.schemas.budget_schema import BudgetCreate, BudgetUpdate, BudgetWithLines
+from app.schemas.budget_line_schema import BudgetLine
 from app.schemas.with_lines_schema import CreateBudgetWithLinesRequest
 from app.services.budget_line_services import get_budget_lines_service
 from app.services.budget_services import (
@@ -46,7 +47,7 @@ async def get_budget_endpoint(
     budget = await get_budget_service(budget_id, valid_user, db, include_user_details=True)
     if budget:
         budget_lines = get_budget_lines_service(db=db, valid_user=valid_user, budget_id=budget_id)
-        budget["lines"] = budget_lines
+        budget["lines"] = [BudgetLine.model_validate(line) for line in budget_lines]
     return budget
 
 

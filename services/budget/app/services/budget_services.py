@@ -11,7 +11,7 @@ from app.crud.budget_line_crud import delete_budget_line
 from app.core.exceptions import DomainError, PermissionDenied
 
 from app.services.customer_client import validate_customer_type
-from app.schemas.budget_schema import BudgetCreate
+from app.schemas.budget_schema import BudgetCreate, BudgetStatus
 from app.schemas.with_lines_schema import CreateBudgetWithLinesRequest
 from uuid import UUID
 
@@ -23,7 +23,11 @@ from app.services.user_cache import get_users_by_ids_cached
 
 
 async def create_budget_service(
-    budget: BudgetCreate, valid_user: dict, db, include_user_datails: bool = False
+    budget: BudgetCreate,
+    valid_user: dict,
+    db,
+    include_user_datails: bool = False,
+    status: BudgetStatus | None = None,
 ):
 
     if budget.funding_customer_id:
@@ -48,6 +52,7 @@ async def create_budget_service(
         funding_customer_id=budget.funding_customer_id,
         external_funder_name=budget.external_funder_name,
         owner_id=owner_id,
+        status=status,
     )
     if not include_user_datails:
         return new_budget
@@ -147,6 +152,7 @@ async def create_budget_with_lines_service(
             ),
             valid_user,
             db,
+            status=BudgetStatus.ai_draft,
         )
 
         for line_input in request.lines:
@@ -163,9 +169,11 @@ async def create_budget_with_lines_service(
             )
             created_lines.append(line)
 
-        budget = await get_budget_service(new_budget.id, valid_user, db, include_user_details=True)
-        budget["lines"] = created_lines
-        return budget
+        from app.schemas.budget_line_schema import BudgetLine
+
+        enriched = await get_budget_service(new_budget.id, valid_user, db, include_user_details=True)
+        enriched["lines"] = [BudgetLine.model_validate(ln) for ln in created_lines]
+        return enriched
 
     except (HTTPException, DomainError):
         # Validation/permission errors — roll back any lines created before re-raising
@@ -201,7 +209,10 @@ async def populate_budget_with_user_details(budgets: List[BudgetModel], valid_us
     customers_task = asyncio.create_task(
         get_customers_by_ids(list(customer_ids), valid_user.get("token", ""))
     )
-    users_map, customers_map = await asyncio.gather(users_task, customers_task)
+    try:
+        users_map, customers_map = await asyncio.gather(users_task, customers_task)
+    except Exception:
+        users_map, customers_map = {}, {}
 
     # Merge enriched data
     enriched = [

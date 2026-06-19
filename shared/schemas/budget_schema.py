@@ -9,6 +9,7 @@ from enum import Enum
 
 
 class BudgetStatus(str, Enum):
+    ai_draft = "ai_draft"
     draft = "draft"
     confirmed = "confirmed"
     archived = "archived"
@@ -63,8 +64,8 @@ class UserOut(BaseModel):
 
 
 class TraceEvent(BaseModel):
-    user: UserOut
-    event_date: datetime
+    user: UserOut | None = None
+    event_date: datetime | None = None
 
 
 class TraceOut(BaseModel):
@@ -75,8 +76,8 @@ class TraceOut(BaseModel):
 class BudgetWithLines(BaseModel):
     id: UUID
     name: str
-    owner: CustomerOut
-    funder: CustomerOut
-    trace: TraceOut
+    owner: CustomerOut | None = None
+    funder: CustomerOut | None = None
+    trace: TraceOut | None = None
     lines: list[BudgetLine] = []
     model_config = ConfigDict(from_attributes=True)

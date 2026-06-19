@@ -8,9 +8,9 @@ export function BudgetViewHeader({ budget }: { budget: any }) {
       </CardHeader>
       <CardContent>
         <p className="text-sm text-gray-300 mt-1">
-          Owner: {budget.owner.name} ({budget.owner.type})
+          Owner: {budget.owner?.name ?? "Unknown"}{budget.owner?.type ? ` (${budget.owner.type})` : ""}
         </p>
-        <p className="text-sm text-gray-300">Funder: {budget.funder.name}</p>
+        <p className="text-sm text-gray-300">Funder: {budget.funder?.name ?? "—"}</p>
       </CardContent>
     </Card>
   );

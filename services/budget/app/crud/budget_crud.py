@@ -10,11 +10,8 @@ def create_budget(
     funding_customer_id: UUID | None = None,
     external_funder_name: str | None = None,
     owner_id: UUID | None = None,
+    status: BudgetStatus | None = None,
 ) -> BudgetModel:
-    """
-    Create a budget after validating owner and funding customer IDs.
-    """
-
     budget = BudgetModel(
         name=name,
         owner_id=owner_id,
@@ -22,6 +19,7 @@ def create_budget(
         external_funder_name=external_funder_name,
         created_by=user_id,
         updated_by=user_id,
+        status=status or BudgetStatus.draft,
     )
     session.add(budget)
     session.commit()

@@ -71,3 +71,26 @@ export interface BudgetPatched {
   duration_months?: number;
   local_currency?: string;
 }
+
+export interface BudgetLinePreview {
+  category_name: string;
+  description: string;
+  amount: number;
+  extra_fields?: Record<string, unknown> | null;
+}
+
+export interface ParseBudgetResponse {
+  budget_name: string;
+  external_funder_name: string | null;
+  duration_months: number | null;
+  lines: BudgetLinePreview[];
+  ai_available: boolean;
+  prompt_version: string;
+}
+
+export interface CreateBudgetWithLinesRequest {
+  budget_name: string;
+  external_funder_name: string;
+  duration_months?: number | null;
+  lines: BudgetLinePreview[];
+}
