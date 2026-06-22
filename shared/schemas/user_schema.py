@@ -10,11 +10,16 @@ class UserStatus(str, enum.Enum):
     disabled = "disabled"
 
 
+class UserRole(str, enum.Enum):
+    superuser = "superuser"
+    user = "user"
+
+
 class UserBase(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
     email: EmailStr
-    role: str
+    role: UserRole
     customer_id: UUID | None = None
     status: UserStatus
 
@@ -28,7 +33,7 @@ class UserUpdate(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
     email: EmailStr | None = None
-    role: str | None = None
+    role: UserRole | None = None
     customer_id: UUID | None = None
     status: UserStatus | None = UserStatus.pending
     new_customer_name: str | None = None  # If creating a new customer
