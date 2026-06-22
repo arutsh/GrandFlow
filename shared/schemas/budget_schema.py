@@ -53,7 +53,8 @@ class Budget(BudgetBase):
 class CustomerOut(BaseModel):
     id: UUID | None = None
     name: str | None = None
-    type: str | None = None
+    is_ngo: bool | None = None
+    is_donor: bool | None = None
 
 
 class UserOut(BaseModel):

@@ -10,7 +10,7 @@ from app.crud.budget_crud import (
 from app.crud.budget_line_crud import delete_budget_line
 from app.core.exceptions import DomainError, PermissionDenied
 
-from app.services.customer_client import validate_customer_type
+from app.services.customer_client import validate_customer_can_fund, validate_customer_can_own
 from app.schemas.budget_schema import BudgetCreate, BudgetStatus
 from app.schemas.with_lines_schema import CreateBudgetWithLinesRequest
 from uuid import UUID
@@ -31,7 +31,7 @@ async def create_budget_service(
 ):
 
     if budget.funding_customer_id:
-        validate_customer_type(budget.funding_customer_id, "donor", raise_domain_error=True)
+        validate_customer_can_fund(budget.funding_customer_id, raise_domain_error=True)
 
     owner_id = valid_user["customer_id"]
 
@@ -64,14 +64,14 @@ async def create_budget_service(
 async def update_budget_service(budget_id: UUID, budget: BudgetCreate, valid_user: dict, db):
 
     if budget.funding_customer_id:
-        validate_customer_type(budget.funding_customer_id, "donor", raise_domain_error=True)
+        validate_customer_can_fund(budget.funding_customer_id, raise_domain_error=True)
 
     valid_budget = await get_budget_service(budget_id=budget_id, valid_user=valid_user, db=db)
 
     owner_id = valid_user["customer_id"]
 
     if valid_user["role"] == "superuser" and budget.owner_id:
-        validate_customer_type(budget.owner_id, "ngo", raise_domain_error=True)
+        validate_customer_can_own(budget.owner_id, raise_domain_error=True)
         owner_id = budget.owner_id
 
     elif valid_user["role"] != "superuser":

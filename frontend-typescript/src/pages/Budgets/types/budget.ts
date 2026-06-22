@@ -8,7 +8,8 @@ export interface UserOut {
 export interface CustomerOut {
   id?: string;
   name?: string;
-  type?: string;
+  is_ngo?: boolean;
+  is_donor?: boolean;
 }
 
 export interface TraceEvent {

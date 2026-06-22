@@ -2,17 +2,11 @@ from pydantic import BaseModel, field_validator
 from enum import Enum
 import pycountry
 from uuid import UUID
-import enum
-
-
-class CustomerType(str, enum.Enum):
-    donor = "donor"
-    ngo = "ngo"
+import enum  # noqa: F401 — kept for backwards-compat imports
 
 
 def create_country_enum():
     countries = {c.alpha_2: c.name for c in pycountry.countries}
-    # Create dynamic Enum with code as value and name as description
     return Enum("CountryEnum", {f"{code}": code for code in countries.keys()})
 
 
@@ -24,7 +18,8 @@ class Customer(BaseModel):
     id: UUID | None = None
     name: str
     country: str
-    type: CustomerType
+    is_ngo: bool = False
+    is_donor: bool = False
     currency: str
 
     @field_validator("country")
