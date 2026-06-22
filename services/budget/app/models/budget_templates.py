@@ -12,10 +12,10 @@ from shared.db.audit_mixin import AuditMixin
 
 
 class UploadedTemplateStatus(str, enum.Enum):
-    UPLOADED = "uploaded"
-    DETECTED = "detected"
-    MAPPED = "mapped"
-    CONSUMED = "consumed"
+    UPLOADED = "UPLOADED"
+    DETECTED = "DETECTED"
+    MAPPED = "MAPPED"
+    CONSUMED = "CONSUMED"
 
 
 class UploadedTemplateModel(Base, AuditMixin):
@@ -39,7 +39,7 @@ class UploadedTemplateModel(Base, AuditMixin):
         SQLEnum(UploadedTemplateStatus, name="uploaded_template_status"),
         nullable=False,
         default=UploadedTemplateStatus.UPLOADED,
-        server_default=text("'uploaded'"),
+        server_default=text("'UPLOADED'"),
     )
     mappings: Mapped[list["TemplateToBudgetMappingModel"]] = relationship(
         back_populates="template",
