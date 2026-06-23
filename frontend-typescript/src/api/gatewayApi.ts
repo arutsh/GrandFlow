@@ -2,9 +2,10 @@ import { createAxiosInstance } from "./axiosConfig";
 
 import { BudgetLine, NewBudgetLine } from "@/pages/Budgets/types/budget";
 
-const gatewayApi = createAxiosInstance(
-  import.meta.env.VITE_API_GATEWAY || "http://localhost:8082/api/v1"
-);
+export const GATEWAY_BASE_URL =
+  import.meta.env.VITE_API_GATEWAY || "http://localhost:8082/api/v1";
+
+const gatewayApi = createAxiosInstance(GATEWAY_BASE_URL);
 
 // Example API calls
 export const loginUser = async (email: string, password: string) => {
@@ -22,7 +23,7 @@ export const registerUser = async (email: string, password: string) => {
 
 export const refreshToken = async (refresh_token: string) => {
   const { data } = await gatewayApi.post(
-    `auth/refresh/refresh-token?refresh_token=${refresh_token}`,
+    `auth/refresh?refresh_token=${refresh_token}`,
     {}
   );
   return data;

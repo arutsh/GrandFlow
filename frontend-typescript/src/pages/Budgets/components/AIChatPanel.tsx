@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "@/components/ui/Button";
-import { streamParseBudget } from "@/api/budgetApi";
-import { ParseBudgetResponse } from "../types/budget";
+import { streamAiCreateBudget } from "@/api/budgetApi";
+import { useAiChat } from "@/context/AiChatContext";
 
 export interface ChatMessage {
   id: string;
@@ -14,18 +15,13 @@ export const WELCOME_MESSAGE: ChatMessage = {
   id: "welcome",
   role: "assistant",
   content:
-    "Describe the budget you need and I'll generate a structured preview. You can keep refining it through conversation.",
+    "Describe the budget you need and I'll generate a draft for you. You can refine it after it's created.",
 };
 
-interface Props {
-  currentPreview: ParseBudgetResponse | null;
-  onPreviewUpdate: (preview: ParseBudgetResponse) => void;
-  onClose: () => void;
-  messages: ChatMessage[];
-  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-}
+export function AIChatPanel() {
+  const navigate = useNavigate();
+  const { messages, setMessages, contextBudget, closeAi } = useAiChat();
 
-export function AIChatPanel({ currentPreview, onPreviewUpdate, onClose, messages, setMessages }: Props) {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamStatus, setStreamStatus] = useState("");
@@ -37,8 +33,8 @@ export function AIChatPanel({ currentPreview, onPreviewUpdate, onClose, messages
   }, [messages, streamStatus]);
 
   const buildPrompt = (userMessage: string) => {
-    if (!currentPreview) return userMessage;
-    return `Current budget:\n${JSON.stringify(currentPreview)}\n\nUser request: ${userMessage}`;
+    if (!contextBudget) return userMessage;
+    return `Current budget:\n${JSON.stringify(contextBudget)}\n\nUser request: ${userMessage}`;
   };
 
   const addMessage = (msg: Omit<ChatMessage, "id">) => {
@@ -54,26 +50,25 @@ export function AIChatPanel({ currentPreview, onPreviewUpdate, onClose, messages
     setIsStreaming(true);
     setStreamStatus("Starting...");
 
-    abortRef.current = streamParseBudget(
+    abortRef.current = streamAiCreateBudget(
       buildPrompt(text),
-      (status) => setStreamStatus(status),
-      (response) => {
+      (status: string) => setStreamStatus(status),
+      (budgetId: string) => {
         setIsStreaming(false);
         setStreamStatus("");
-        onPreviewUpdate(response);
         addMessage({
           role: "assistant",
-          content: currentPreview
-            ? "Budget updated. Review the changes on the left and keep refining if needed."
-            : "Here's your budget preview. Edit any field directly, then click Create Budget when ready.",
+          content: "Budget created — opening it now.",
         });
+        closeAi();
+        navigate(`/budgets/${budgetId}`);
       },
-      (msg) => {
+      (errMsg: string) => {
         setIsStreaming(false);
         setStreamStatus("");
         addMessage({
           role: "assistant",
-          content: msg || "Something went wrong. Try rephrasing.",
+          content: errMsg || "Something went wrong. Try rephrasing.",
           isError: true,
         });
       },
@@ -97,7 +92,7 @@ export function AIChatPanel({ currentPreview, onPreviewUpdate, onClose, messages
   };
 
   return (
-    <div className="w-96 flex-shrink-0 border-l border-slate-200 bg-white flex flex-col">
+    <div className="w-96 flex-shrink-0 border-l border-slate-200 bg-white flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
         <div className="flex items-center gap-2">
@@ -110,7 +105,7 @@ export function AIChatPanel({ currentPreview, onPreviewUpdate, onClose, messages
           variant="close"
           onClick={() => {
             abortRef.current?.abort();
-            onClose();
+            closeAi();
           }}
         >
           ✕
@@ -160,8 +155,8 @@ export function AIChatPanel({ currentPreview, onPreviewUpdate, onClose, messages
             onKeyDown={handleKeyDown}
             disabled={isStreaming}
             placeholder={
-              currentPreview
-                ? "Refine the budget, e.g. 'add a travel line at $3k'..."
+              contextBudget
+                ? "Refine this budget, e.g. 'add a travel line at $3k'..."
                 : "Describe your budget..."
             }
             className="flex-1 resize-none border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-50"

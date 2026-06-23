@@ -4,6 +4,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useMutation } from "@tanstack/react-query";
 import { userOnboarding } from "@/api/usersApi";
+import { refreshToken } from "@/api/gatewayApi";
 import { useAuth } from "@/context/AuthContext";
 import { getUserIdFromToken } from "@/utils/token";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +13,7 @@ export default function Onboarding() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [orgName, setOrgName] = useState("");
-  const { isAuthenticated, token, login, isRegistering, setIsRegistering } =
+  const { isAuthenticated, token, login, username, isRegistering, setIsRegistering } =
     useAuth();
   const navigate = useNavigate();
 
@@ -34,8 +35,18 @@ export default function Onboarding() {
       customer_name: string;
       user_id: string | null;
     }) => userOnboarding(first_name, last_name, customer_name, user_id),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log("User onboarding successful", data);
+      const storedRefreshToken =
+        sessionStorage.getItem("refreshToken") || localStorage.getItem("refreshToken");
+      if (storedRefreshToken) {
+        try {
+          const refreshData = await refreshToken(storedRefreshToken);
+          login(refreshData.access_token, username || "", false, "active", refreshData.refresh_token || "");
+        } catch (e) {
+          console.error("Token refresh after onboarding failed", e);
+        }
+      }
       sessionStorage.removeItem("status");
       setIsRegistering(false);
       navigate("/dashboard");

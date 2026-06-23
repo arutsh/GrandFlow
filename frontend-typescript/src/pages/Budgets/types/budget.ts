@@ -60,6 +60,8 @@ export interface BudgetUpdate {
   owner_id?: string;
   funding_customer_id?: string;
   external_funder_name?: string;
+  duration_months?: number;
+  status?: string;
 }
 
 export interface BudgetPatched {

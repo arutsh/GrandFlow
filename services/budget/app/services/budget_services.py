@@ -27,13 +27,13 @@ async def create_budget_service(
     valid_user: dict,
     db,
     include_user_datails: bool = False,
-    status: BudgetStatus | None = None,
+    budget_status: BudgetStatus | None = None,
 ):
 
     if budget.funding_customer_id:
         validate_customer_can_fund(budget.funding_customer_id, raise_domain_error=True)
 
-    owner_id = valid_user["customer_id"]
+    owner_id = valid_user.get("customer_id")
 
     if valid_user["role"] == "superuser":
         if not budget.owner_id:
@@ -52,7 +52,7 @@ async def create_budget_service(
         funding_customer_id=budget.funding_customer_id,
         external_funder_name=budget.external_funder_name,
         owner_id=owner_id,
-        status=status,
+        status=budget_status,
     )
     if not include_user_datails:
         return new_budget
@@ -116,7 +116,11 @@ async def list_budget_service(valid_user, db, include_user_details: bool = False
     if valid_user["role"] == "superuser":
         return list_budgets(db)
 
-    budgets = list_budgets(db, customer_id=valid_user["customer_id"])
+    customer_id = valid_user.get("customer_id")
+    if not customer_id:
+        return []
+
+    budgets = list_budgets(db, customer_id=customer_id)
     if not include_user_details:
         return budgets
     return await populate_budget_with_user_details(budgets=budgets, valid_user=valid_user)
@@ -143,16 +147,17 @@ async def create_budget_with_lines_service(
     new_budget = None
     created_lines = []
     try:
+        owner_id = request.owner_id or valid_user.get("customer_id")
         new_budget = await create_budget_service(
             BudgetCreate(
                 name=request.budget_name,
                 external_funder_name=request.external_funder_name,
-                owner_id=request.owner_id,
+                owner_id=owner_id,
                 duration_months=request.duration_months,
             ),
             valid_user,
             db,
-            status=BudgetStatus.ai_draft,
+            budget_status=BudgetStatus.ai_draft,
         )
 
         for line_input in request.lines:

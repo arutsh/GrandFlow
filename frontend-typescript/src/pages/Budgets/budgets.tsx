@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import {
@@ -8,7 +7,6 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import DashboardLayout from "../Dashboard/DashboardLayout";
 import { fetchAllBudgets } from "@/api/gatewayApi";
 import { utcToLocal } from "@/utils/datetime";
 import { HiPlus } from "react-icons/hi";
@@ -17,27 +15,15 @@ import { TableView } from "./components/TableView";
 import { CardsView } from "./components/CardsView";
 
 import { CardTableToggle } from "@/components/ui/CardTableToggle";
-import { Budget, BudgetPatched, ParseBudgetResponse } from "./types/budget";
+import { Budget, BudgetPatched } from "./types/budget";
 import { archiveBudget, deleteBudget } from "@/api/budgetApi";
 import { AddBudgetModal } from "./components/AddBudget";
 import { EditBudgetModal } from "./components/EditBudget";
-import {
-  AIChatPanel,
-  ChatMessage,
-  WELCOME_MESSAGE,
-} from "./components/AIChatPanel";
-import { AiBudgetPreviewCard } from "./components/AiBudgetPreviewCard";
 
 const BudgetsPage: React.FC = () => {
-  const navigate = useNavigate();
   const [view, setView] = useState<"cards" | "table">();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isAiOpen, setIsAiOpen] = useState(false);
-  const [aiPreview, setAiPreview] = useState<ParseBudgetResponse | null>(null);
-  const [aiChatMessages, setAiChatMessages] = useState<ChatMessage[]>([
-    WELCOME_MESSAGE,
-  ]);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -85,14 +71,6 @@ const BudgetsPage: React.FC = () => {
       });
     }
     setIsAddOpen(false);
-  };
-
-  const handleAiCreated = (newBudget: Budget) => {
-    queryClient.setQueryData(["budgets"], (oldData: Budget[] | undefined) => {
-      if (!oldData) return [];
-      return [...oldData, newBudget];
-    });
-    navigate(`/budgets/${newBudget.id}`);
   };
 
   const closeEditModal = (updatedBudget: BudgetPatched | null) => {
@@ -196,7 +174,7 @@ const BudgetsPage: React.FC = () => {
   }
 
   return (
-    <DashboardLayout>
+    <>
       {isEditOpen && editingBudget && (
         <EditBudgetModal
           isOpen={isEditOpen}
@@ -230,13 +208,6 @@ const BudgetsPage: React.FC = () => {
                 className="flex items-center gap-2"
               >
                 <HiPlus size={18} /> Add Budget
-              </Button>
-              <Button
-                onClick={() => setIsAiOpen(!isAiOpen)}
-                variant={isAiOpen ? "primary" : "secondary"}
-                className="flex items-center gap-2"
-              >
-                ✨ AI Budget
               </Button>
             </div>
             {!isMobile && view && (
@@ -538,15 +509,6 @@ const BudgetsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* AI Preview Card */}
-          {aiPreview && (
-            <AiBudgetPreviewCard
-              preview={aiPreview}
-              onCreated={handleAiCreated}
-              onDismiss={() => setAiPreview(null)}
-            />
-          )}
-
           {/* Content Section */}
           {filteredData && filteredData.length > 0 ? (
             <>
@@ -604,19 +566,9 @@ const BudgetsPage: React.FC = () => {
         </div>
         {/* end main scrollable area */}
 
-        {/* AI Chat Panel */}
-        {isAiOpen && (
-          <AIChatPanel
-            currentPreview={aiPreview}
-            onPreviewUpdate={setAiPreview}
-            onClose={() => setIsAiOpen(false)}
-            messages={aiChatMessages}
-            setMessages={setAiChatMessages}
-          />
-        )}
       </div>
       {/* end outer flex */}
-    </DashboardLayout>
+    </>
   );
 };
 
