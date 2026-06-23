@@ -138,7 +138,11 @@ async def ai_create_budget_stream_endpoint(
                                 if current_event == "progress":
                                     yield f"event: progress\ndata: {data}\n\n"
                                 elif current_event == "done":
-                                    yield 'event: progress\ndata: {"status": "Creating budget..."}\n\n'
+                                    progress = (
+                                        "event: progress\ndata: "
+                                        '{"status": "Creating budget..."}\n\n'
+                                    )
+                                    yield progress
                                     try:
                                         parsed = json.loads(data)
                                         created = await create_budget_with_lines_service(
@@ -155,15 +159,21 @@ async def ai_create_budget_stream_endpoint(
                                             db,
                                         )
                                         budget_id = str(created["id"])
-                                        yield f'event: created\ndata: {{"budget_id": "{budget_id}"}}\n\n'
+                                        yield (
+                                            f"event: created\n"
+                                            f'data: {{"budget_id": "{budget_id}"}}\n\n'
+                                        )
                                     except Exception as exc:
                                         tb = traceback.format_exc()
                                         logger.error(
-                                            "ai/stream budget creation failed: %s\n%s", exc, tb
+                                            "ai/stream budget creation failed: %s\n%s",
+                                            exc,
+                                            tb,
                                         )
                                         err_msg = str(exc).replace('"', "'")[:200]
                                         yield (
-                                            f'event: error\ndata: {{"message": "Failed to create budget",'
+                                            "event: error\n"
+                                            'data: {"message": "Failed to create budget",'
                                             f' "detail": "{err_msg}"}}\n\n'
                                         )
                                 elif current_event in ("error", "unavailable"):
