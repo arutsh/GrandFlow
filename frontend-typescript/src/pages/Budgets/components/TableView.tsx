@@ -62,6 +62,7 @@ export function TableView({
       cell: (info) => utcToLocal(info.getValue()?.updated.event_date),
     }),
     columnHelper.accessor("trace", {
+      id: "trace_updated_by",
       header: "Updated By",
       cell: (info) =>
         `${info.getValue()?.updated.user?.first_name || ""} ${

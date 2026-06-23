@@ -1,13 +1,16 @@
 import React, { useState } from "react";
-import { Menu, X, Home, FileText, BarChart3 } from "lucide-react"; // icons
+import { Menu, X, Home, FileText, BarChart3, Sparkles } from "lucide-react";
 import Button from "../../components/ui/Button";
+import { AIChatPanel } from "@/pages/Budgets/components/AIChatPanel";
+import { useAiChat } from "@/context/AiChatContext";
 
-export default function DashboardLayout({
-  children,
-}: {
+interface DashboardLayoutProps {
   children: React.ReactNode;
-}) {
+}
+
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isOpen, setIsOpen] = useState(true);
+  const { isAiOpen, toggleAi } = useAiChat();
 
   return (
     <div className="flex w-full h-screen bg-gray-50">
@@ -15,7 +18,7 @@ export default function DashboardLayout({
       <aside
         className={`
           fixed md:static top-0 left-0 h-full z-20
-          bg-slate-900 text-white transition-all duration-300
+          bg-slate-900 text-white transition-all duration-300 flex flex-col
           ${isOpen ? "w-64" : "w-16"}
         `}
       >
@@ -23,7 +26,6 @@ export default function DashboardLayout({
           <span className={`font-bold text-lg ${!isOpen && "hidden md:block"}`}>
             GF
           </span>
-          {/* toggle button for mobile/desktop */}
           <Button
             variant="icon"
             onClick={() => setIsOpen(!isOpen)}
@@ -34,7 +36,7 @@ export default function DashboardLayout({
         </div>
 
         <nav className="flex-1">
-          <ul className="space-y-2">
+          <ul className="space-y-1">
             <li>
               <a
                 href="/dashboard"
@@ -64,6 +66,22 @@ export default function DashboardLayout({
             </li>
           </ul>
         </nav>
+
+        {/* AI Mode button pinned to bottom of sidebar */}
+        <div className="p-3 border-t border-slate-700">
+          <button
+            onClick={toggleAi}
+            title="AI Mode"
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+              isAiOpen
+                ? "bg-blue-600 text-white"
+                : "hover:bg-slate-700 text-slate-300 hover:text-white"
+            }`}
+          >
+            <Sparkles size={20} className="flex-shrink-0" />
+            {isOpen && <span className="text-sm font-medium">AI Mode</span>}
+          </button>
+        </div>
       </aside>
 
       {/* Overlay for mobile */}
@@ -74,8 +92,12 @@ export default function DashboardLayout({
         />
       )}
 
-      {/* Main Content */}
-      <main className="flex-1 p-8 overflow-auto bg-gray-50">{children}</main>
+      {/* Main content + AI panel */}
+      <div className="flex flex-1 overflow-hidden">
+        <main className="flex-1 p-8 overflow-auto bg-gray-50">{children}</main>
+
+        {isAiOpen && <AIChatPanel />}
+      </div>
     </div>
   );
 }

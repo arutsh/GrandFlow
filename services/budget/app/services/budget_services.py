@@ -10,8 +10,8 @@ from app.crud.budget_crud import (
 from app.crud.budget_line_crud import delete_budget_line
 from app.core.exceptions import DomainError, PermissionDenied
 
-from app.services.customer_client import validate_customer_type
-from app.schemas.budget_schema import BudgetCreate
+from app.services.customer_client import validate_customer_can_fund, validate_customer_can_own
+from app.schemas.budget_schema import BudgetCreate, BudgetStatus
 from app.schemas.with_lines_schema import CreateBudgetWithLinesRequest
 from uuid import UUID
 
@@ -23,13 +23,17 @@ from app.services.user_cache import get_users_by_ids_cached
 
 
 async def create_budget_service(
-    budget: BudgetCreate, valid_user: dict, db, include_user_datails: bool = False
+    budget: BudgetCreate,
+    valid_user: dict,
+    db,
+    include_user_datails: bool = False,
+    budget_status: BudgetStatus | None = None,
 ):
 
     if budget.funding_customer_id:
-        validate_customer_type(budget.funding_customer_id, "donor", raise_domain_error=True)
+        validate_customer_can_fund(budget.funding_customer_id, raise_domain_error=True)
 
-    owner_id = valid_user["customer_id"]
+    owner_id = valid_user.get("customer_id")
 
     if valid_user["role"] == "superuser":
         if not budget.owner_id:
@@ -48,6 +52,7 @@ async def create_budget_service(
         funding_customer_id=budget.funding_customer_id,
         external_funder_name=budget.external_funder_name,
         owner_id=owner_id,
+        status=budget_status,
     )
     if not include_user_datails:
         return new_budget
@@ -59,14 +64,14 @@ async def create_budget_service(
 async def update_budget_service(budget_id: UUID, budget: BudgetCreate, valid_user: dict, db):
 
     if budget.funding_customer_id:
-        validate_customer_type(budget.funding_customer_id, "donor", raise_domain_error=True)
+        validate_customer_can_fund(budget.funding_customer_id, raise_domain_error=True)
 
     valid_budget = await get_budget_service(budget_id=budget_id, valid_user=valid_user, db=db)
 
     owner_id = valid_user["customer_id"]
 
     if valid_user["role"] == "superuser" and budget.owner_id:
-        validate_customer_type(budget.owner_id, "ngo", raise_domain_error=True)
+        validate_customer_can_own(budget.owner_id, raise_domain_error=True)
         owner_id = budget.owner_id
 
     elif valid_user["role"] != "superuser":
@@ -111,7 +116,11 @@ async def list_budget_service(valid_user, db, include_user_details: bool = False
     if valid_user["role"] == "superuser":
         return list_budgets(db)
 
-    budgets = list_budgets(db, customer_id=valid_user["customer_id"])
+    customer_id = valid_user.get("customer_id")
+    if not customer_id:
+        return []
+
+    budgets = list_budgets(db, customer_id=customer_id)
     if not include_user_details:
         return budgets
     return await populate_budget_with_user_details(budgets=budgets, valid_user=valid_user)
@@ -138,15 +147,17 @@ async def create_budget_with_lines_service(
     new_budget = None
     created_lines = []
     try:
+        owner_id = request.owner_id or valid_user.get("customer_id")
         new_budget = await create_budget_service(
             BudgetCreate(
                 name=request.budget_name,
                 external_funder_name=request.external_funder_name,
-                owner_id=request.owner_id,
+                owner_id=owner_id,
                 duration_months=request.duration_months,
             ),
             valid_user,
             db,
+            budget_status=BudgetStatus.ai_draft,
         )
 
         for line_input in request.lines:
@@ -163,9 +174,13 @@ async def create_budget_with_lines_service(
             )
             created_lines.append(line)
 
-        budget = await get_budget_service(new_budget.id, valid_user, db, include_user_details=True)
-        budget["lines"] = created_lines
-        return budget
+        from app.schemas.budget_line_schema import BudgetLine
+
+        enriched = await get_budget_service(
+            new_budget.id, valid_user, db, include_user_details=True
+        )
+        enriched["lines"] = [BudgetLine.model_validate(ln) for ln in created_lines]
+        return enriched
 
     except (HTTPException, DomainError):
         # Validation/permission errors — roll back any lines created before re-raising
@@ -201,7 +216,10 @@ async def populate_budget_with_user_details(budgets: List[BudgetModel], valid_us
     customers_task = asyncio.create_task(
         get_customers_by_ids(list(customer_ids), valid_user.get("token", ""))
     )
-    users_map, customers_map = await asyncio.gather(users_task, customers_task)
+    try:
+        users_map, customers_map = await asyncio.gather(users_task, customers_task)
+    except Exception:
+        users_map, customers_map = {}, {}
 
     # Merge enriched data
     enriched = [

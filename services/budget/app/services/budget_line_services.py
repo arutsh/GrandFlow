@@ -13,7 +13,7 @@ from app.crud.budget_line_crud import (
 )
 from app.core.exceptions import DomainError, PermissionDenied
 from app.services.budget_category_services import get_or_create_category_service
-from app.services.customer_client import validate_customer_type
+from app.services.customer_client import validate_customer_can_fund, validate_customer_can_own
 from app.schemas.budget_schema import BudgetCreate
 from uuid import UUID
 from app.schemas import BudgetLineCreate, BudgetLineUpdate
@@ -53,12 +53,12 @@ def create_budget_line_service(
 def update_budget_service(budget_id: UUID, budget: BudgetCreate, valid_user: dict, db):
 
     if budget.funding_customer_id:
-        validate_customer_type(budget.funding_customer_id, "donor", raise_domain_error=True)
+        validate_customer_can_fund(budget.funding_customer_id, raise_domain_error=True)
 
     owner_id = valid_user["customer_id"]
 
     if valid_user["role"] == "superuser" and budget.owner_id:
-        validate_customer_type(budget.owner_id, "ngo", raise_domain_error=True)
+        validate_customer_can_own(budget.owner_id, raise_domain_error=True)
         owner_id = budget.owner_id
 
     elif valid_user["role"] != "superuser" and (

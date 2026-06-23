@@ -1,7 +1,7 @@
 import functools
 import httpx
 from fastapi import HTTPException, status
-from typing import Callable, Awaitable, Any, TypeVar
+from typing import Callable, Awaitable, TypeVar
 
 T = TypeVar("T")
 

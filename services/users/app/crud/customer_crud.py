@@ -1,7 +1,7 @@
 from uuid import UUID
 from sqlalchemy.orm import Session
 
-from app.models.customer import CustomerModel, CustomerType
+from app.models.customer import CustomerModel
 
 
 def get_customer(session: Session, customer_id: UUID):
@@ -13,14 +13,20 @@ def get_customers(session: Session, limit: int = 100):
 
 
 def create_customer(
-    session: Session, name: str, type: str = "ngo", country: str = "GB", currency: str = "GBP"
+    session: Session,
+    name: str,
+    is_ngo: bool = False,
+    is_donor: bool = False,
+    country: str = "GB",
+    currency: str = "GBP",
 ) -> CustomerModel:
-    if type not in ["donor", "ngo"]:
-        raise ValueError("Invalid customer type. Must be 'donor' or 'ngo'.")
-
-    type = CustomerType.ngo if type != "donor" else CustomerType.donor
-
-    customer = CustomerModel(name=name, type=type, country=country, currency=currency)
+    customer = CustomerModel(
+        name=name,
+        is_ngo=is_ngo,
+        is_donor=is_donor,
+        country=country,
+        currency=currency,
+    )
     session.add(customer)
     session.commit()
     session.refresh(customer)

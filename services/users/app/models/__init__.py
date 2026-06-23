@@ -1,5 +1,5 @@
-from .customer import CustomerModel, CustomerType
+from .customer import CustomerModel
 from .user import UserModel, UserStatus
 from .session import SessionModel  # noqa: F401
 
-__all__ = ["UserModel", "CustomerModel", "CustomerType", "UserStatus"]
+__all__ = ["UserModel", "CustomerModel", "UserStatus"]

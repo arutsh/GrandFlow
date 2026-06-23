@@ -6,7 +6,7 @@ from app.models.base import Base
 # import enum
 import uuid
 from app.utils.db import GUID
-from shared.schemas.user_schema import UserStatus
+from shared.schemas.user_schema import UserStatus, UserRole
 
 
 class UserModel(Base):
@@ -22,7 +22,7 @@ class UserModel(Base):
 
     # Email and role
     email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
-    role: Mapped[str] = mapped_column(String, nullable=False)
+    role: Mapped[UserRole] = mapped_column(String, nullable=False)
 
     # Password hash
     hashed_password: Mapped[str | None] = mapped_column(

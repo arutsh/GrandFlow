@@ -1,6 +1,5 @@
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import DashboardLayout from "./DashboardLayout";
 import { useEffect } from "react";
 import { FileText, TrendingUp, BarChart3, DollarSign } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -54,8 +53,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <DashboardLayout>
-      <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50">
         {/* Welcome Section */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-2">
@@ -140,6 +138,5 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
   );
 }

@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     customer_service_url: str
     user_service_url: str
     user_all_services_url: str
+    ai_service_url: str = "http://localhost:8082/api/v1"
     REDIS_URL: str
     OPENAI_API_KEY: str | None = None
     RULE_BASED_MAPPING_ENABLED: bool = False

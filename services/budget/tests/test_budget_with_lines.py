@@ -7,6 +7,7 @@ from uuid import uuid4
 from main import app
 from app.api.budget_routes import get_validated_user
 from tests.factories.user import make_valid_user
+from tests.factories.budget import BudgetLineFactory, BudgetCategoryFactory
 
 client = TestClient(app)
 
@@ -54,23 +55,20 @@ def _mock_budget(budget_id=None):
 
 
 def _mock_line(line_id, category_name="Personnel"):
-    m = MagicMock()
-    m.id = line_id
-    m.budget_id = BUDGET_ID
-    m.category_id = CATEGORY_ID
-    m.description = "test"
-    m.amount = 1000.0
-    m.extra_fields = None
-    m.category = MagicMock(id=CATEGORY_ID, name=category_name, code=category_name.upper())
-    return m
+    return BudgetLineFactory.build(
+        id=line_id,
+        budget_id=BUDGET_ID,
+        category_id=CATEGORY_ID,
+        description="test",
+        amount=1000.0,
+        category=BudgetCategoryFactory.build(
+            id=CATEGORY_ID, name=category_name, code=category_name.upper()
+        ),
+    )
 
 
 def _mock_category(name="Personnel"):
-    m = MagicMock()
-    m.id = CATEGORY_ID
-    m.name = name
-    m.code = name.upper()
-    return m
+    return BudgetCategoryFactory.build(id=CATEGORY_ID, name=name, code=name.upper())
 
 
 def _mock_enriched_budget(lines=None) -> dict:

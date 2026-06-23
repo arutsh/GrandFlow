@@ -1,14 +1,14 @@
-import { Routes, Route, Navigate, BrowserRouter } from "react-router-dom";
+import { Routes, Route, Navigate, BrowserRouter, Outlet } from "react-router-dom";
 import { useAuth, AuthProvider } from "./context/AuthContext";
+import { AiChatProvider } from "./context/AiChatContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import { JSX } from "react";
 import Register from "./pages/Register";
 import Onboarding from "./pages/OnBoarding";
 import BudgetsPage from "./pages/Budgets/budgets";
-import SingleBudgetView, {
-  SingleBudgetViewContainer,
-} from "./pages/Budgets/SingleBudgetView";
+import { SingleBudgetViewContainer } from "./pages/Budgets/SingleBudgetView";
+import DashboardLayout from "./pages/Dashboard/DashboardLayout";
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const { isAuthenticated, loading } = useAuth();
@@ -17,48 +17,45 @@ function PrivateRoute({ children }: { children: JSX.Element }) {
   return children;
 }
 
+function AuthenticatedLayout() {
+  return (
+    <DashboardLayout>
+      <Outlet />
+    </DashboardLayout>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/onboarding"
-            element={
-              <PrivateRoute>
-                <Onboarding />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/budgets"
-            element={
-              <PrivateRoute>
-                <BudgetsPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/budgets/:id"
-            element={
-              <PrivateRoute>
-                <SingleBudgetViewContainer />
-              </PrivateRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <AiChatProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route
+              path="/onboarding"
+              element={
+                <PrivateRoute>
+                  <Onboarding />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              element={
+                <PrivateRoute>
+                  <AuthenticatedLayout />
+                </PrivateRoute>
+              }
+            >
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/budgets" element={<BudgetsPage />} />
+              <Route path="/budgets/:id" element={<SingleBudgetViewContainer />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AiChatProvider>
     </AuthProvider>
   );
 }

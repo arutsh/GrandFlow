@@ -28,11 +28,11 @@ def list_customers(db: Session = Depends(get_db)):
 
 @router.post("/customers/", response_model=Customer)
 def create_customer_endpoint(customer: Customer, db: Session = Depends(get_db)):
-
     db_customer = create_customer(
         session=db,
         name=customer.name,
-        type=customer.type,
+        is_ngo=customer.is_ngo,
+        is_donor=customer.is_donor,
         country=customer.country,
         currency=customer.currency,
     )
@@ -52,7 +52,5 @@ def get_customers_by_ids_endpoint(
     customer_ids: list[UUID],
     db: Session = Depends(get_db),
 ):
-    # NOTE: this end point is for internal service use only,
-    # hence no need to check current_user permissions
-    # calling service should ensure proper authorization
+    # NOTE: internal service endpoint — no auth needed, caller must ensure authorization
     return get_customers_by_ids(session=db, customer_ids=customer_ids)

@@ -48,7 +48,7 @@ export function AddBudgetModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={() => onClose(null)} title="Edit Budget">
+    <Modal isOpen={isOpen} onClose={() => onClose(null)} title="Add Budget">
       {errorMessage && <p className="text-red-500">{errorMessage}</p>}
       <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
         <input

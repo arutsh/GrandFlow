@@ -8,7 +8,8 @@ export interface UserOut {
 export interface CustomerOut {
   id?: string;
   name?: string;
-  type?: string;
+  is_ngo?: boolean;
+  is_donor?: boolean;
 }
 
 export interface TraceEvent {
@@ -59,6 +60,8 @@ export interface BudgetUpdate {
   owner_id?: string;
   funding_customer_id?: string;
   external_funder_name?: string;
+  duration_months?: number;
+  status?: string;
 }
 
 export interface BudgetPatched {
@@ -70,4 +73,27 @@ export interface BudgetPatched {
   status?: string;
   duration_months?: number;
   local_currency?: string;
+}
+
+export interface BudgetLinePreview {
+  category_name: string;
+  description: string;
+  amount: number;
+  extra_fields?: Record<string, unknown> | null;
+}
+
+export interface ParseBudgetResponse {
+  budget_name: string;
+  external_funder_name: string | null;
+  duration_months: number | null;
+  lines: BudgetLinePreview[];
+  ai_available: boolean;
+  prompt_version: string;
+}
+
+export interface CreateBudgetWithLinesRequest {
+  budget_name: string;
+  external_funder_name: string;
+  duration_months?: number | null;
+  lines: BudgetLinePreview[];
 }
