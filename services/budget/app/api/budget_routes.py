@@ -144,7 +144,10 @@ async def ai_create_budget_stream_endpoint(
                                         created = await create_budget_with_lines_service(
                                             CreateBudgetWithLinesRequest(
                                                 budget_name=parsed["budget_name"],
-                                                external_funder_name=parsed.get("external_funder_name") or "",
+                                                external_funder_name=parsed.get(
+                                                    "external_funder_name"
+                                                )
+                                                or "",
                                                 duration_months=parsed.get("duration_months"),
                                                 lines=parsed.get("lines", []),
                                             ),
@@ -155,7 +158,9 @@ async def ai_create_budget_stream_endpoint(
                                         yield f'event: created\ndata: {{"budget_id": "{budget_id}"}}\n\n'
                                     except Exception as exc:
                                         tb = traceback.format_exc()
-                                        logger.error("ai/stream budget creation failed: %s\n%s", exc, tb)
+                                        logger.error(
+                                            "ai/stream budget creation failed: %s\n%s", exc, tb
+                                        )
                                         err_msg = str(exc).replace('"', "'")[:200]
                                         yield (
                                             f'event: error\ndata: {{"message": "Failed to create budget",'
@@ -165,7 +170,7 @@ async def ai_create_budget_stream_endpoint(
                                     yield f"event: {current_event}\ndata: {data}\n\n"
                                 current_event = ""
         except Exception:
-            yield 'event: error\ndata: Connection to AI service failed\n\n'
+            yield "event: error\ndata: Connection to AI service failed\n\n"
 
     return StreamingResponse(
         generate(),

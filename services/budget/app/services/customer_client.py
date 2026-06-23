@@ -25,9 +25,7 @@ def get_customer_cached(customer_id: str | uuid.UUID) -> dict:
     return get_customer(customer_id)
 
 
-def validate_customer_can_fund(
-    customer_id: str | uuid.UUID, raise_domain_error: bool = False
-):
+def validate_customer_can_fund(customer_id: str | uuid.UUID, raise_domain_error: bool = False):
     """Assert the customer has is_donor=True (can issue grants)."""
     Error = DomainError if raise_domain_error else ValueError
     try:
@@ -40,9 +38,7 @@ def validate_customer_can_fund(
     return customer
 
 
-def validate_customer_can_own(
-    customer_id: str | uuid.UUID, raise_domain_error: bool = False
-):
+def validate_customer_can_own(customer_id: str | uuid.UUID, raise_domain_error: bool = False):
     """Assert the customer has is_ngo=True (can receive grants / own budgets)."""
     Error = DomainError if raise_domain_error else ValueError
     try:

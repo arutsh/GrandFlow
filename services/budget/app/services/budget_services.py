@@ -176,7 +176,9 @@ async def create_budget_with_lines_service(
 
         from app.schemas.budget_line_schema import BudgetLine
 
-        enriched = await get_budget_service(new_budget.id, valid_user, db, include_user_details=True)
+        enriched = await get_budget_service(
+            new_budget.id, valid_user, db, include_user_details=True
+        )
         enriched["lines"] = [BudgetLine.model_validate(ln) for ln in created_lines]
         return enriched
 
