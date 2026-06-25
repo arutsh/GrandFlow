@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     ai_database_url: str
     REDIS_URL: str = "redis://localhost:6379"
     ANTHROPIC_API_KEY: str | None = None
+    ENCRYPTION_KEY: str  # 32-byte base64-encoded secret for AES-256-GCM
     OLLAMA_URL: str | None = None
     OLLAMA_MODEL: str = "llama3.2"
     AI_RATE_LIMIT_PER_HOUR: int = 100

@@ -37,6 +37,7 @@ _LOAD_PROMPT = "app.services.parse_service.load_prompt"
 _AUDIT = "app.services.parse_service.write_audit_log"
 _RATE = "app.api.parse_routes.check_and_increment"
 _RESOLVE = "app.api.parse_routes.resolve_provider"
+_GET_SETTINGS = "app.api.parse_routes.get_settings"
 
 
 def _setup(customer_id="sse-test-customer"):
@@ -80,6 +81,7 @@ class TestSSEEndpoint:
             patch(_RESOLVE, return_value=_mock_provider([VALID_JSON_RESPONSE])),
             patch(_AUDIT, new=AsyncMock()),
             patch(_RATE, new=AsyncMock(return_value=(True, 0))),
+            patch(_GET_SETTINGS, new=AsyncMock(return_value=None)),
         ):
             response = self.client.get("/api/v1/ai/parse-budget/stream?text=test")
 
@@ -92,6 +94,7 @@ class TestSSEEndpoint:
             patch(_RESOLVE, return_value=_mock_provider([VALID_JSON_RESPONSE])),
             patch(_AUDIT, new=AsyncMock()),
             patch(_RATE, new=AsyncMock(return_value=(True, 0))),
+            patch(_GET_SETTINGS, new=AsyncMock(return_value=None)),
         ):
             response = self.client.get("/api/v1/ai/parse-budget/stream?text=test")
 
@@ -107,6 +110,7 @@ class TestSSEEndpoint:
             patch(_RESOLVE, return_value=_mock_provider([VALID_JSON_RESPONSE])),
             patch(_AUDIT, new=AsyncMock()),
             patch(_RATE, new=AsyncMock(return_value=(True, 0))),
+            patch(_GET_SETTINGS, new=AsyncMock(return_value=None)),
         ):
             response = self.client.get("/api/v1/ai/parse-budget/stream?text=test")
 
@@ -124,6 +128,7 @@ class TestSSEEndpoint:
             patch(_RESOLVE, return_value=_mock_provider(["not valid json at all"])),
             patch(_AUDIT, new=AsyncMock()),
             patch(_RATE, new=AsyncMock(return_value=(True, 0))),
+            patch(_GET_SETTINGS, new=AsyncMock(return_value=None)),
         ):
             response = self.client.get("/api/v1/ai/parse-budget/stream?text=test")
 
@@ -135,6 +140,7 @@ class TestSSEEndpoint:
             patch(_LOAD_PROMPT, new=AsyncMock(side_effect=ValueError("no prompt"))),
             patch(_RESOLVE, return_value=_mock_provider([])),
             patch(_RATE, new=AsyncMock(return_value=(True, 0))),
+            patch(_GET_SETTINGS, new=AsyncMock(return_value=None)),
         ):
             response = self.client.get("/api/v1/ai/parse-budget/stream?text=test")
 
@@ -148,6 +154,7 @@ class TestSSEEndpoint:
             patch(_RESOLVE, return_value=_mock_provider([VALID_JSON_RESPONSE])),
             patch(_AUDIT, mock_audit),
             patch(_RATE, new=AsyncMock(return_value=(True, 0))),
+            patch(_GET_SETTINGS, new=AsyncMock(return_value=None)),
         ):
             self.client.get("/api/v1/ai/parse-budget/stream?text=test")
 

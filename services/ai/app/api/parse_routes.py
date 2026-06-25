@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
+from app.crud.user_provider_key import get_active_key
+from app.db.session import AsyncSessionLocal
 from app.services.parse_service import build_parse_stream
 from app.services.provider import NullProvider, resolve_provider
 from app.services.rate_limiter import check_and_increment
@@ -13,6 +15,9 @@ _SSE_HEADERS = {
     "X-Accel-Buffering": "no",
     "X-RateLimit-Limit": str(settings.AI_RATE_LIMIT_PER_HOUR),
 }
+
+# Alias used in tests to mock DB lookup without hitting a real DB
+get_settings = get_active_key
 
 
 @router.get("/parse-budget/stream")
@@ -34,7 +39,11 @@ async def stream_parse_budget(
             },
         )
 
-    provider = resolve_provider(settings.env)
+    user_key = None
+    async with AsyncSessionLocal() as db:
+        user_key = await get_settings(user_id, db)
+
+    provider = resolve_provider(user_key=user_key)
 
     if isinstance(provider, NullProvider):
 

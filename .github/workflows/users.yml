@@ -4,13 +4,13 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'services/users/**'
-      - 'shared/**'
+      - "services/users/**"
+      - "shared/**"
   pull_request:
     branches: [main, develop]
     paths:
-      - 'services/users/**'
-      - 'shared/**'
+      - "services/users/**"
+      - "shared/**"
 
 jobs:
   users-test:
@@ -32,10 +32,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r services/users/requirements.txt
 
-      - name: Run tests
-        working-directory: ./services/users
-        run: echo "Skipping tests for now"
-
       - name: Lint
         working-directory: ./services/users
         run: |
@@ -43,3 +39,7 @@ jobs:
           black --check ./app
           mypy ./app
           flake8 ./app
+
+      - name: Run tests
+        working-directory: ./services/users
+        run: echo "Skipping tests for now"

@@ -1,5 +1,6 @@
 import anyio
-from app.services.provider import NullProvider
+from unittest.mock import MagicMock, patch
+from app.services.provider import NullProvider, AnthropicProvider, resolve_provider
 
 
 class TestNullProvider:
@@ -21,3 +22,35 @@ class TestNullProvider:
 
         result = anyio.run(_run)
         assert result == ""
+
+
+class TestResolveProvider:
+    def _make_user_key(self, provider_name="anthropic", model_name=None, encrypted_key="enc"):
+        user_key = MagicMock()
+        user_key.provider.name = provider_name
+        user_key.model_name = model_name
+        user_key.encrypted_key = encrypted_key
+        user_key.base_url = None
+        return user_key
+
+    def test_user_key_returns_anthropic_provider(self):
+        user_key = self._make_user_key()
+        with patch("app.utils.encryption.decrypt", return_value="sk-ant-api03-testkey"):
+            provider = resolve_provider(user_key=user_key)
+        assert isinstance(provider, AnthropicProvider)
+        assert provider.provider_name == "anthropic"
+
+    def test_user_key_uses_model_name(self):
+        user_key = self._make_user_key(model_name="claude-haiku-4-5-20251001")
+        with patch("app.utils.encryption.decrypt", return_value="sk-ant-api03-testkey"):
+            provider = resolve_provider(user_key=user_key)
+        assert isinstance(provider, AnthropicProvider)
+        assert provider.model_name == "claude-haiku-4-5-20251001"
+
+    def test_no_key_returns_null(self):
+        provider = resolve_provider(user_key=None)
+        assert isinstance(provider, NullProvider)
+
+    def test_no_user_key_returns_null(self):
+        provider = resolve_provider()
+        assert isinstance(provider, NullProvider)

@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     RABBITMQ_URL: str
     RABBITMQ_EXCHANGE: str
     LOG_LEVEL: str
+    AI_SERVICE_URL: str = "http://localhost:8082/api/v1"
     model_config = SettingsConfigDict(env_file=ENV_FILE, case_sensitive=False, extra="ignore")
 
 
