@@ -296,4 +296,4 @@ GitHub Actions runs on every push/PR touching a service or `shared/`:
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+GNU AGPL v3 — see [LICENSE](./LICENSE).
