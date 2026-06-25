@@ -67,9 +67,7 @@ async def _validate_key_with_provider(
         except anthropic_sdk.AuthenticationError:
             raise HTTPException(status_code=422, detail="Anthropic key is invalid or inactive")
         except Exception:
-            raise HTTPException(
-                status_code=502, detail="Could not reach Anthropic to validate key"
-            )
+            raise HTTPException(status_code=502, detail="Could not reach Anthropic to validate key")
 
 
 @router.get("", response_model=SettingsResponse)
