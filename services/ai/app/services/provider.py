@@ -122,12 +122,13 @@ class AnthropicProvider(BaseProvider):
     async def stream(self, prompt: str, system_prompt: str = "") -> AsyncIterator[str]:
         async def _gen():
             try:
-                async with self._client.messages.stream(
+                ctx = self._client.messages.stream(
                     model=self._model,
                     max_tokens=2048,
-                    system=system_prompt or anthropic_sdk.NOT_GIVEN,
+                    system=system_prompt if system_prompt else anthropic_sdk.NOT_GIVEN,  # type: ignore[arg-type]  # noqa: E501
                     messages=[{"role": "user", "content": prompt}],
-                ) as stream:
+                )
+                async with ctx as stream:
                     async for text in stream.text_stream:
                         yield text
             except Exception as exc:
@@ -138,13 +139,19 @@ class AnthropicProvider(BaseProvider):
 
     async def complete(self, prompt: str, system_prompt: str = "") -> str:
         try:
+            _system = (  # type: ignore[assignment]
+                system_prompt if system_prompt else anthropic_sdk.NOT_GIVEN
+            )
             response = await self._client.messages.create(
                 model=self._model,
                 max_tokens=2048,
-                system=system_prompt or anthropic_sdk.NOT_GIVEN,
+                system=_system,  # type: ignore[arg-type]
                 messages=[{"role": "user", "content": prompt}],
             )
-            return response.content[0].text if response.content else ""
+            return next(
+                (b.text for b in response.content if isinstance(b, anthropic_sdk.types.TextBlock)),
+                "",
+            )
         except Exception as exc:
             logger.error("anthropic_complete_error", error=str(exc))
             raise
