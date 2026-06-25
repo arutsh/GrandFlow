@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import AsyncIterator, cast
 
+import anthropic as anthropic_sdk
 from openai import AsyncOpenAI, AsyncStream
 from openai.types.chat import ChatCompletionChunk, ChatCompletionMessageParam
 
@@ -103,9 +104,66 @@ class OllamaProvider(BaseProvider):
             raise
 
 
-def resolve_provider(env: str) -> BaseProvider:
-    from app.core.config import settings
+class AnthropicProvider(BaseProvider):
+    """Anthropic Claude via the official SDK. Used for BYOK and cloud mode."""
 
-    if env == "development" and settings.OLLAMA_URL:
-        return OllamaProvider(base_url=settings.OLLAMA_URL, model=settings.OLLAMA_MODEL)
+    def __init__(self, api_key: str, model: str = "claude-sonnet-4-6") -> None:
+        self._model = model
+        self._client = anthropic_sdk.AsyncAnthropic(api_key=api_key)
+
+    @property
+    def model_name(self) -> str:
+        return self._model
+
+    @property
+    def provider_name(self) -> str:
+        return "anthropic"
+
+    async def stream(self, prompt: str, system_prompt: str = "") -> AsyncIterator[str]:
+        async def _gen():
+            try:
+                async with self._client.messages.stream(
+                    model=self._model,
+                    max_tokens=2048,
+                    system=system_prompt or anthropic_sdk.NOT_GIVEN,
+                    messages=[{"role": "user", "content": prompt}],
+                ) as stream:
+                    async for text in stream.text_stream:
+                        yield text
+            except Exception as exc:
+                logger.error("anthropic_stream_error", error=str(exc))
+                raise
+
+        return _gen()
+
+    async def complete(self, prompt: str, system_prompt: str = "") -> str:
+        try:
+            response = await self._client.messages.create(
+                model=self._model,
+                max_tokens=2048,
+                system=system_prompt or anthropic_sdk.NOT_GIVEN,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.content[0].text if response.content else ""
+        except Exception as exc:
+            logger.error("anthropic_complete_error", error=str(exc))
+            raise
+
+
+def resolve_provider(
+    user_key=None,  # UserProviderKey | None — avoid circular import
+) -> BaseProvider:
+    from app.core.config import settings
+    from app.utils.encryption import decrypt
+
+    if user_key and user_key.provider:
+        provider_name = user_key.provider.name
+        model = user_key.model_name
+        if provider_name == "anthropic" and user_key.encrypted_key:
+            api_key = decrypt(user_key.encrypted_key, settings.ENCRYPTION_KEY)
+            return AnthropicProvider(api_key=api_key, model=model)
+        if provider_name == "ollama":
+            base_url = user_key.base_url or settings.OLLAMA_URL
+            if base_url:
+                return OllamaProvider(base_url=base_url, model=model)
     return NullProvider()

@@ -4,13 +4,13 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'services/ai/**'
-      - 'shared/**'
+      - "services/ai/**"
+      - "shared/**"
   pull_request:
     branches: [main, develop]
     paths:
-      - 'services/ai/**'
-      - 'shared/**'
+      - "services/ai/**"
+      - "shared/**"
 
 jobs:
   ai-test:
@@ -21,6 +21,14 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}/services/ai:${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Lint
+        working-directory: ./services/ai
+        run: |
+          pip install black mypy flake8
+          black --check ./app
+          mypy ./app
+          flake8 ./app
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,11 +43,3 @@ jobs:
       - name: Run tests
         working-directory: ./services/ai
         run: python -m pytest tests/ -v
-
-      - name: Lint
-        working-directory: ./services/ai
-        run: |
-          pip install black mypy flake8
-          black --check ./app
-          mypy ./app
-          flake8 ./app

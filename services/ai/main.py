@@ -8,7 +8,7 @@ from opentelemetry.instrumentation.redis import RedisInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.sdk.trace import TracerProvider as SDKTracerProvider
 
-from app.api import parse_routes
+from app.api import parse_routes, settings_routes
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger
 from app.db.session import engine
@@ -49,6 +49,7 @@ app = FastAPI(title="AI Service", lifespan=lifespan)
 instrument_fastapi(app)
 
 app.include_router(parse_routes.router, prefix="/api/v1")
+app.include_router(settings_routes.router, prefix="/api/v1")
 app.add_route("/metrics", metrics_endpoint, methods=["GET"])
 
 

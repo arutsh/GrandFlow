@@ -4,13 +4,13 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'services/budget/**'
-      - 'shared/**'
+      - "services/budget/**"
+      - "shared/**"
   pull_request:
     branches: [main, develop]
     paths:
-      - 'services/budget/**'
-      - 'shared/**'
+      - "services/budget/**"
+      - "shared/**"
 
 jobs:
   budget-test:
@@ -29,6 +29,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Lint
+        working-directory: ./services/budget
+        run: |
+          pip install black mypy flake8
+          black --check ./app
+          mypy ./app
+          flake8 ./app
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -42,11 +50,3 @@ jobs:
       - name: Run tests
         working-directory: ./services/budget
         run: python -m pytest tests/test_budget_with_lines.py -v
-
-      - name: Lint
-        working-directory: ./services/budget
-        run: |
-          pip install black mypy flake8
-          black --check ./app
-          mypy ./app
-          flake8 ./app

@@ -6,6 +6,7 @@ P2: populate_budget_with_user_details graceful degradation — when inter-servic
     with partial nulls instead of propagating a 500.
 P3: create_budget_with_lines_service — asserts created budget gets status=ai_draft.
 """
+
 import pytest
 from unittest.mock import patch, AsyncMock
 from fastapi.testclient import TestClient
@@ -222,12 +223,8 @@ class TestAiDraftBudgetStatus:
         line = BudgetLineFactory.build(budget_id=budget.id, created_by=USER_ID)
 
         with (
-            patch(
-                "app.services.budget_services.create_budget", return_value=budget
-            ) as mock_create,
-            patch(
-                "app.services.budget_line_services.get_budget", return_value=budget
-            ),
+            patch("app.services.budget_services.create_budget", return_value=budget) as mock_create,
+            patch("app.services.budget_line_services.get_budget", return_value=budget),
             patch(
                 _CATEGORY_LOOKUP,
                 return_value=line.category,
@@ -259,9 +256,7 @@ class TestAiDraftBudgetStatus:
         )
 
         with (
-            patch(
-                "app.services.budget_services.create_budget", return_value=budget
-            ) as mock_create,
+            patch("app.services.budget_services.create_budget", return_value=budget) as mock_create,
             patch(
                 "app.services.budget_services.get_users_by_ids_cached",
                 new_callable=AsyncMock,

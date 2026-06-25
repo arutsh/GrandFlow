@@ -1,6 +1,6 @@
 import redis
 from uuid import uuid4
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
@@ -8,6 +8,8 @@ from app.services.provider import NullProvider
 from main import app
 from app.api.parse_routes import get_validated_user
 from tests.factories.user import make_valid_user
+
+_GET_SETTINGS = "app.api.parse_routes.get_settings"
 
 client = TestClient(app)
 
@@ -54,14 +56,18 @@ class TestParseBudgetStream:
             pass
 
     def test_null_provider_stream_returns_unavailable_event(self):
-        with patch("app.api.parse_routes.resolve_provider", return_value=NullProvider()):
+        with (
+            patch("app.api.parse_routes.resolve_provider", return_value=NullProvider()),
+            patch(_GET_SETTINGS, new=AsyncMock(return_value=None)),
+        ):
             response = client.get("/api/v1/ai/parse-budget/stream?text=test")
         assert response.status_code == 200
         assert "text/event-stream" in response.headers["content-type"]
         assert "event: unavailable" in response.text
 
     def test_rate_limit_header_present_in_response(self):
-        response = client.get("/api/v1/ai/parse-budget/stream?text=test")
+        with patch(_GET_SETTINGS, new=AsyncMock(return_value=None)):
+            response = client.get("/api/v1/ai/parse-budget/stream?text=test")
         assert response.status_code == 200
         assert "x-ratelimit-limit" in response.headers
 

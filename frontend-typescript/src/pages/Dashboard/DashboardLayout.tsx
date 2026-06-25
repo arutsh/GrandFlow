@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Menu, X, Home, FileText, BarChart3, Sparkles } from "lucide-react";
+import { Menu, X, Home, FileText, BarChart3, Sparkles, Settings } from "lucide-react";
 import Button from "../../components/ui/Button";
 import { AIChatPanel } from "@/pages/Budgets/components/AIChatPanel";
 import { useAiChat } from "@/context/AiChatContext";
@@ -66,6 +66,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </li>
           </ul>
         </nav>
+
+        {/* Settings link pinned above AI Mode */}
+        <div className="px-3 pb-1">
+          <a
+            href="/settings"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+          >
+            <Settings size={20} className="flex-shrink-0" />
+            {isOpen && <span className="text-sm font-medium">Settings</span>}
+          </a>
+        </div>
 
         {/* AI Mode button pinned to bottom of sidebar */}
         <div className="p-3 border-t border-slate-700">

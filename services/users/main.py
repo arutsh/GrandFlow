@@ -2,7 +2,7 @@ import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from app.api import user_routes, customer_routes, auth_routes
+from app.api import user_routes, customer_routes, auth_routes, ai_settings_routes
 from app.db.init_db import init_db
 from fastapi.openapi.utils import get_openapi
 from app.core.config import settings
@@ -63,6 +63,7 @@ instrument_fastapi(app)
 app.include_router(user_routes.router, prefix="/api")
 app.include_router(customer_routes.router, prefix="/api")
 app.include_router(auth_routes.router, prefix="/api")
+app.include_router(ai_settings_routes.router, prefix="/api")
 app.add_route("/metrics", metrics_endpoint, methods=["GET"])
 
 
