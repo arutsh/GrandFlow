@@ -3,14 +3,8 @@ name: Budget Service CI
 on:
   push:
     branches: [main, develop]
-    paths:
-      - "services/budget/**"
-      - "shared/**"
   pull_request:
     branches: [main, develop]
-    paths:
-      - "services/budget/**"
-      - "shared/**"
 
 jobs:
   budget-test:
@@ -29,17 +23,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check for relevant changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            relevant:
+              - "services/budget/**"
+              - "shared/**"
+
       - name: Set up Python
+        if: steps.filter.outputs.relevant == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install dependencies
+        if: steps.filter.outputs.relevant == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r services/budget/requirements.txt
 
       - name: Lint
+        if: steps.filter.outputs.relevant == 'true'
         working-directory: ./services/budget
         run: |
           pip install black mypy flake8
@@ -48,5 +54,6 @@ jobs:
           flake8 ./app
 
       - name: Run tests
+        if: steps.filter.outputs.relevant == 'true'
         working-directory: ./services/budget
         run: python -m pytest tests/test_budget_with_lines.py -v
