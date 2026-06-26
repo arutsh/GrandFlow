@@ -7,31 +7,35 @@ on:
     branches: [main, develop]
 
 jobs:
-  frontend-test:
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Check for relevant changes
-        id: filter
+      - id: filter
         uses: dorny/paths-filter@v3
         with:
           filters: |
             relevant:
               - "frontend-typescript/**"
 
+  frontend-test:
+    needs: changes
+    if: needs.changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Set up Node.js
-        if: steps.filter.outputs.relevant == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Install dependencies
-        if: steps.filter.outputs.relevant == 'true'
         working-directory: ./frontend-typescript
         run: npm ci
 
       - name: Run Vitest
-        if: steps.filter.outputs.relevant == 'true'
         working-directory: ./frontend-typescript
         run: npx vitest run --coverage
