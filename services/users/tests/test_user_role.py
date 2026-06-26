@@ -27,9 +27,12 @@ class TestUserRoleEnum:
     def test_superuser_role_is_valid(self):
         assert UserRole("superuser") == UserRole.superuser
 
+    def test_admin_role_is_valid(self):
+        assert UserRole("admin") == UserRole.admin
+
     def test_invalid_role_raises(self):
         with pytest.raises(ValueError):
-            UserRole("admin")
+            UserRole("manager")
 
     def test_invalid_role_uppercase_raises(self):
         with pytest.raises(ValueError):
@@ -45,9 +48,13 @@ class TestUserCreateRoleValidation:
         user = UserCreate(**_valid_payload(role="superuser"))
         assert user.role == UserRole.superuser
 
+    def test_valid_admin_role_accepted(self):
+        user = UserCreate(**_valid_payload(role="admin"))
+        assert user.role == UserRole.admin
+
     def test_invalid_role_rejected_by_schema(self):
         with pytest.raises(ValidationError):
-            UserCreate(**_valid_payload(role="admin"))
+            UserCreate(**_valid_payload(role="manager"))
 
     def test_invalid_role_empty_string_rejected(self):
         with pytest.raises(ValidationError):

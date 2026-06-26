@@ -17,14 +17,16 @@ async def get_key(user_id: str, provider_id: str, db: AsyncSession) -> UserProvi
 
 
 async def get_active_key(user_id: str, db: AsyncSession) -> UserProviderKey | None:
-    """Return the first active BYOK key for this user (provider joined)."""
+    """Return the most recently updated active BYOK key for this user."""
     result = await db.execute(
-        select(UserProviderKey).where(
+        select(UserProviderKey)
+        .where(
             UserProviderKey.user_id == user_id,
             UserProviderKey.encrypted_key.isnot(None),
         )
+        .order_by(UserProviderKey.updated_at.desc())
     )
-    return result.scalar_one_or_none()
+    return result.scalars().first()
 
 
 async def upsert_key(

@@ -165,7 +165,7 @@ def resolve_provider(
 
     if user_key and user_key.provider:
         provider_name = user_key.provider.name
-        model = user_key.model_name
+        model = user_key.model_name or "claude-sonnet-4-6"
         if provider_name == "anthropic" and user_key.encrypted_key:
             api_key = decrypt(user_key.encrypted_key, settings.ENCRYPTION_KEY)
             return AnthropicProvider(api_key=api_key, model=model)
