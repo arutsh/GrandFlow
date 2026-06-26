@@ -42,4 +42,4 @@ jobs:
 
       - name: Run tests
         working-directory: ./services/users
-        run: echo "Skipping tests for now"
+        run: python -m pytest tests/ -v
