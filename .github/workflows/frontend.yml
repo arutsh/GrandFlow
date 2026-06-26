@@ -3,15 +3,26 @@ name: Frontend CI
 on:
   push:
     branches: [main, develop]
-    paths:
-      - 'frontend-typescript/**'
   pull_request:
     branches: [main, develop]
-    paths:
-      - 'frontend-typescript/**'
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            relevant:
+              - "frontend-typescript/**"
+
   frontend-test:
+    needs: changes
+    if: needs.changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

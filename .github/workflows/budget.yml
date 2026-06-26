@@ -3,17 +3,27 @@ name: Budget Service CI
 on:
   push:
     branches: [main, develop]
-    paths:
-      - "services/budget/**"
-      - "shared/**"
   pull_request:
     branches: [main, develop]
-    paths:
-      - "services/budget/**"
-      - "shared/**"
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            relevant:
+              - "services/budget/**"
+              - "shared/**"
+
   budget-test:
+    needs: changes
+    if: needs.changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     env:
       BUDGET_DATABASE_URL: ${{ secrets.BUDGET_DATABASE_URL }}

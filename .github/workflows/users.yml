@@ -3,17 +3,27 @@ name: Users Service CI
 on:
   push:
     branches: [main, develop]
-    paths:
-      - "services/users/**"
-      - "shared/**"
   pull_request:
     branches: [main, develop]
-    paths:
-      - "services/users/**"
-      - "shared/**"
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            relevant:
+              - "services/users/**"
+              - "shared/**"
+
   users-test:
+    needs: changes
+    if: needs.changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     env:
       USERS_DATABASE_URL: ${{ secrets.USERS_DATABASE_URL }}
@@ -42,4 +52,4 @@ jobs:
 
       - name: Run tests
         working-directory: ./services/users
-        run: echo "Skipping tests for now"
+        run: python -m pytest tests/ -v

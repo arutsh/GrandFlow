@@ -14,7 +14,11 @@ def _ai_headers(token: str) -> dict:
 
 def _forward_error(response: httpx.Response) -> None:
     if response.status_code >= 400:
-        raise HTTPException(status_code=response.status_code, detail=response.json())
+        try:
+            detail = response.json()
+        except Exception:
+            detail = response.text
+        raise HTTPException(status_code=response.status_code, detail=detail)
 
 
 @router.get("/ai-settings")

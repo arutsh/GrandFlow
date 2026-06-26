@@ -25,6 +25,12 @@ def _scalars_result(values):
     return result
 
 
+def _scalars_first_result(value):
+    result = MagicMock()
+    result.scalars.return_value.first.return_value = value
+    return result
+
+
 class TestGetKey:
     def test_returns_none_when_no_row(self):
         db = _make_mock_db()
@@ -46,7 +52,7 @@ class TestGetKey:
 class TestGetActiveKey:
     def test_returns_none_when_no_key(self):
         db = _make_mock_db()
-        db.execute = AsyncMock(return_value=_scalar_result(None))
+        db.execute = AsyncMock(return_value=_scalars_first_result(None))
         result = anyio.run(get_active_key, USER_ID, db)
         assert result is None
 
@@ -55,7 +61,7 @@ class TestGetActiveKey:
         row = UserProviderKey()
         row.user_id = USER_ID
         row.encrypted_key = "enc_value"
-        db.execute = AsyncMock(return_value=_scalar_result(row))
+        db.execute = AsyncMock(return_value=_scalars_first_result(row))
         result = anyio.run(get_active_key, USER_ID, db)
         assert result is row
 

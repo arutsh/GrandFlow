@@ -3,17 +3,27 @@ name: AI Service CI
 on:
   push:
     branches: [main, develop]
-    paths:
-      - "services/ai/**"
-      - "shared/**"
   pull_request:
     branches: [main, develop]
-    paths:
-      - "services/ai/**"
-      - "shared/**"
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            relevant:
+              - "services/ai/**"
+              - "shared/**"
+
   ai-test:
+    needs: changes
+    if: needs.changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     env:
       AI_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/grandflow_ai
