@@ -1,3 +1,4 @@
+import pytest
 import anyio
 from unittest.mock import MagicMock, patch
 from app.services.provider import NullProvider, AnthropicProvider, resolve_provider
@@ -25,7 +26,7 @@ class TestNullProvider:
 
 
 class TestResolveProvider:
-    def _make_user_key(self, provider_name="anthropic", model_name=None, encrypted_key="enc"):
+    def _make_user_key(self, provider_name="anthropic", model_name="claude-sonnet-4-6", encrypted_key="enc"):
         user_key = MagicMock()
         user_key.provider.name = provider_name
         user_key.model_name = model_name
@@ -46,6 +47,12 @@ class TestResolveProvider:
             provider = resolve_provider(user_key=user_key)
         assert isinstance(provider, AnthropicProvider)
         assert provider.model_name == "claude-haiku-4-5-20251001"
+
+    def test_missing_model_name_raises(self):
+        user_key = self._make_user_key(model_name=None)
+        with patch("app.utils.encryption.decrypt", return_value="sk-ant-api03-testkey"):
+            with pytest.raises(ValueError, match="no model_name set"):
+                resolve_provider(user_key=user_key)
 
     def test_no_key_returns_null(self):
         provider = resolve_provider(user_key=None)
