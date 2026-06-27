@@ -13,7 +13,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000, // 👈 expose frontend at http://localhost:3000
+    port: 3000,
     host: true, // needed for Docker
   },
   test: {

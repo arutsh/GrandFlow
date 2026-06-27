@@ -8,6 +8,7 @@ app = Celery(
     backend=settings.REDIS_URL,
     include=[
         "tasks.ai.cleanup_sessions",
+        "tasks.debug.ping",
     ],
 )
 
@@ -21,6 +22,7 @@ app.conf.update(
         "tasks.ai.*": {"queue": "ai"},
         "tasks.budget.*": {"queue": "budget"},
         "tasks.users.*": {"queue": "users"},
+        "tasks.debug.*": {"queue": "ai"},
     },
     beat_schedule={
         "cleanup-ai-sessions-daily": {
