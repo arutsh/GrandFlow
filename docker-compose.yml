@@ -79,6 +79,45 @@ services:
     ports:
       - "6379:6379"
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: grandflow-rabbitmq
+    ports:
+      - "5672:5672"    # AMQP protocol
+      - "15672:15672"  # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-guest}
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    container_name: grandflow-worker
+    env_file:
+      - ./services/worker/.env.worker.local
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - rabbitmq
+      - redis
+      - grandflow-db
+    command: celery -A celery_app worker --loglevel=info -Q ai,budget,users
+
+  beat:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    container_name: grandflow-beat
+    env_file:
+      - ./services/worker/.env.worker.local
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - rabbitmq
+      - redis
+    command: celery -A celery_app beat --loglevel=info
+
 volumes:
   grandflow_data:
 
