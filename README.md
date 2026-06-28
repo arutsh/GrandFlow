@@ -4,6 +4,8 @@ GrantFlow is an open-source platform for budget management and financial reporti
 
 > **Status:** Active development — not yet production-ready.
 
+→ **[Product Overview](docs/PRODUCT.md)** — what GrantFlow does, who it's for, and why it exists.
+
 ---
 
 ## Architecture
