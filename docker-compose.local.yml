@@ -124,6 +124,46 @@ services:
     networks:
       - grandflow
 
+  # Celery Worker
+  worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    container_name: grandflow-worker-local
+    env_file:
+      - ./services/worker/.env.worker.local
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      grandflow-db:
+        condition: service_healthy
+    command: celery -A celery_app worker --loglevel=info -Q ai,budget,users
+    networks:
+      - grandflow
+
+  # Celery Beat Scheduler
+  beat:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    container_name: grandflow-beat-local
+    env_file:
+      - ./services/worker/.env.worker.local
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A celery_app beat --loglevel=info
+    networks:
+      - grandflow
+
   # Frontend
   frontend:
     build:

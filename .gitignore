@@ -210,10 +210,8 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 frontend-typescript/package-lock.json
-services/budget/.env.budget.private.dev
 CODE_QUALITY_REPORT.md
 .devrc
-services/budget/.env.budget.private.local
 migration-plan.md
 ai-context.md
 package-lock.json

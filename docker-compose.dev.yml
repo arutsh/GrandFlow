@@ -61,12 +61,14 @@ services:
     container_name: grandflow-flower
     environment:
       - CELERY_BROKER_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672//
+      - FLOWER_BROKER_API=http://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:${RABBITMQ_MANAGEMENT_PORT}/api/
     ports:
       - "5555:5555"   # Flower Web UI port
     networks:
       - grandflow
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
 
   # Nginx Proxy (routes to local services at host.docker.internal)
   nginx:
